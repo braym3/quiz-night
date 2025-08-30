@@ -16,33 +16,37 @@ const shuffleArray = (array) => {
 };
 
 const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
-  const [question, setQuestion] = useState(null);
+  const [quizContent, setQuizContent] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
-  const [orderedAnswer, setOrderedAnswer] = useState([]); // For ordering questions
+  const [orderedAnswer, setOrderedAnswer] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    if (gameState && gameState.currentQuestionId) {
-      const questionRef = ref(database, `questions/${gameState.currentQuestionId}`);
-      
-      get(questionRef).then((snapshot) => {
-        if (snapshot.exists()) {
-          const questionData = snapshot.val();
-          setQuestion(questionData);
-          setIsSubmitted(false); // reset submission status for new question
-          setAnswer(''); // Clear old text answers
-
-          if (questionData.type === 'ordering') {
-            setOrderedAnswer(shuffleArray([...questionData.options]));
+      const quizContentRef = ref(database, 'quizContent');
+      get(quizContentRef).then((snapshot) => {
+          if (snapshot.exists()) {
+              setQuizContent(snapshot.val());
           }
-        } else {
-          setQuestion(null);
-        }
       });
+  }, []);
+
+  useEffect(() => {
+    if (gameState && gameState.currentQuestionId && quizContent) {
+      const questionData = quizContent[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
+      if (questionData) {
+        setCurrentQuestion(questionData);
+        setIsSubmitted(false);
+        setAnswer('');
+
+        if (questionData.type === 'ordering') {
+          setOrderedAnswer(shuffleArray([...questionData.options]));
+        }
+      }
     } else {
-        setQuestion(null);
+        setCurrentQuestion(null);
     }
-  }, [gameState]);
+  }, [gameState, quizContent]);
 
   const handleTextAnswerSubmit = () => {
     if (answer.trim() !== '') {
@@ -70,53 +74,92 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     }
   };
 
+  const renderRoundInfo = () => {
+    if (!quizContent || !gameState?.currentRoundId || !gameState.currentQuestionId) {
+        return null;
+    }
+
+    const round = quizContent[gameState.currentRoundId];
+    if (!round) return null;
+    
+    const questionsInRound = Object.keys(round.questions);
+    const totalQuestions = questionsInRound.length;
+    const currentQuestionIndex = questionsInRound.indexOf(gameState.currentQuestionId);
+    
+    const progress = (currentQuestionIndex / totalQuestions) * 100;
+
+    return (
+        <div className="round-header">
+            <h3 className="round-title">{round.title}</h3>
+            <div className="progress-bar-container">
+                <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+            </div>
+        </div>
+    );
+  };
+
   if (!gameState || gameState.quizStatus === 'waiting') {
-    return <div className="player-message">The quiz is about to start... Check the leaderboard tab to see who is here!</div>;
+    return <div className="player-view-container centered-view">
+        <div className="player-message">
+            <h2>Get Ready!</h2>
+            <p>The quiz is about to start...</p>
+        </div>
+    </div>;
   }
 
   if (gameState.quizStatus === 'ended') {
-    return <div className="player-message">The quiz has ended! Check the leaderboard for final results.</div>;
+    return <div className="player-view-container centered-view">
+        <div className="player-message">
+            <h2>Quiz Over!</h2>
+            <p>Check the leaderboard for the final results.</p>
+        </div>
+    </div>;
   }
 
-  // **UPDATED CONDITION: Show answer during 'reveal' AND 'moderating'**
   if (gameState.quizStatus === 'reveal' || gameState.quizStatus === 'moderating') {
     let correctAnswerText = '';
-    if (question) {
-      if (question.options && !Array.isArray(question.options)) {
-        correctAnswerText = question.options[question.answer];
-      } else if (Array.isArray(question.answer)) {
-        correctAnswerText = question.answer.join(' → ');
+    if (currentQuestion) {
+      if (currentQuestion.options && !Array.isArray(currentQuestion.options)) {
+        correctAnswerText = currentQuestion.options[currentQuestion.answer];
+      } else if (Array.isArray(currentQuestion.answer)) {
+        correctAnswerText = currentQuestion.answer.join(' → ');
       } else {
-        correctAnswerText = question.answer;
+        correctAnswerText = currentQuestion.answer;
       }
     }
 
     return (
-        <div className="answer-reveal-container">
-            <h2>The correct answer was:</h2>
-            <p className="correct-answer-text">{correctAnswerText}</p>
-            <p className="player-message">Waiting for the Quiz Master to proceed...</p>
-            <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+        <div className="player-view-container centered-view">
+            <div className="answer-reveal-container">
+                <p>The correct answer was:</p>
+                <h2 className="correct-answer-text">{correctAnswerText}</h2>
+                <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+            </div>
         </div>
     );
   }
 
-  if (!question) {
-    return <div className="player-message">Loading question...</div>;
+  if (!currentQuestion) {
+    return <div className="player-view-container centered-view">
+        <div className="player-message">Loading question...</div>
+    </div>;
   }
   
-  const renderQuestion = () => {
-    switch(question.type) {
+  const renderInteraction = () => {
+    if (isSubmitted) {
+        return <div className="player-message submitted-message">
+            <h3>Answer Locked In!</h3>
+            <p>Waiting for the reveal...</p>
+        </div>
+    }
+
+    switch(currentQuestion.type) {
       case 'multiple_choice':
       case 'true_false':
         return (
           <div className="answer-options">
-            {Object.entries(question.options).map(([key, value]) => (
-              <button
-                key={key}
-                onClick={() => handleChoiceSubmit(key)}
-                disabled={isSubmitted}
-              >
+            {Object.entries(currentQuestion.options).map(([key, value]) => (
+              <button key={key} onClick={() => handleChoiceSubmit(key)}>
                 {value}
               </button>
             ))}
@@ -131,30 +174,27 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
                 <li key={index} className="ordering-item">
                   <span>{item}</span>
                   <div className="ordering-controls">
-                    <button onClick={() => moveOption(index, -1)} disabled={index === 0 || isSubmitted}>▲</button>
-                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1 || isSubmitted}>▼</button>
+                    <button onClick={() => moveOption(index, -1)} disabled={index === 0}>▲</button>
+                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1}>▼</button>
                   </div>
                 </li>
               ))}
             </ul>
-            <button onClick={handleOrderingSubmit} disabled={isSubmitted}>Submit Order</button>
+            <button onClick={handleOrderingSubmit}>Submit Order</button>
           </div>
         );
       
-      case 'image_input':
-      case 'text_input':
       default:
         return (
           <div className="text-input-section">
-            {question.imageUrl && <img src={question.imageUrl} alt="Quiz question" className="question-image"/>}
+            {currentQuestion.imageUrl && <img src={currentQuestion.imageUrl} alt="Quiz question" className="question-image"/>}
             <input
               type="text"
               placeholder="Your answer..."
               onChange={(e) => setAnswer(e.target.value)}
-              disabled={isSubmitted}
               onKeyPress={(e) => e.key === 'Enter' && handleTextAnswerSubmit()}
             />
-            <button onClick={handleTextAnswerSubmit} disabled={isSubmitted}>
+            <button onClick={handleTextAnswerSubmit}>
               Submit Answer
             </button>
           </div>
@@ -164,9 +204,13 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
   return (
     <div className="player-view-container">
-      <h2>Question {gameState.currentQuestionId.replace('q', '')}:</h2>
-      <p className="question-text">{question.text}</p>
-      {isSubmitted ? <p className="player-message">Your answer is submitted! Waiting for the reveal...</p> : renderQuestion()}
+        {renderRoundInfo()}
+        <div className="question-section">
+            <p className="question-text">{currentQuestion.text}</p>
+        </div>
+        <div className="interaction-section">
+            {renderInteraction()}
+        </div>
     </div>
   );
 };

@@ -1,62 +1,65 @@
 {
-  "quiz": {
-    "gameState": {
-      "quizStatus": "waiting",
-      "currentQuestionId": ""
+  "quizContent": {
+    "round1": {
+      "title": "General Knowledge",
+      "questions": {
+        "q1": {
+          "type": "multiple_choice",
+          "text": "What is the capital of France?",
+          "options": { "a": "London", "b": "Paris", "c": "Rome" },
+          "answer": "b",
+          "points": 10
+        },
+        "q2": {
+          "type": "text_input",
+          "text": "What year was the first iPhone released?",
+          "answer": "2007",
+          "points": 10
+        },
+        "q3": {
+          "type": "ordering",
+          "text": "Order these films by their original release date (oldest first).",
+          "options": [
+            "The Matrix",
+            "Star Wars: A New Hope",
+            "Pulp Fiction",
+            "Avatar"
+          ],
+          "answer": [
+            "Star Wars: A New Hope",
+            "Pulp Fiction",
+            "The Matrix",
+            "Avatar"
+          ],
+          "points": 20
+        }
+      }
+    },
+    "round2": {
+      "title": "Music Round",
+      "questions": {
+        "q4": {
+          "type": "text_input",
+          "text": "Who is the artist behind the song 'Bohemian Rhapsody'?",
+          "answer": "Queen",
+          "points": 10
+        },
+        "q5": {
+          "type": "true_false",
+          "text": "The Beatles were originally called 'The Quarrymen'.",
+          "options": { "a": "True", "b": "False" },
+          "answer": "a",
+          "points": 15
+        }
+      }
     }
   },
   "players": {},
-  "questions": {
-    "q1": {
-      "type": "multiple_choice",
-      "text": "What is the capital of France?",
-      "options": {
-        "a": "London",
-        "b": "Paris",
-        "c": "Rome"
-      },
-      "answer": "b"
-    },
-    "q2": {
-      "type": "true_false",
-      "text": "The Earth is flat.",
-      "options": {
-        "a": "True",
-        "b": "False"
-      },
-      "answer": "b"
-    },
-    "q3": {
-      "type": "text_input",
-      "text": "Who is the artist behind the song 'Bohemian Rhapsody'?",
-      "answer": "Queen"
-    },
-    "q4": {
-      "type": "image_input",
-      "text": "Identify the celebrity.",
-      "imageUrl": "https://i.insider.com/602ee9d82edd0f00184d6316?width=1136&format=jpeg",
-      "answer": "Keanu Reeves"
-    },
-    "q5": {
-      "type": "ordering",
-      "text": "Order these films by their original release date (oldest first).",
-      "options": [
-        "The Matrix",
-        "Star Wars: A New Hope",
-        "Pulp Fiction",
-        "Avatar"
-      ],
-      "answer": [
-        "Star Wars: A New Hope",
-        "Pulp Fiction",
-        "The Matrix",
-        "Avatar"
-      ]
-    },
-    "q6": {
-      "type": "text_input",
-      "text": "What year was the first iPhone released?",
-      "answer": "2007"
+  "quiz": {
+    "gameState": {
+      "quizStatus": "waiting",
+      "currentRoundId": "",
+      "currentQuestionId": ""
     }
   }
 }

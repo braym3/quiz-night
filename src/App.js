@@ -1,5 +1,3 @@
-// src/App.js
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { database } from './index';
@@ -13,28 +11,22 @@ function App() {
   const [playerName, setPlayerName] = useState('');
   const [gameState, setGameState] = useState(null);
   const [players, setPlayers] = useState([]);
-  // REMOVE currentView state
-  // const [currentView, setCurrentView] = useState('player-input'); 
   const [hasJoined, setHasJoined] = useState(false);
   const [playerTab, setPlayerTab] = useState('quiz'); // 'quiz' or 'leaderboard'
 
-  // check URL to determine if this is the quiz master
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('role') === 'master') {
       setIsMaster(true);
-      // setCurrentView('master'); // No longer needed
     }
   }, []);
 
-  // fetch initial data from Firebase and set up real-time listeners
   useEffect(() => {
     const gameStateRef = ref(database, 'quiz/gameState');
     onValue(gameStateRef, (snapshot) => {
       const state = snapshot.val();
       if (state) {
         setGameState(state);
-        // This logic is simplified, as the view is now controlled by tabs
       }
     });
 
@@ -81,7 +73,6 @@ function App() {
       );
     }
 
-    // New Player Dashboard with Tabs
     return (
       <div className="player-dashboard">
         <div className="tabs">
@@ -109,7 +100,7 @@ function App() {
     );
   };
 
-  return <div className="App">{renderView()}</div>;
+  return <div className={isMaster ? 'App master-mode' : 'App'}>{renderView()}</div>;
 }
 
 export default App;
