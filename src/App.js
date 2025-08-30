@@ -1,0 +1,115 @@
+// src/App.js
+
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import { database } from './index';
+import { ref, onValue, get, set } from 'firebase/database';
+import Leaderboard from './components/Leaderboard/Leaderboard';
+import PlayerView from './components/PlayerView/PlayerView';
+import MasterView from './components/MasterView/MasterView';
+
+function App() {
+  const [isMaster, setIsMaster] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [gameState, setGameState] = useState(null);
+  const [players, setPlayers] = useState([]);
+  // REMOVE currentView state
+  // const [currentView, setCurrentView] = useState('player-input'); 
+  const [hasJoined, setHasJoined] = useState(false);
+  const [playerTab, setPlayerTab] = useState('quiz'); // 'quiz' or 'leaderboard'
+
+  // check URL to determine if this is the quiz master
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('role') === 'master') {
+      setIsMaster(true);
+      // setCurrentView('master'); // No longer needed
+    }
+  }, []);
+
+  // fetch initial data from Firebase and set up real-time listeners
+  useEffect(() => {
+    const gameStateRef = ref(database, 'quiz/gameState');
+    onValue(gameStateRef, (snapshot) => {
+      const state = snapshot.val();
+      if (state) {
+        setGameState(state);
+        // This logic is simplified, as the view is now controlled by tabs
+      }
+    });
+
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const playersArray = Object.entries(snapshot.val()).map(([name, data]) => ({
+          name,
+          ...data,
+        }));
+        playersArray.sort((a, b) => b.score - a.score);
+        setPlayers(playersArray);
+      } else {
+        setPlayers([]);
+      }
+    });
+  }, [isMaster]);
+
+  const handleJoinQuiz = (name) => {
+    if (name.trim() === '') return;
+    const sanitizedName = name.trim();
+    setPlayerName(sanitizedName);
+    set(ref(database, `players/${sanitizedName}`), { score: 0, answer: '' });
+    setHasJoined(true);
+  };
+
+  const renderView = () => {
+    if (isMaster) {
+      return <MasterView gameState={gameState} players={players} />;
+    }
+
+    if (!hasJoined) {
+      return (
+        <div className="player-input-section">
+          <h2>Join the Quiz!</h2>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            onChange={(e) => setPlayerName(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleJoinQuiz(playerName)}
+          />
+          <button onClick={() => handleJoinQuiz(playerName)}>Join Quiz</button>
+        </div>
+      );
+    }
+
+    // New Player Dashboard with Tabs
+    return (
+      <div className="player-dashboard">
+        <div className="tabs">
+          <button 
+            className={`tab-button ${playerTab === 'quiz' ? 'active' : ''}`} 
+            onClick={() => setPlayerTab('quiz')}
+          >
+            Quiz
+          </button>
+          <button 
+            className={`tab-button ${playerTab === 'leaderboard' ? 'active' : ''}`}
+            onClick={() => setPlayerTab('leaderboard')}
+          >
+            Leaderboard
+          </button>
+        </div>
+        <div className="tab-content">
+          {playerTab === 'quiz' ? (
+            <PlayerView playerName={playerName} gameState={gameState} onShowLeaderboard={() => setPlayerTab('leaderboard')} />
+          ) : (
+            <Leaderboard players={players} />
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return <div className="App">{renderView()}</div>;
+}
+
+export default App;

@@ -1,0 +1,123 @@
+.master-view-container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.master-view-container h1 {
+    text-align: center;
+    color: #0056b3;
+    margin-bottom: 30px;
+}
+
+.master-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.master-card h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    color: #333;
+}
+
+.controls-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.controls-group button {
+    padding: 10px 15px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.controls-group button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.controls-group button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.master-status {
+    font-size: 1.1em;
+    font-style: italic;
+    color: #555;
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.answers-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.answer-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.answer-item:last-child {
+    border-bottom: none;
+}
+
+.answer-item .player-name {
+    font-weight: bold;
+    color: #333;
+    width: 30%;
+}
+
+.answer-item .player-answer {
+    font-style: italic;
+    color: #0056b3;
+    flex-grow: 1;
+    padding: 0 15px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.score-moderation {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.score-moderation .score-input {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    font-size: 1.1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.score-moderation span {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.waiting-for-answers {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}

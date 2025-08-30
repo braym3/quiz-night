@@ -1,0 +1,75 @@
+.player-view-container {
+  width: 100%;
+  padding: 20px;
+}
+
+.player-message {
+  font-style: italic;
+  color: #666;
+  padding: 20px;
+}
+
+.question-text {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.answer-options button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+
+.text-input-section input {
+  width: calc(100% - 150px);
+  margin-right: 10px;
+}
+
+.text-input-section button {
+  width: 130px;
+}
+
+.ordering-section {
+  width: 100%;
+}
+
+.ordering-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.ordering-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.ordering-controls button {
+  margin-left: 5px;
+  padding: 5px 10px;
+}
+
+.answer-reveal-container .leaderboard-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1.1em;
+  cursor: pointer;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.question-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}

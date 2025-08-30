@@ -1,0 +1,76 @@
+.App {
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hidden {
+  display: none !important;
+}
+
+h1, h2, h3 {
+    color: #0056b3;
+}
+
+pre {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: left;
+}
+
+
+.player-input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.player-input-section input {
+  padding: 10px;
+  font-size: 1.1em;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 80%;
+}
+
+.player-input-section button {
+  padding: 10px 20px;
+  font-size: 1.1em;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active {
+  color: #0056b3;
+  border-bottom: 3px solid #0056b3;
+}
+
+.tab-button:hover:not(.active) {
+  background-color: #f0f0f0;
+}
