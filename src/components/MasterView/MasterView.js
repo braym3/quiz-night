@@ -71,14 +71,12 @@ const MasterView = ({ gameState, players }) => {
         let currentRoundId = gameState?.currentRoundId;
         let currentQuestionId = gameState?.currentQuestionId;
 
-        // If the quiz has ended, force a restart from the beginning
         if (gameState?.quizStatus === 'ended') {
             currentRoundId = '';
             currentQuestionId = '';
             set(ref(database, 'players'), {});
         }
         
-        // If we are in the interstitial state, start the first question of the current round
         if (gameState?.quizStatus === 'round-interstitial') {
             const firstQuestionId = Object.keys(quizContent[currentRoundId].questions)[0];
             update(ref(database, 'quiz/gameState'), {
@@ -88,33 +86,35 @@ const MasterView = ({ gameState, players }) => {
             return;
         }
 
-        if (!currentRoundId) { // Starting the very first question of the quiz
-            currentRoundId = roundIds[0];
-            currentQuestionId = Object.keys(quizContent[currentRoundId].questions)[0];
-        } else { // Advancing through the quiz
-            const currentRoundQuestions = Object.keys(quizContent[currentRoundId].questions);
-            const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
+        // When starting for the very first time, go to the round interstitial first.
+        if (!currentRoundId) {
+            const firstRoundId = roundIds[0];
+            update(ref(database, 'quiz/gameState'), {
+                quizStatus: 'round-interstitial',
+                currentRoundId: firstRoundId,
+                currentQuestionId: '',
+            });
+            return; // Stop here and wait for the "Start Round" click
+        }
+        
+        const currentRoundQuestions = Object.keys(quizContent[currentRoundId].questions);
+        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
 
-            if (currentQuestionIndex < currentRoundQuestions.length - 1) {
-                // There's another question in the current round
-                currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+        if (currentQuestionIndex < currentRoundQuestions.length - 1) {
+            currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+        } else {
+            const currentRoundIndex = roundIds.indexOf(currentRoundId);
+            if (currentRoundIndex < roundIds.length - 1) {
+                const nextRoundId = roundIds[currentRoundIndex + 1];
+                update(ref(database, 'quiz/gameState'), {
+                    quizStatus: 'round-interstitial',
+                    currentRoundId: nextRoundId,
+                    currentQuestionId: '',
+                });
+                return;
             } else {
-                // End of the round, check for the next one
-                const currentRoundIndex = roundIds.indexOf(currentRoundId);
-                if (currentRoundIndex < roundIds.length - 1) {
-                    // There's a next round, so go to the interstitial screen for it
-                    const nextRoundId = roundIds[currentRoundIndex + 1];
-                    update(ref(database, 'quiz/gameState'), {
-                        quizStatus: 'round-interstitial',
-                        currentRoundId: nextRoundId,
-                        currentQuestionId: '', // No active question
-                    });
-                    return; // Stop here until the master starts the next round
-                } else {
-                    // No more rounds, end the quiz
-                    update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
-                    return;
-                }
+                update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
+                return;
             }
         }
         
@@ -217,7 +217,6 @@ const MasterView = ({ gameState, players }) => {
             }
             return <button className="button-primary" onClick={applyAndGoNext}>Next</button>
         }
-        // NEW STATE: Show a "Start Round" button
         if (status === 'round-interstitial') {
             return <button className="button-primary" onClick={handleNextQuestion}>Start Round</button>
         }
