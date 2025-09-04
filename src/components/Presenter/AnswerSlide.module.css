@@ -1,0 +1,32 @@
+.card {
+    width: 100%;
+    max-width: 1000px;
+    min-height: 50vh;
+    background-color: var(--surface-white);
+    border-radius: 24px;
+    border: 3px solid var(--text-purple);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    padding: 30px 40px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
+    font-family: var(--font-family-body);
+    font-weight: 700;
+    font-size: 2em;
+    color: var(--text-purple);
+    opacity: 0.8;
+}
+
+.correctAnswer {
+    font-family: var(--font-family-heading);
+    font-size: clamp(3rem, 8vw, 6rem);
+    color: #28a745; /* A positive green color */
+    line-height: 1.2;
+    margin: 10px 0 0 0;
+}

@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import WelcomeSlide from './WelcomeSlide';
 import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
+import AnswerSlide from './AnswerSlide'; // Import the new component
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
 
@@ -41,11 +42,18 @@ export default function Presenter() {
         const round = quizContent[currentRoundId];
         const question = round?.questions[currentQuestionId];
 
-        if ((quizStatus === 'active' || quizStatus === 'moderating') && question) {
+        // UPDATED LOGIC: to show the correct slide based on the status
+        if (quizStatus === 'active' && question) {
              return <QuestionSlide key={currentQuestionId} question={question} round={round} />;
-        } else {
-             return <RoundSlide key={currentRoundId} round={round} />;
+        } 
+        
+        if (quizStatus === 'moderating' && question) {
+            // When revealing the answer, show the new AnswerSlide
+            return <AnswerSlide key={`${currentQuestionId}-answer`} question={question} />;
         }
+
+        // Fallback to the round title slide
+        return <RoundSlide key={currentRoundId} round={round} />;
     };
 
     return (
