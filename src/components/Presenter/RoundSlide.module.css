@@ -1,5 +1,8 @@
 .roundContainer {
     text-align: center;
+    display: flex; /* Use flexbox to easily arrange items */
+    flex-direction: column;
+    align-items: center;
 }
 .roundNumber {
     font-family: var(--font-family-body);
@@ -13,4 +16,12 @@
     color: var(--text-purple);
     line-height: 1.1;
     text-shadow: 5px 5px 0 var(--pastel-red-shadow);
+    margin: 10px 0; /* Add some margin */
+}
+
+/* NEW: Style for the Lottie animation container */
+.lottieContainer {
+    width: 100%;
+    max-width: 250px; /* Control the max size of the icon */
+    margin-top: 20px;
 }
