@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import styles from './RoundSlide.module.css';
 
-export default function RoundSlide({ round }) {
+export default function RoundSlide({ round, roundId }) { // Added roundId here
     if (!round) return null;
+
+    // CORRECTED: Use the roundId prop to get the number
+    const roundNumber = roundId ? String(roundId).replace(/\D/g, '') : '';
 
     return (
         <motion.div
@@ -18,7 +21,8 @@ export default function RoundSlide({ round }) {
                 initial={{ y: -30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1, transition: { delay: 0.2 } }}
             >
-                Round #X
+                {/* Display the dynamic round number */}
+                Round #{roundNumber}
             </motion.h2>
             <motion.h1
                 className={styles.roundTitle}

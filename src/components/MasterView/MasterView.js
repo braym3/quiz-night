@@ -68,33 +68,50 @@ const MasterView = ({ gameState, players }) => {
         if (!quizContent) return;
         setModeratedScores({});
         const roundIds = Object.keys(quizContent);
-        let nextRoundId = gameState?.currentRoundId;
-        let nextQuestionId = gameState?.currentQuestionId;
+        let currentRoundId = gameState?.currentRoundId;
+        let currentQuestionId = gameState?.currentQuestionId;
 
-        // --- THIS IS THE FIX ---
-        // If the quiz has ended, we force a restart from the beginning
+        // If the quiz has ended, force a restart from the beginning
         if (gameState?.quizStatus === 'ended') {
-            nextRoundId = '';
-            nextQuestionId = '';
-            set(ref(database, 'players'), {}); // Also clear the players for the new game
+            currentRoundId = '';
+            currentQuestionId = '';
+            set(ref(database, 'players'), {});
         }
-        // --- END OF FIX ---
+        
+        // If we are in the interstitial state, start the first question of the current round
+        if (gameState?.quizStatus === 'round-interstitial') {
+            const firstQuestionId = Object.keys(quizContent[currentRoundId].questions)[0];
+            update(ref(database, 'quiz/gameState'), {
+                quizStatus: 'active',
+                currentQuestionId: firstQuestionId,
+            });
+            return;
+        }
 
-        if (!nextRoundId) {
-            nextRoundId = roundIds[0];
-            nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
-        } else {
-            const currentRoundQuestions = Object.keys(quizContent[nextRoundId].questions);
-            const currentQuestionIndex = currentRoundQuestions.indexOf(nextQuestionId);
+        if (!currentRoundId) { // Starting the very first question of the quiz
+            currentRoundId = roundIds[0];
+            currentQuestionId = Object.keys(quizContent[currentRoundId].questions)[0];
+        } else { // Advancing through the quiz
+            const currentRoundQuestions = Object.keys(quizContent[currentRoundId].questions);
+            const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
 
             if (currentQuestionIndex < currentRoundQuestions.length - 1) {
-                nextQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+                // There's another question in the current round
+                currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
             } else {
-                const currentRoundIndex = roundIds.indexOf(nextRoundId);
+                // End of the round, check for the next one
+                const currentRoundIndex = roundIds.indexOf(currentRoundId);
                 if (currentRoundIndex < roundIds.length - 1) {
-                    nextRoundId = roundIds[currentRoundIndex + 1];
-                    nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
+                    // There's a next round, so go to the interstitial screen for it
+                    const nextRoundId = roundIds[currentRoundIndex + 1];
+                    update(ref(database, 'quiz/gameState'), {
+                        quizStatus: 'round-interstitial',
+                        currentRoundId: nextRoundId,
+                        currentQuestionId: '', // No active question
+                    });
+                    return; // Stop here until the master starts the next round
                 } else {
+                    // No more rounds, end the quiz
                     update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
                     return;
                 }
@@ -103,8 +120,8 @@ const MasterView = ({ gameState, players }) => {
         
         update(ref(database, 'quiz/gameState'), {
             quizStatus: 'active',
-            currentRoundId: nextRoundId,
-            currentQuestionId: nextQuestionId,
+            currentRoundId: currentRoundId,
+            currentQuestionId: currentQuestionId,
         });
 
         const answerUpdates = {};
@@ -198,7 +215,11 @@ const MasterView = ({ gameState, players }) => {
                     handleNextQuestion();
                 });
             }
-            return <button className="button-primary" onClick={applyAndGoNext}>Apply Scores & Next Question</button>
+            return <button className="button-primary" onClick={applyAndGoNext}>Next</button>
+        }
+        // NEW STATE: Show a "Start Round" button
+        if (status === 'round-interstitial') {
+            return <button className="button-primary" onClick={handleNextQuestion}>Start Round</button>
         }
         return null;
     };

@@ -5,14 +5,31 @@ import { AnimatePresence } from 'framer-motion';
 import WelcomeSlide from './WelcomeSlide';
 import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
-import AnswerSlide from './AnswerSlide'; // Import the new component
+import AnswerSlide from './AnswerSlide';
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
+import quizBackground from '../../assets/images/quiz-background.png';
 
 export default function Presenter() {
     const [gameState, setGameState] = useState(null);
     const [quizContent, setQuizContent] = useState(null);
     const [players, setPlayers] = useState([]);
+
+    useEffect(() => {
+        const rootElement = document.getElementById('root');
+        
+        document.body.style.backgroundImage = 'none';
+        if (rootElement) {
+            rootElement.style.padding = '0';
+        }
+
+        return () => {
+            document.body.style.backgroundImage = `url(${quizBackground})`;
+            if (rootElement) {
+                rootElement.style.padding = '20px';
+            }
+        };
+    }, []);
 
     useEffect(() => {
         get(ref(database, 'quizContent')).then((snapshot) => {
@@ -42,18 +59,20 @@ export default function Presenter() {
         const round = quizContent[currentRoundId];
         const question = round?.questions[currentQuestionId];
 
-        // UPDATED LOGIC: to show the correct slide based on the status
+        if (quizStatus === 'round-interstitial') {
+            // Pass the currentRoundId as a prop here
+            return <RoundSlide key={currentRoundId} round={round} roundId={currentRoundId} />;
+        }
+        
         if (quizStatus === 'active' && question) {
              return <QuestionSlide key={currentQuestionId} question={question} round={round} />;
         } 
         
         if (quizStatus === 'moderating' && question) {
-            // When revealing the answer, show the new AnswerSlide
             return <AnswerSlide key={`${currentQuestionId}-answer`} question={question} />;
         }
 
-        // Fallback to the round title slide
-        return <RoundSlide key={currentRoundId} round={round} />;
+        return <WelcomeSlide key="fallback" title="Trivia Night!" subtitle="Please wait..." />;
     };
 
     return (
