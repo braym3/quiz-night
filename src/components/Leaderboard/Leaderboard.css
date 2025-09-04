@@ -1,19 +1,13 @@
 .leaderboard-container {
     width: 100%;
     text-align: center;
-    padding: 10px;
-    box-sizing: border-box;
+    padding: 0;
 }
 
 .leaderboard-container h1 {
-    color: var(--primary-color);
+    color: var(--text-purple);
     margin-bottom: 25px;
-}
-
-.no-players-message {
-    font-style: italic;
-    color: #777;
-    margin-top: 30px;
+    font-size: 2.2em;
 }
 
 .leaderboard-list {
@@ -25,78 +19,45 @@
 .leaderboard-item {
     display: flex;
     align-items: center;
-    background-color: var(--surface-color);
+    background-color: var(--surface-white);
     margin-bottom: 12px;
     padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 12px;
+    border: 2px solid var(--text-purple);
 }
 
-.leaderboard-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
+/* Special styles for top 3 */
 .leaderboard-item.top-1 {
-    background: linear-gradient(135deg, #fffbeb, #ffeb8a);
+    background-color: #fffbeb;
+    border-color: #feca57;
 }
-
 .leaderboard-item.top-2 {
-    background: linear-gradient(135deg, #f7f7f7, #e8e8e8);
+    background-color: #f7f7f7;
+    border-color: #dcdde1;
 }
-
 .leaderboard-item.top-3 {
-    background: linear-gradient(135deg, #fff5eb, #ffc89e);
+    background-color: #fff5eb;
+    border-color: #ff9f43;
 }
 
 .player-rank {
-    font-weight: 700;
-    color: var(--text-color);
+    font-family: var(--font-family-heading);
+    color: var(--text-purple);
     font-size: 1.4em;
-    min-width: 80px;
+    min-width: 70px;
     text-align: left;
-    display: flex;
-    align-items: center;
-}
-
-.player-rank .medal {
-    margin-left: 10px;
-    font-size: 1.2em; 
 }
 
 .player-name {
     flex-grow: 1;
     text-align: left;
-    margin-left: 15px;
+    margin-left: 10px;
     font-size: 1.2em;
-    font-weight: 500;
-    color: var(--text-color);
+    font-weight: 700;
 }
 
 .player-score {
-    font-weight: 700;
-    color: var(--primary-color);
+    font-family: var(--font-family-heading);
     font-size: 1.3em;
-}
-
-@media (max-width: 600px) {
-  .leaderboard-item {
-    padding: 12px;
-    font-size: 0.9em;
-  }
-
-  .player-rank {
-    min-width: 65px;
-    font-size: 1.2em;
-  }
-
-  .player-name {
-    margin-left: 10px;
-    font-size: 1.1em;
-  }
-
-  .player-score {
-    font-size: 1.1em;
-  }
+    color: var(--primary-purple);
 }

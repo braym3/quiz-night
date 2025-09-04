@@ -1,0 +1,55 @@
+.card {
+    width: 100%;
+    max-width: 1000px;
+    min-height: 50vh;
+    background-color: var(--surface-white);
+    border-radius: 24px;
+    border: 3px solid var(--text-purple);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    padding: 30px 40px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.questionNumberBanner {
+    display: inline-block;
+    background-color: var(--accent-yellow);
+    color: var(--text-purple);
+    font-family: var(--font-family-heading);
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    border: 2px solid var(--text-purple);
+}
+.questionText {
+    font-family: var(--font-family-body);
+    font-size: 2.2em;
+    font-weight: 700;
+    color: var(--text-purple);
+    margin: 20px 0;
+    line-height: 1.4;
+}
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+    align-items: center;
+}
+.option, .or {
+    font-family: var(--font-family-heading);
+    font-size: 2em;
+    color: var(--primary-purple);
+    background-color: rgba(72, 52, 212, 0.1);
+    padding: 5px 20px;
+    border-radius: 8px;
+    display: inline-block;
+}
+.or {
+    background-color: transparent;
+    font-size: 1.5em;
+    padding: 0;
+}

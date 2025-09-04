@@ -1,22 +1,28 @@
+/* Define our new vibrant color palette and fonts */
 :root {
-  --primary-color: #4a69bd;
-  --accent-color: #8e44ad;
-  --accent-color-hover: #702f8a;
-  --background-color: #f4f7f6;
-  --surface-color: #ffffff;
-  --text-color: #333333;
-  --light-gray-color: #e9e9e9;
-  --font-family: 'Poppins', sans-serif;
+  --primary-purple: #9669ff;
+  --accent-yellow: #feca57;
+  --text-purple: #2c2c54;
+  --background-off-white: #f1f2f6;
+  --surface-white: #ffffff;
+  --light-gray: #dcdde1;
+  --pastel-red-shadow: #AAE7FF;
+
+  --font-family-heading: 'Teachers', sans-serif;
+  --font-family-body: 'Poppins', sans-serif;
 }
 
 
 body {
   margin: 0;
-  font-family: var(--font-family); /* Use the new font */
+  font-family: var(--font-family-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  color: var(--text-purple);
+
+  background-image: url('./assets/images/quiz-background.png');
+  background-size: contain;
+  background-color: var(--background-off-white);
 }
 
 code {

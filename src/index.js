@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -22,6 +23,8 @@ export const database = getDatabase(app);
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <Router>
+      <App />
+    </Router>
   </React.StrictMode>
 );

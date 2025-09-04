@@ -71,6 +71,15 @@ const MasterView = ({ gameState, players }) => {
         let nextRoundId = gameState?.currentRoundId;
         let nextQuestionId = gameState?.currentQuestionId;
 
+        // --- THIS IS THE FIX ---
+        // If the quiz has ended, we force a restart from the beginning
+        if (gameState?.quizStatus === 'ended') {
+            nextRoundId = '';
+            nextQuestionId = '';
+            set(ref(database, 'players'), {}); // Also clear the players for the new game
+        }
+        // --- END OF FIX ---
+
         if (!nextRoundId) {
             nextRoundId = roundIds[0];
             nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
@@ -168,7 +177,8 @@ const MasterView = ({ gameState, players }) => {
 
     const renderPrimaryButton = () => {
         const status = gameState?.quizStatus;
-        if (status === 'waiting' || status === 'ended' || status === null) {
+
+        if (!status || status === 'waiting' || status === 'ended') {
             return <button className="button-primary" onClick={handleNextQuestion}>Start Quiz</button>
         }
         if (status === 'active') {

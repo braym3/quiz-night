@@ -1,0 +1,15 @@
+.presenterContainer {
+    width: 100vw;
+    height: 100vh;
+    /* CORRECTED the path to be relative to this file */
+    background-image: url(../../assets/images/presenter-background.png);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5vw;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}

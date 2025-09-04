@@ -1,0 +1,39 @@
+.welcomeContainer {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.subtitle {
+    font-family: var(--font-family-body);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--text-purple);
+    margin-bottom: 0;
+}
+
+.curvedTextContainer {
+    width: 100%;
+    overflow: visible;
+}
+
+.titleText {
+    font-family: var(--font-family-heading);
+    /* INCREASED font size for more impact */
+    font-size: 8.5rem;
+    font-weight: 900;
+    fill: var(--text-purple);
+    filter: drop-shadow(5px 5px 0 var(--pastel-red-shadow));
+}
+
+.iconContainer {
+    margin-top: 1rem;
+}
+
+
+@media (max-width: 768px) {
+    .titleText {
+        /* INCREASED mobile font size */
+        font-size: 6rem;
+    }
+}
