@@ -31,14 +31,30 @@
     margin: 10px 0 0 0;
 }
 
-.correctAnswer.longAnswer {
-    font-size: clamp(1.5rem, 5vw, 2.5rem);
-    line-height: 1.4;
+/* Style for the fun fact paragraph */
+.funFact {
+    font-family: var(--font-family-body);
+    font-size: 1.2em;
+    font-weight: 400;
+    color: #576574;
+    margin-top: 20px;
+    max-width: 80%;
+    text-align: center;
+    justify-self: center;
 }
 
-/* NEW STYLES for the ordering answer list */
+/* Styles for the item detail text used in multiple places */
+.itemDetail {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: #576574;
+    white-space: nowrap;
+}
+
+
+/* Styles for the ordering answer list */
 .orderingCard {
-    justify-content: flex-start; /* Align content to the top */
+    justify-content: flex-start;
     padding-top: 50px;
 }
 
@@ -57,10 +73,17 @@
     margin-bottom: 15px;
     font-family: var(--font-family-body);
     font-weight: 700;
-    font-size: 1.3em;
+    font-size: 1.8em;
     color: var(--text-purple);
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.itemContent {
+    display: flex;
+    align-items: baseline;
+    text-align: left;
 }
 
 .itemNumber {
@@ -68,4 +91,44 @@
     font-size: 1.5em;
     color: var(--primary-purple);
     margin-right: 20px;
+}
+
+/* NEW: Styles for the multiple-choice details list */
+.mcDetailsList {
+    list-style: none;
+    padding: 0;
+    margin-top: 25px;
+    width: 80%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mcItem {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2em;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.correctMcItem {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2em;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.mcItem span:first-child, .correctMcItem span:first-child {
+    text-align: left;
+}
+
+.mcItem span:last-child, .correctMcItem span:last-child {
+    font-weight: 400;
+    color: #576574;
 }

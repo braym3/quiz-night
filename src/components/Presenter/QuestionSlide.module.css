@@ -82,4 +82,13 @@
     padding: 10px 20px;
     border-radius: 8px;
     border: 2px solid var(--light-gray);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 10px;
+}
+.itemDetail {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: #576574;
 }

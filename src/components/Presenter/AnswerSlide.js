@@ -8,7 +8,7 @@ const listVariants = {
         opacity: 1,
         transition: {
             when: "beforeChildren",
-            staggerChildren: 0.3, // Each item will appear 0.3s after the previous one
+            staggerChildren: 0.3,
         },
     },
     hidden: {
@@ -25,7 +25,7 @@ const itemVariants = {
 
 export default function AnswerSlide({ question }) {
     
-    // If the question is an ordering question, we render a special list
+    // If the question is an ordering question, render the animated list
     if (question && question.type === 'ordering') {
         return (
             <motion.div
@@ -35,34 +35,69 @@ export default function AnswerSlide({ question }) {
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.5 }}
             >
-                <h2 className={styles.title}>The Correct Order Is...</h2>
+                <h2 className={styles.title}>The Answer Is...</h2>
                 <motion.ol
                     className={styles.answerList}
                     initial="hidden"
                     animate="visible"
                     variants={listVariants}
                 >
-                    {question.answer.map((item, index) => (
-                        <motion.li key={index} className={styles.answerListItem} variants={itemVariants}>
-                            <span className={styles.itemNumber}>{index + 1}</span>
-                            {item}
-                        </motion.li>
-                    ))}
+                    {question.answer.map((item, index) => {
+                        const detailItem = question.answerDetails?.find(d => d.option === item);
+                        return (
+                            <motion.li key={index} className={styles.answerListItem} variants={itemVariants}>
+                                <div className={styles.itemContent}>
+                                    <span className={styles.itemNumber}>{index + 1}</span>
+                                    {item}
+                                </div>
+                                {detailItem && (
+                                    <span className={styles.itemDetail}>{detailItem.detail}</span>
+                                )}
+                            </motion.li>
+                        );
+                    })}
                 </motion.ol>
             </motion.div>
         );
     }
+    
+    // If it's a multiple-choice question with details for all options
+    if (question && (question.type === 'multiple_choice') && question.answerDetails?.options) {
+        const correctAnswerText = question.options[question.answer];
+        return (
+            <motion.div
+                className={styles.card}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -50, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 100, damping: 20, duration: 0.5 }}
+            >
+                <h2 className={styles.title}>The Answer Is...</h2>
+                <p className={styles.correctAnswer}>{correctAnswerText}</p>
+                <ul className={styles.mcDetailsList}>
+                    {Object.entries(question.options).map(([key, value]) => (
+                        <li key={key} className={key === question.answer ? styles.correctMcItem : styles.mcItem}>
+                            <span>{value}</span>
+                            <span>{question.answerDetails.options[key]}</span>
+                        </li>
+                    ))}
+                </ul>
+            </motion.div>
+        );
+    }
 
-    // --- Fallback for all other question types ---
+
+    // --- Fallback for all other question types (e.g., text_input with a fun fact) ---
     let correctAnswerText = '';
+    let detailText = question?.answerDetails?.detail || '';
+
     if (question) {
-        if (question.type === 'multiple_choice' || question.type === 'true_false') {
+        if (question.type === 'true_false') {
             correctAnswerText = question.options[question.answer];
         } else {
             correctAnswerText = question.answer;
         }
     }
-    const isLongAnswer = correctAnswerText.length > 40;
 
     return (
         <motion.div
@@ -74,9 +109,8 @@ export default function AnswerSlide({ question }) {
         >
             <div className={styles.answerContent}>
                 <h2 className={styles.title}>The Answer Is...</h2>
-                <p className={`${styles.correctAnswer} ${isLongAnswer ? styles.longAnswer : ''}`}>
-                    {correctAnswerText}
-                </p>
+                <p className={styles.correctAnswer}>{correctAnswerText}</p>
+                {detailText && <p className={styles.funFact}>{detailText}</p>}
             </div>
         </motion.div>
     );

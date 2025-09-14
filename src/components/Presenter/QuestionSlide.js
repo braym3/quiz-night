@@ -22,8 +22,8 @@ export default function QuestionSlide({ question, round }) {
     }, [question.imageUrl]);
 
     const questionIdsInRound = Object.keys(round.questions);
-    // Find question by its text content as IDs might not be passed
-    const questionNumber = questionIdsInRound.findIndex(id => round.questions[id].text === question.text) + 1;
+    const questionId = questionIdsInRound.find(id => round.questions[id].text === question.text);
+    const questionNumber = questionIdsInRound.indexOf(questionId) + 1;
 
 
     return (
@@ -41,11 +41,13 @@ export default function QuestionSlide({ question, round }) {
                 
                 <p className={styles.questionText}>{question.text}</p>
                 
-                {/* UPDATED LOGIC: Check question type */}
                 {question.type === 'ordering' && (
                     <ul className={styles.orderingList}>
+                        {/* REMOVED the logic that was showing the answer details here */}
                         {question.options.map((option, index) => (
-                            <li key={index} className={styles.orderingItem}>{option}</li>
+                            <li key={index} className={styles.orderingItem}>
+                                {option}
+                            </li>
                         ))}
                     </ul>
                 )}

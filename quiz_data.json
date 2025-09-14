@@ -13,20 +13,34 @@
               "text": "True or False: Bananas grow on trees.",
               "options": { "a": "True", "b": "False" },
               "answer": "b",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "detail": "They grow on large herbaceous flowering plants, which are technically giant herbs, not trees."
+              }
             },
             "q2": {
               "type": "text_input",
               "text": "What animal has fingerprints so similar to humans they can confuse crime scene investigators?",
               "answer": "Koala",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "detail": "A koala's fingerprints are so indistinguishable from a human's that they have been confused at crime scenes."
+              }
             },
             "q3": {
-                "type": "multiple_choice",
-                "text": "Which of these was invented first?",
-                "options": { "a": "The Dishwasher", "b": "The Pencil Sharpener", "c": "Potato Chips", "d": "Sunglasses" },
-                "answer": "d",
-                "points": 10
+              "type": "multiple_choice",
+              "text": "Which of these was invented first?",
+              "options": { "a": "The Dishwasher", "b": "The Pencil Sharpener", "c": "Potato Chips", "d": "Sunglasses" },
+              "answer": "d",
+              "points": 10,
+              "answerDetails": {
+                "options": {
+                  "a": "(1886)",
+                  "b": "(1828)",
+                  "c": "(1853)",
+                  "d": "(~12th Century)"
+                }
+              }
             }
           }
         },
@@ -78,14 +92,20 @@
               "type": "text_input",
               "text": "Which country’s flag is the only one in the world that is not rectangular?",
               "answer": "Nepal",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "detail": "The flag is a simplified combination of two single pennons."
+              }
             },
             "q9": {
               "type": "true_false",
               "text": "True or False: Alaska is the westernmost AND easternmost state of the USA.",
               "options": { "a": "True", "b": "False" },
               "answer": "a",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "detail": "It's true because the Aleutian Islands cross the 180° meridian of longitude."
+              }
             }
           }
         },
@@ -98,14 +118,26 @@
               "text": "Which came first?",
               "options": { "a": "The Barbie Doll", "b": "Lego Bricks" },
               "answer": "b",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "options": {
+                  "a": "(1959)",
+                  "b": "(1958)"
+                }
+              }
             },
             "q11": {
               "type": "multiple_choice",
               "text": "Which song was released first?",
               "options": { "a": "Britney Spears - ...Baby One More Time", "b": "Spice Girls - Wannabe" },
               "answer": "b",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "options": {
+                  "a": "(1998)",
+                  "b": "(1996)"
+                }
+              }
             },
             "q12": {
               "type": "ordering",
@@ -122,25 +154,34 @@
                 "Google is founded",
                 "Facebook is launched",
                 "The first YouTube video is uploaded"
+              ],
+              "answerDetails": [
+                { "option": "The first .com domain is registered", "detail": "(1985)" },
+                { "option": "Google is founded", "detail": "(1998)" },
+                { "option": "Facebook is launched", "detail": "(2004)" },
+                { "option": "The first YouTube video is uploaded", "detail": "(2005)" }
               ]
             }
           }
         },
         "round6": {
-          "title": "25",
+          "title": "The Number 25 Round",
           "type": "knowledge",
           "questions": {
-            "q12": {
+            "q13": {
               "type": "text_input",
               "text": "In Roman numerals, how is the number 25 written?",
               "answer": "XXV",
               "points": 10
             },
-            "q13": {
+            "q14": {
               "type": "text_input",
               "text": "The 25th James Bond movie was released in 2021. What’s its title?",
               "answer": "No Time to Die",
-              "points": 10
+              "points": 10,
+              "answerDetails": {
+                "detail": "It was Daniel Craig's final appearance as James Bond."
+              }
             }
           }
         }
