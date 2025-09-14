@@ -24,6 +24,16 @@
     margin-bottom: 20px;
     border: 2px solid var(--text-purple);
 }
+
+.questionImage {
+    display: block;
+    max-width: 80%;
+    max-height: 300px; /* Prevents very tall images from dominating the slide */
+    height: auto;
+    margin: 0 auto 20px auto; /* Center the image and add spacing below */
+    border-radius: 12px;
+}
+
 .questionText {
     font-family: var(--font-family-body);
     font-size: 2.2em;

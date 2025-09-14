@@ -3,7 +3,6 @@ import { database } from '../../index';
 import { ref, get, set } from 'firebase/database';
 import './PlayerView.css';
 
-// A helper function to shuffle an array
 const shuffleArray = (array) => {
   let currentIndex = array.length, randomIndex;
   while (currentIndex !== 0) {
@@ -23,17 +22,32 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-      const quizContentRef = ref(database, 'quizContent');
-      get(quizContentRef).then((snapshot) => {
-          if (snapshot.exists()) {
-              setQuizContent(snapshot.val());
-          }
-      });
+      if (gameState?.activeQuizId) {
+        const quizContentRef = ref(database, `quizzes/${gameState.activeQuizId}`);
+        get(quizContentRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                setQuizContent(snapshot.val());
+            }
+        });
+      } else {
+        const activeQuizRef = ref(database, 'liveGame/activeQuizId');
+        get(activeQuizRef).then((activeQuizSnapshot) => {
+            if (activeQuizSnapshot.exists()) {
+                const quizId = activeQuizSnapshot.val();
+                const quizContentRef = ref(database, `quizzes/${quizId}`);
+                get(quizContentRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        setQuizContent(snapshot.val());
+                    }
+                });
+            }
+        });
+      }
   }, []);
 
   useEffect(() => {
     if (gameState && gameState.currentQuestionId && quizContent) {
-      const questionData = quizContent[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
+      const questionData = quizContent.rounds[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
       if (questionData) {
         setCurrentQuestion(questionData);
         setIsSubmitted(false);
@@ -50,18 +64,18 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
   const handleTextAnswerSubmit = () => {
     if (answer.trim() !== '') {
-      set(ref(database, `players/${playerName}/answer`), answer);
+      set(ref(database, `liveGame/players/${playerName}/answer`), answer);
       setIsSubmitted(true);
     }
   };
 
   const handleChoiceSubmit = (choice) => {
-    set(ref(database, `players/${playerName}/answer`), choice);
+    set(ref(database, `liveGame/players/${playerName}/answer`), choice);
     setIsSubmitted(true);
   };
   
   const handleOrderingSubmit = () => {
-    set(ref(database, `players/${playerName}/answer`), orderedAnswer);
+    set(ref(database, `liveGame/players/${playerName}/answer`), orderedAnswer);
     setIsSubmitted(true);
   };
 
@@ -79,7 +93,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         return null;
     }
 
-    const round = quizContent[gameState.currentRoundId];
+    const round = quizContent.rounds[gameState.currentRoundId];
     if (!round) return null;
     
     const questionsInRound = Object.keys(round.questions);

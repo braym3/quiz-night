@@ -22,7 +22,7 @@ export default function MainQuizApp() {
   }, []);
 
   useEffect(() => {
-    const gameStateRef = ref(database, 'quiz/gameState');
+    const gameStateRef = ref(database, 'liveGame/gameState');
     onValue(gameStateRef, (snapshot) => {
       const state = snapshot.val();
       if (state) {
@@ -30,14 +30,15 @@ export default function MainQuizApp() {
       }
     });
 
-    const playersRef = ref(database, 'players');
+    const playersRef = ref(database, 'liveGame/players');
     onValue(playersRef, (snapshot) => {
       if (snapshot.exists()) {
-        const playersArray = Object.entries(snapshot.val()).map(([name, data]) => ({
+        const playersData = snapshot.val();
+        const playersArray = Object.entries(playersData).map(([name, data]) => ({
           name,
           ...data,
         }));
-        playersArray.sort((a, b) => b.score - a.score);
+        playersArray.sort((a, b) => (b.score || 0) - (a.score || 0));
         setPlayers(playersArray);
       } else {
         setPlayers([]);
@@ -49,7 +50,7 @@ export default function MainQuizApp() {
     if (name.trim() === '') return;
     const sanitizedName = name.trim();
     setPlayerName(sanitizedName);
-    set(ref(database, `players/${sanitizedName}`), { score: 0, answer: '' });
+    set(ref(database, `liveGame/players/${sanitizedName}`), { score: 0, answer: '' });
     setHasJoined(true);
   };
 

@@ -9,17 +9,24 @@ const MasterView = ({ gameState, players }) => {
     const [moderatedScores, setModeratedScores] = useState({});
 
     useEffect(() => {
-        const quizContentRef = ref(database, 'quizContent');
-        get(quizContentRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                setQuizContent(snapshot.val());
+        const activeQuizRef = ref(database, 'liveGame/activeQuizId');
+        get(activeQuizRef).then((snapshot) => {
+            const quizId = snapshot.val();
+            if (quizId) {
+                const quizContentRef = ref(database, `quizzes/${quizId}`);
+                get(quizContentRef).then((quizSnapshot) => {
+                    if (quizSnapshot.exists()) {
+                        setQuizContent(quizSnapshot.val());
+                    }
+                });
             }
         });
     }, []);
 
     useEffect(() => {
-        if (!gameState?.currentQuestionId) return;
-        const playersRef = ref(database, 'players');
+        if (!gameState?.currentQuestionId && !gameState?.currentRoundId) return;
+
+        const playersRef = ref(database, 'liveGame/players');
         const onPlayersChange = onValue(playersRef, (snapshot) => {
             if (snapshot.exists()) {
                 const playersData = snapshot.val();
@@ -31,11 +38,11 @@ const MasterView = ({ gameState, players }) => {
             }
         });
         return () => onPlayersChange();
-    }, [gameState?.currentQuestionId]);
+    }, [gameState]);
 
     const getCurrentQuestion = () => {
         if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) return null;
-        return quizContent[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
+        return quizContent.rounds[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
     };
 
     const handleScoreChange = (playerName, score) => {
@@ -55,58 +62,68 @@ const MasterView = ({ gameState, players }) => {
         }));
     };
 
-    const handleStartQuiz = () => {
-        set(ref(database, 'quiz/gameState'), {
-            quizStatus: 'waiting',
-            currentRoundId: '',
-            currentQuestionId: '',
-        });
-        set(ref(database, 'players'), {});
-    };
-
     const handleNextQuestion = () => {
         if (!quizContent) return;
         setModeratedScores({});
-        const roundIds = Object.keys(quizContent);
-        let nextRoundId = gameState?.currentRoundId;
-        let nextQuestionId = gameState?.currentQuestionId;
+        const roundIds = Object.keys(quizContent.rounds);
+        let currentRoundId = gameState?.currentRoundId;
+        let currentQuestionId = gameState?.currentQuestionId;
 
-        if (gameState?.quizStatus === 'ended') {
-            nextRoundId = '';
-            nextQuestionId = '';
-            set(ref(database, 'players'), {}); // clear the players for the new game
+        if (gameState?.quizStatus === 'ended' || gameState?.quizStatus === 'waiting') {
+            currentRoundId = '';
+            currentQuestionId = '';
+            set(ref(database, 'liveGame/players'), {});
+        }
+        
+        if (gameState?.quizStatus === 'round-interstitial') {
+            const firstQuestionId = Object.keys(quizContent.rounds[currentRoundId].questions)[0];
+            update(ref(database, 'liveGame/gameState'), {
+                quizStatus: 'active',
+                currentQuestionId: firstQuestionId,
+            });
+            return;
         }
 
-        if (!nextRoundId) {
-            nextRoundId = roundIds[0];
-            nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
-        } else {
-            const currentRoundQuestions = Object.keys(quizContent[nextRoundId].questions);
-            const currentQuestionIndex = currentRoundQuestions.indexOf(nextQuestionId);
+        if (!currentRoundId) {
+            const firstRoundId = roundIds[0];
+            update(ref(database, 'liveGame/gameState'), {
+                quizStatus: 'round-interstitial',
+                currentRoundId: firstRoundId,
+                currentQuestionId: '',
+            });
+            return;
+        }
+        
+        const currentRoundQuestions = Object.keys(quizContent.rounds[currentRoundId].questions);
+        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
 
-            if (currentQuestionIndex < currentRoundQuestions.length - 1) {
-                nextQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+        if (currentQuestionIndex < currentRoundQuestions.length - 1) {
+            currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+        } else {
+            const currentRoundIndex = roundIds.indexOf(currentRoundId);
+            if (currentRoundIndex < roundIds.length - 1) {
+                const nextRoundId = roundIds[currentRoundIndex + 1];
+                update(ref(database, 'liveGame/gameState'), {
+                    quizStatus: 'round-interstitial',
+                    currentRoundId: nextRoundId,
+                    currentQuestionId: '',
+                });
+                return;
             } else {
-                const currentRoundIndex = roundIds.indexOf(nextRoundId);
-                if (currentRoundIndex < roundIds.length - 1) {
-                    nextRoundId = roundIds[currentRoundIndex + 1];
-                    nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
-                } else {
-                    update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
-                    return;
-                }
+                update(ref(database, 'liveGame/gameState'), { quizStatus: 'ended' });
+                return;
             }
         }
         
-        update(ref(database, 'quiz/gameState'), {
+        update(ref(database, 'liveGame/gameState'), {
             quizStatus: 'active',
-            currentRoundId: nextRoundId,
-            currentQuestionId: nextQuestionId,
+            currentRoundId: currentRoundId,
+            currentQuestionId: currentQuestionId,
         });
 
         const answerUpdates = {};
         players.forEach(player => {
-            answerUpdates[`/players/${player.name}/answer`] = '';
+            answerUpdates[`liveGame/players/${player.name}/answer`] = '';
         });
         update(ref(database), answerUpdates);
     };
@@ -134,30 +151,30 @@ const MasterView = ({ gameState, players }) => {
             suggestedScores[player.name] = score;
         });
         setModeratedScores(suggestedScores);
-        update(ref(database, 'quiz/gameState'), { quizStatus: 'moderating' });
+        update(ref(database, 'liveGame/gameState'), { quizStatus: 'moderating' });
     };
 
     const handleEndQuiz = () => {
-        update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
+        update(ref(database, 'liveGame/gameState'), { quizStatus: 'ended' });
     };
 
     const currentQuestionData = getCurrentQuestion();
 
     const totalQuestions = useMemo(() => {
         if (!quizContent) return 0;
-        return Object.values(quizContent).reduce((total, round) => total + Object.keys(round.questions).length, 0);
+        return Object.values(quizContent.rounds).reduce((total, round) => total + Object.keys(round.questions).length, 0);
     }, [quizContent]);
 
     let currentQuestionNumber = 0;
     if (quizContent && gameState?.currentRoundId && gameState?.currentQuestionId) {
-        const roundIds = Object.keys(quizContent);
+        const roundIds = Object.keys(quizContent.rounds);
         const currentRoundIndex = roundIds.indexOf(gameState.currentRoundId);
         
         for (let i = 0; i < currentRoundIndex; i++) {
-            currentQuestionNumber += Object.keys(quizContent[roundIds[i]].questions).length;
+            currentQuestionNumber += Object.keys(quizContent.rounds[roundIds[i]].questions).length;
         }
         
-        const questionsInCurrentRound = Object.keys(quizContent[gameState.currentRoundId].questions);
+        const questionsInCurrentRound = Object.keys(quizContent.rounds[gameState.currentRoundId].questions);
         currentQuestionNumber += questionsInCurrentRound.indexOf(gameState.currentQuestionId) + 1;
     }
     
@@ -188,14 +205,17 @@ const MasterView = ({ gameState, players }) => {
                     const roundScore = moderatedScores[player.name] || 0;
                     if (roundScore >= 0) {
                         const newTotalScore = (player.score || 0) + roundScore;
-                        updates[`/players/${player.name}/score`] = newTotalScore;
+                        updates[`liveGame/players/${player.name}/score`] = newTotalScore;
                     }
                 });
                 update(ref(database), updates).then(() => {
                     handleNextQuestion();
                 });
             }
-            return <button className="button-primary" onClick={applyAndGoNext}>Apply Scores & Next Question</button>
+            return <button className="button-primary" onClick={applyAndGoNext}>Next</button>
+        }
+        if (status === 'round-interstitial') {
+            return <button className="button-primary" onClick={handleNextQuestion}>Start Round</button>
         }
         return null;
     };
@@ -218,7 +238,7 @@ const MasterView = ({ gameState, players }) => {
                  <div className="master-card question-info-card">
                     <h2>Question ({currentQuestionNumber} of {totalQuestions})</h2>
                     <div className="question-info-details">
-                        <p><strong>Round:</strong> {quizContent[gameState.currentRoundId].title}</p>
+                        <p><strong>Round:</strong> {quizContent.rounds[gameState.currentRoundId].title}</p>
                         <p><strong>Answer:</strong> {correctAnswerDisplay}</p>
                         <p><strong>Points:</strong> {currentQuestionData.points || 10}</p>
                     </div>

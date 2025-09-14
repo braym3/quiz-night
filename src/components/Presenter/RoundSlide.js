@@ -5,14 +5,14 @@ import styles from './RoundSlide.module.css';
 
 import musicAnimation from '../../assets/lottie/music-animation.json';
 import knowledgeAnimation from '../../assets/lottie/knowledge-animation.json';
-import pictureAnimation from '../../assets/lottie/picture-animation.json';
+import photoAnimation from '../../assets/lottie/photo-animation.json';
 import geographyAnimation from '../../assets/lottie/geography-animation.json';
 
 
 const lottieMap = {
   "music": musicAnimation,
   "knowledge": knowledgeAnimation,
-  "picture": pictureAnimation,
+  "picture": photoAnimation, 
   "geography": geographyAnimation,
 };
 

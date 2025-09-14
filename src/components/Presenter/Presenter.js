@@ -13,7 +13,6 @@ import quizBackground from '../../assets/images/quiz-background.png';
 export default function Presenter() {
     const [gameState, setGameState] = useState(null);
     const [quizContent, setQuizContent] = useState(null);
-    const [players, setPlayers] = useState([]);
 
     useEffect(() => {
         const rootElement = document.getElementById('root');
@@ -32,16 +31,19 @@ export default function Presenter() {
     }, []);
 
     useEffect(() => {
-        get(ref(database, 'quizContent')).then((snapshot) => {
-            if (snapshot.exists()) setQuizContent(snapshot.val());
-        });
-        get(ref(database, 'players')).then((snapshot) => {
-            if(snapshot.exists()) setPlayers(Object.values(snapshot.val()));
+        get(ref(database, 'liveGame/activeQuizId')).then((snapshot) => {
+            if (snapshot.exists()) {
+                const quizId = snapshot.val();
+                get(ref(database, `quizzes/${quizId}`)).then((quizSnapshot) => {
+                    if (quizSnapshot.exists()) {
+                        setQuizContent(quizSnapshot.val());
+                    }
+                });
+            }
         });
 
-        onValue(ref(database, 'quiz/gameState'), (snapshot) => setGameState(snapshot.val()));
-        onValue(ref(database, 'players'), (snapshot) => {
-            if(snapshot.exists()) setPlayers(Object.values(snapshot.val()));
+        onValue(ref(database, 'liveGame/gameState'), (snapshot) => {
+            setGameState(snapshot.val())
         });
     }, []);
 
@@ -56,16 +58,16 @@ export default function Presenter() {
              return <WelcomeSlide key="welcome" title="Trivia Night!" subtitle="Hannah's Birthday" />;
         }
 
-        const round = quizContent[currentRoundId];
+        const round = quizContent.rounds[currentRoundId];
         const question = round?.questions[currentQuestionId];
 
         if (quizStatus === 'round-interstitial') {
-            // Pass the currentRoundId as a prop here
             return <RoundSlide key={currentRoundId} round={round} roundId={currentRoundId} />;
         }
         
         if (quizStatus === 'active' && question) {
-             return <QuestionSlide key={currentQuestionId} question={question} round={round} />;
+             const questionWithId = { ...question, id: currentQuestionId };
+             return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} />;
         } 
         
         if (quizStatus === 'moderating' && question) {
