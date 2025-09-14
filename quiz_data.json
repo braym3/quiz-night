@@ -1,65 +1,159 @@
 {
-  "quizContent": {
-    "round1": {
-      "title": "General Knowledge",
-      "questions": {
-        "q1": {
-          "type": "multiple_choice",
-          "text": "What is the capital of France?",
-          "options": { "a": "London", "b": "Paris", "c": "Rome" },
-          "answer": "b",
-          "points": 10
+  "quizzes": {
+    "hannahsBirthdayQuiz": {
+      "title": "Hannah's Birthday Trivia",
+      "theme": "fun-and-sparkly",
+      "rounds": {
+        "round1": {
+          "title": "General Knowledge",
+          "type": "knowledge",
+          "questions": {
+            "q1": {
+              "type": "true_false",
+              "text": "True or False: Bananas grow on trees.",
+              "options": { "a": "True", "b": "False" },
+              "answer": "b",
+              "points": 10
+            },
+            "q2": {
+              "type": "text_input",
+              "text": "What animal has fingerprints so similar to humans they can confuse crime scene investigators?",
+              "answer": "Koala",
+              "points": 10
+            },
+            "q3": {
+                "type": "multiple_choice",
+                "text": "Which of these was invented first?",
+                "options": { "a": "The Dishwasher", "b": "The Pencil Sharpener", "c": "Potato Chips", "d": "Sunglasses" },
+                "answer": "d",
+                "points": 10
+            }
+          }
         },
-        "q2": {
-          "type": "text_input",
-          "text": "What year was the first iPhone released?",
-          "answer": "2007",
-          "points": 10
+        "round2": {
+          "title": "Logo Quiz",
+          "type": "picture",
+          "questions": {
+            "q4": {
+              "type": "image_input",
+              "text": "Which company's logo is this?",
+              "imageUrl": "assets/logos/starbucks-logo.webp",
+              "answer": "Starbucks",
+              "points": 10
+            },
+            "q5": {
+              "type": "image_input",
+              "text": "Which brand is famous for this crocodile logo?",
+              "imageUrl": "assets/logos/lacoste-logo.jpg",
+              "answer": "Lacoste",
+              "points": 10
+            }
+          }
         },
-        "q3": {
-          "type": "ordering",
-          "text": "Order these films by their original release date (oldest first).",
-          "options": [
-            "The Matrix",
-            "Star Wars: A New Hope",
-            "Pulp Fiction",
-            "Avatar"
-          ],
-          "answer": [
-            "Star Wars: A New Hope",
-            "Pulp Fiction",
-            "The Matrix",
-            "Avatar"
-          ],
-          "points": 20
-        }
-      }
-    },
-    "round2": {
-      "title": "Music Round",
-      "questions": {
-        "q4": {
-          "type": "text_input",
-          "text": "Who is the artist behind the song 'Bohemian Rhapsody'?",
-          "answer": "Queen",
-          "points": 10
+        "round3": {
+          "title": "Celebrities at 25",
+          "type": "picture",
+          "questions": {
+            "q6": {
+              "type": "image_input",
+              "text": "Who is this, pictured at around age 25?",
+              "imageUrl": "assets/celebs-age-25/george-clooney.WEBP",
+              "answer": "George Clooney",
+              "points": 10
+            },
+            "q7": {
+              "type": "image_input",
+              "text": "Can you name this celebrity from a picture taken when they were 25?",
+              "imageUrl": "assets/celebs-age-25/helen-mirren.WEBP",
+              "answer": "Helen Mirren",
+              "points": 10
+            }
+          }
         },
-        "q5": {
-          "type": "true_false",
-          "text": "The Beatles were originally called 'The Quarrymen'.",
-          "options": { "a": "True", "b": "False" },
-          "answer": "a",
-          "points": 15
+        "round4": {
+          "title": "Fun Geography",
+          "type": "geography",
+          "questions": {
+            "q8": {
+              "type": "text_input",
+              "text": "Which country’s flag is the only one in the world that is not rectangular?",
+              "answer": "Nepal",
+              "points": 10
+            },
+            "q9": {
+              "type": "true_false",
+              "text": "True or False: Alaska is the westernmost AND easternmost state of the USA.",
+              "options": { "a": "True", "b": "False" },
+              "answer": "a",
+              "points": 10
+            }
+          }
+        },
+        "round5": {
+          "title": "What Came First?",
+          "type": "knowledge",
+          "questions": {
+            "q10": {
+              "type": "multiple_choice",
+              "text": "Which came first?",
+              "options": { "a": "The Barbie Doll", "b": "Lego Bricks" },
+              "answer": "b",
+              "points": 10
+            },
+            "q11": {
+              "type": "multiple_choice",
+              "text": "Which song was released first?",
+              "options": { "a": "Britney Spears - ...Baby One More Time", "b": "Spice Girls - Wannabe" },
+              "answer": "b",
+              "points": 10
+            },
+            "q12": {
+              "type": "ordering",
+              "text": "Place these internet milestones in chronological order (oldest first).",
+              "points": 15,
+              "options": [
+                "Google is founded",
+                "The first YouTube video is uploaded",
+                "Facebook is launched",
+                "The first .com domain is registered"
+              ],
+              "answer": [
+                "The first .com domain is registered",
+                "Google is founded",
+                "Facebook is launched",
+                "The first YouTube video is uploaded"
+              ]
+            }
+          }
+        },
+        "round6": {
+          "title": "25",
+          "type": "knowledge",
+          "questions": {
+            "q12": {
+              "type": "text_input",
+              "text": "In Roman numerals, how is the number 25 written?",
+              "answer": "XXV",
+              "points": 10
+            },
+            "q13": {
+              "type": "text_input",
+              "text": "The 25th James Bond movie was released in 2021. What’s its title?",
+              "answer": "No Time to Die",
+              "points": 10
+            }
+          }
         }
       }
     }
   },
-  "players": {},
-  "quiz": {
+  "liveGame": {
+    "activeQuizId": "hannahsBirthdayQuiz",
     "gameState": {
       "quizStatus": "waiting",
       "currentRoundId": "",
       "currentQuestionId": ""
-    }
+    },
+    "players": {}
   }
 }

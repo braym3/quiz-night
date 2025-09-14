@@ -68,60 +68,40 @@ const MasterView = ({ gameState, players }) => {
         if (!quizContent) return;
         setModeratedScores({});
         const roundIds = Object.keys(quizContent);
-        let currentRoundId = gameState?.currentRoundId;
-        let currentQuestionId = gameState?.currentQuestionId;
+        let nextRoundId = gameState?.currentRoundId;
+        let nextQuestionId = gameState?.currentQuestionId;
 
         if (gameState?.quizStatus === 'ended') {
-            currentRoundId = '';
-            currentQuestionId = '';
-            set(ref(database, 'players'), {});
-        }
-        
-        if (gameState?.quizStatus === 'round-interstitial') {
-            const firstQuestionId = Object.keys(quizContent[currentRoundId].questions)[0];
-            update(ref(database, 'quiz/gameState'), {
-                quizStatus: 'active',
-                currentQuestionId: firstQuestionId,
-            });
-            return;
+            nextRoundId = '';
+            nextQuestionId = '';
+            set(ref(database, 'players'), {}); // clear the players for the new game
         }
 
-        // When starting for the very first time, go to the round interstitial first.
-        if (!currentRoundId) {
-            const firstRoundId = roundIds[0];
-            update(ref(database, 'quiz/gameState'), {
-                quizStatus: 'round-interstitial',
-                currentRoundId: firstRoundId,
-                currentQuestionId: '',
-            });
-            return; // Stop here and wait for the "Start Round" click
-        }
-        
-        const currentRoundQuestions = Object.keys(quizContent[currentRoundId].questions);
-        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
-
-        if (currentQuestionIndex < currentRoundQuestions.length - 1) {
-            currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
+        if (!nextRoundId) {
+            nextRoundId = roundIds[0];
+            nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
         } else {
-            const currentRoundIndex = roundIds.indexOf(currentRoundId);
-            if (currentRoundIndex < roundIds.length - 1) {
-                const nextRoundId = roundIds[currentRoundIndex + 1];
-                update(ref(database, 'quiz/gameState'), {
-                    quizStatus: 'round-interstitial',
-                    currentRoundId: nextRoundId,
-                    currentQuestionId: '',
-                });
-                return;
+            const currentRoundQuestions = Object.keys(quizContent[nextRoundId].questions);
+            const currentQuestionIndex = currentRoundQuestions.indexOf(nextQuestionId);
+
+            if (currentQuestionIndex < currentRoundQuestions.length - 1) {
+                nextQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
             } else {
-                update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
-                return;
+                const currentRoundIndex = roundIds.indexOf(nextRoundId);
+                if (currentRoundIndex < roundIds.length - 1) {
+                    nextRoundId = roundIds[currentRoundIndex + 1];
+                    nextQuestionId = Object.keys(quizContent[nextRoundId].questions)[0];
+                } else {
+                    update(ref(database, 'quiz/gameState'), { quizStatus: 'ended' });
+                    return;
+                }
             }
         }
         
         update(ref(database, 'quiz/gameState'), {
             quizStatus: 'active',
-            currentRoundId: currentRoundId,
-            currentQuestionId: currentQuestionId,
+            currentRoundId: nextRoundId,
+            currentQuestionId: nextQuestionId,
         });
 
         const answerUpdates = {};
@@ -215,10 +195,7 @@ const MasterView = ({ gameState, players }) => {
                     handleNextQuestion();
                 });
             }
-            return <button className="button-primary" onClick={applyAndGoNext}>Next</button>
-        }
-        if (status === 'round-interstitial') {
-            return <button className="button-primary" onClick={handleNextQuestion}>Start Round</button>
+            return <button className="button-primary" onClick={applyAndGoNext}>Apply Scores & Next Question</button>
         }
         return null;
     };

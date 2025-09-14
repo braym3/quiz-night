@@ -1,24 +1,26 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Lottie from 'lottie-react'; // Import the Lottie component
+import Lottie from 'lottie-react';
 import styles from './RoundSlide.module.css';
 
-// Import your downloaded animation files
 import musicAnimation from '../../assets/lottie/music-animation.json';
 import knowledgeAnimation from '../../assets/lottie/knowledge-animation.json';
+import pictureAnimation from '../../assets/lottie/picture-animation.json';
+import geographyAnimation from '../../assets/lottie/geography-animation.json';
 
-// Create a map to link a round title to its animation
+
 const lottieMap = {
-  "Music Round": musicAnimation,
-  "General Knowledge": knowledgeAnimation,
+  "music": musicAnimation,
+  "knowledge": knowledgeAnimation,
+  "picture": pictureAnimation,
+  "geography": geographyAnimation,
 };
 
 export default function RoundSlide({ round, roundId }) {
     if (!round) return null;
 
     const roundNumber = roundId ? String(roundId).replace(/\D/g, '') : '';
-    // Look up the correct animation from our map
-    const animationData = lottieMap[round.title];
+    const animationData = lottieMap[round.type];
 
     return (
         <motion.div
@@ -44,7 +46,6 @@ export default function RoundSlide({ round, roundId }) {
                 {round.title}
             </motion.h1>
 
-            {/* If an animation exists for this round, display it */}
             {animationData && (
                 <motion.div
                     className={styles.lottieContainer}
