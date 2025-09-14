@@ -4,44 +4,74 @@
 
 .master-view-container {
     width: 100%;
-    padding: 10px 0;
+    padding: 10px;
     box-sizing: border-box;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .master-title {
     text-align: center;
     color: var(--primary-purple);
     margin-bottom: 20px;
-    font-size: 1.6em; 
+    font-size: 1.8em;
 }
 
 .master-card {
     background-color: var(--surface-white);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 12px; 
+    padding: 12px;
     margin-bottom: 15px;
 }
 
-.master-card h2 {
-    margin: 0 0 12px 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    color: #333;
-    font-size: 1.1em;
+/* NEW: Sticky header styles */
+.sticky-header {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid var(--light-gray);
 }
 
-.controls-group {
+.header-info {
+    text-align: center;
+    margin-bottom: 10px;
+}
+.header-info h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.1em;
+    color: var(--text-purple);
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Compact question details */
+.question-info-details {
     display: flex;
     flex-direction: column;
+    gap: 4px;
+    font-size: 0.8em;
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 8px;
+}
+.question-info-details span {
+    color: #576574;
+}
+
+/* NEW: Compact, flexible button layout */
+.controls-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
 }
 
 .button-primary {
-    /* CORRECTED: Use the correct variable for the button background */
+    flex-grow: 1; /* Allows the main button to take up more space */
     background-color: var(--primary-purple);
     color: white;
-    padding: 12px;
+    padding: 12px 10px;
     font-size: 1em;
     font-weight: 700;
     border-radius: 8px;
@@ -50,7 +80,6 @@
     transition: background-color 0.2s;
 }
 .button-primary:hover {
-    /* A slightly darker version of the primary purple */
     background-color: #3a25a8;
 }
 
@@ -58,28 +87,27 @@
     background-color: transparent;
     color: var(--text-purple);
     border: 2px solid var(--light-gray);
-    padding: 8px;
+    padding: 10px;
     font-size: 0.8em;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-.button-secondary:hover {
-    background-color: #f8f9fa;
-    border-color: #ccc;
+    flex-shrink: 0; /* Prevents secondary buttons from shrinking too much */
 }
 
-.question-info-card {
-    background-color: #eaf5ff;
-    border: 1px solid #b3d7f5;
+/* --- Answers & Scoring Section --- */
+.answers-card {
+    box-shadow: none;
+    padding: 0;
+    background: none;
 }
 
-.question-info-details p {
-    margin: 0 0 5px 0;
-    font-size: 0.9em;
-}
-.question-info-details p:last-child {
-    margin-bottom: 0;
+.answers-card h2 {
+    font-size: 1.1em;
+    padding: 12px;
+    margin: 0;
+    border-bottom: 1px solid var(--light-gray);
+    background-color: var(--surface-white);
+    border-radius: 12px 12px 0 0;
 }
 
 .answers-list {
@@ -91,10 +119,11 @@
     gap: 1px;
     background-color: #eee;
     border: 1px solid #eee;
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     overflow: hidden;
 }
 
+/* ... (All other styles for .answer-item, .score-moderation etc. remain the same as the repomix file) ... */
 .answer-item {
     background-color: var(--surface-white);
     padding: 10px;
@@ -103,19 +132,16 @@
     align-items: center;
     gap: 10px;
 }
-
 .answer-details {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
-
 .player-name {
     font-weight: 700;
     color: var(--text-purple);
     font-size: 1em;
 }
-
 .player-answer {
     font-style: italic;
     color: #555;
@@ -123,13 +149,11 @@
     overflow-wrap: break-word;
     word-break: break-word;
 }
-
 .score-moderation {
     display: flex;
     align-items: center;
     gap: 4px;
 }
-
 .score-moderation .score-input {
     width: 45px;
     height: 40px;
@@ -149,12 +173,10 @@
 .score-moderation .score-input {
     -moz-appearance: textfield;
 }
-
 .score-button-stack {
     display: flex;
     flex-direction: column;
 }
-
 .score-adjust-button {
     width: 28px;
     height: 19px;
@@ -184,7 +206,6 @@
     border-radius: 0 0 8px 8px;
     border-top: 0.5px solid #ddd;
 }
-
 .waiting-for-answers {
     text-align: center;
     color: #888;
@@ -192,31 +213,45 @@
     background-color: var(--surface-white);
 }
 
+
+/* =================================== */
+/* Desktop Styles (for larger screens) */
+/* =================================== */
 @media (min-width: 768px) {
     .master-title {
         font-size: 2.2em;
     }
 
-    .master-card {
-        padding: 25px;
+    .sticky-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
     }
 
-    .master-card h2 {
-        font-size: 1.5em;
+    .header-info {
+        text-align: left;
+        margin-bottom: 0;
+    }
+    
+    .question-info-details {
+        flex-direction: row; /* Side-by-side on desktop */
+        gap: 20px;
+        background: none;
+        padding: 0;
+        margin-top: 5px;
     }
 
     .controls-group {
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
+        width: auto;
     }
 
     .button-primary {
-        padding: 15px 30px;
+        padding: 12px 25px;
     }
 
     .button-secondary {
-        padding: 12px 20px;
+        padding: 10px 15px;
     }
     
     .answer-item {

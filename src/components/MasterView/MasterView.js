@@ -62,6 +62,39 @@ const MasterView = ({ gameState, players }) => {
         }));
     };
 
+    const handlePreviousQuestion = () => {
+        if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) return;
+        
+        const roundIds = Object.keys(quizContent.rounds);
+        const currentRoundId = gameState.currentRoundId;
+        const currentQuestionId = gameState.currentQuestionId;
+
+        const currentRoundQuestions = Object.keys(quizContent.rounds[currentRoundId].questions);
+        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
+
+        let prevRoundId = currentRoundId;
+        let prevQuestionId = '';
+
+        if (currentQuestionIndex > 0) {
+            prevQuestionId = currentRoundQuestions[currentQuestionIndex - 1];
+        } else {
+            const currentRoundIndex = roundIds.indexOf(currentRoundId);
+            if (currentRoundIndex > 0) {
+                prevRoundId = roundIds[currentRoundIndex - 1];
+                const prevRoundQuestions = Object.keys(quizContent.rounds[prevRoundId].questions);
+                prevQuestionId = prevRoundQuestions[prevRoundQuestions.length - 1];
+            } else {
+                return;
+            }
+        }
+        
+        update(ref(database, 'liveGame/gameState'), {
+            quizStatus: 'active',
+            currentRoundId: prevRoundId,
+            currentQuestionId: prevQuestionId,
+        });
+    };
+
     const handleNextQuestion = () => {
         if (!quizContent) return;
         setModeratedScores({});
@@ -220,30 +253,50 @@ const MasterView = ({ gameState, players }) => {
         return null;
     };
 
+    const isFirstQuestionOfQuiz = useMemo(() => {
+        if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) {
+            return true;
+        }
+        const roundIds = Object.keys(quizContent.rounds);
+        const firstRoundId = roundIds[0];
+        const firstQuestionId = Object.keys(quizContent.rounds[firstRoundId].questions)[0];
+        
+        return gameState.currentRoundId === firstRoundId && gameState.currentQuestionId === firstQuestionId;
+    }, [gameState, quizContent]);
+
     return (
         <div className="master-view-container">
-            <h1 className="master-title">Quiz Master</h1>
+            <h1 className="master-title">Quiz Master Dashboard</h1>
             
-            <div className="master-card controls-card">
-                <h2>Game Controls</h2>
+            <div className="master-card sticky-header">
+                <div className="header-info">
+                    <h2>Controls</h2>
+                    {(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating') && currentQuestionData && (
+                        <div className="question-info-details">
+                            <span><strong>Round:</strong> {quizContent.rounds[gameState.currentRoundId].title}</span>
+                            <span><strong>Answer:</strong> {correctAnswerDisplay}</span>
+                        </div>
+                    )}
+                </div>
+
                 <div className="controls-group">
+                    <button 
+                        onClick={handlePreviousQuestion} 
+                        className="button-secondary"
+                        disabled={!gameState || gameState.quizStatus === 'waiting' || gameState.quizStatus === 'ended' || isFirstQuestionOfQuiz}
+                    >
+                        Previous
+                    </button>
                     {renderPrimaryButton()}
-                    {(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating') && 
-                        <button onClick={handleEndQuiz} className="button-secondary">End Quiz</button>
-                    }
+                    <button 
+                        onClick={handleEndQuiz} 
+                        className="button-secondary"
+                        disabled={!gameState || !(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating')}
+                    >
+                        End Quiz
+                    </button>
                 </div>
             </div>
-
-            {(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating') && currentQuestionData && (
-                 <div className="master-card question-info-card">
-                    <h2>Question ({currentQuestionNumber} of {totalQuestions})</h2>
-                    <div className="question-info-details">
-                        <p><strong>Round:</strong> {quizContent.rounds[gameState.currentRoundId].title}</p>
-                        <p><strong>Answer:</strong> {correctAnswerDisplay}</p>
-                        <p><strong>Points:</strong> {currentQuestionData.points || 10}</p>
-                    </div>
-                 </div>
-            )}
 
             <div className="master-card answers-card">
                 <h2>Answers & Scoring</h2>
