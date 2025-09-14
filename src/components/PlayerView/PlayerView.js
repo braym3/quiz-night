@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { database } from '../../index';
 import { ref, get, set } from 'firebase/database';
 import './PlayerView.css';
+import { motion } from 'framer-motion';
 
+// A helper function to shuffle an array
 const shuffleArray = (array) => {
   let currentIndex = array.length, randomIndex;
   while (currentIndex !== 0) {
@@ -14,6 +16,17 @@ const shuffleArray = (array) => {
   return array;
 };
 
+// Animation variants for the list
+const listVariants = {
+    visible: { transition: { staggerChildren: 0.3 } },
+    hidden: {},
+};
+const itemVariants = {
+    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 20 },
+};
+
+
 const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [quizContent, setQuizContent] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -22,27 +35,18 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-      if (gameState?.activeQuizId) {
-        const quizContentRef = ref(database, `quizzes/${gameState.activeQuizId}`);
-        get(quizContentRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                setQuizContent(snapshot.val());
-            }
-        });
-      } else {
-        const activeQuizRef = ref(database, 'liveGame/activeQuizId');
-        get(activeQuizRef).then((activeQuizSnapshot) => {
-            if (activeQuizSnapshot.exists()) {
-                const quizId = activeQuizSnapshot.val();
-                const quizContentRef = ref(database, `quizzes/${quizId}`);
-                get(quizContentRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        setQuizContent(snapshot.val());
-                    }
-                });
-            }
-        });
-      }
+      const activeQuizRef = ref(database, 'liveGame/activeQuizId');
+      get(activeQuizRef).then((activeQuizSnapshot) => {
+          if (activeQuizSnapshot.exists()) {
+              const quizId = activeQuizSnapshot.val();
+              const quizContentRef = ref(database, `quizzes/${quizId}`);
+              get(quizContentRef).then((snapshot) => {
+                  if (snapshot.exists()) {
+                      setQuizContent(snapshot.val());
+                  }
+              });
+          }
+      });
   }, []);
 
   useEffect(() => {
@@ -131,12 +135,29 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   }
 
   if (gameState.quizStatus === 'reveal' || gameState.quizStatus === 'moderating') {
+    if (currentQuestion?.type === 'ordering') {
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container">
+                    <p>The correct order was:</p>
+                    <motion.ol className="ordering-answer-list" initial="hidden" animate="visible" variants={listVariants}>
+                        {currentQuestion.answer.map((item, index) => (
+                            <motion.li key={index} variants={itemVariants}>
+                                {index + 1}. {item}
+                            </motion.li>
+                        ))}
+                    </motion.ol>
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Fallback for all other question types
     let correctAnswerText = '';
     if (currentQuestion) {
       if (currentQuestion.options && !Array.isArray(currentQuestion.options)) {
         correctAnswerText = currentQuestion.options[currentQuestion.answer];
-      } else if (Array.isArray(currentQuestion.answer)) {
-        correctAnswerText = currentQuestion.answer.join(' → ');
       } else {
         correctAnswerText = currentQuestion.answer;
       }

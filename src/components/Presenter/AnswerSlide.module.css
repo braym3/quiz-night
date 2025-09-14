@@ -26,7 +26,46 @@
 .correctAnswer {
     font-family: var(--font-family-heading);
     font-size: clamp(3rem, 8vw, 6rem);
-    color: #28a745; /* A positive green color */
+    color: #28a745;
     line-height: 1.2;
     margin: 10px 0 0 0;
+}
+
+.correctAnswer.longAnswer {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    line-height: 1.4;
+}
+
+/* NEW STYLES for the ordering answer list */
+.orderingCard {
+    justify-content: flex-start; /* Align content to the top */
+    padding-top: 50px;
+}
+
+.answerList {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    width: 80%;
+}
+
+.answerListItem {
+    background-color: #f8f9fa;
+    border: 2px solid var(--light-gray);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    font-family: var(--font-family-body);
+    font-weight: 700;
+    font-size: 1.3em;
+    color: var(--text-purple);
+    display: flex;
+    align-items: center;
+}
+
+.itemNumber {
+    font-family: var(--font-family-heading);
+    font-size: 1.5em;
+    color: var(--primary-purple);
+    margin-right: 20px;
 }

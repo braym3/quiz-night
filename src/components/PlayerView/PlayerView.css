@@ -4,7 +4,7 @@
 
 .player-view-container {
   width: 100%;
-  padding: 10px 0 0 0; /* Reduced padding */
+  padding: 10px 0 0 0; 
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -63,24 +63,11 @@
   margin: 20px 0;
 }
 
-/* This is the yellow banner style */
-.question-number {
-  display: inline-block;
-  background-color: var(--accent-yellow);
-  color: var(--text-purple);
-  font-family: var(--font-family-heading);
-  padding: 5px 20px;
-  border-radius: 8px;
-  font-size: 1.2em;
-  margin-bottom: 10px;
-  border: 2px solid var(--text-purple);
-}
-
 .question-text {
   font-family: var(--font-family-body);
   font-size: 1.4em;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 10px; 
   line-height: 1.4;
   color: var(--primary-purple);
 }
@@ -97,13 +84,12 @@
   gap: 15px;
 }
 
-/* Style for buttons like "Frosted Flakes" or "OR" */
 .answer-options button {
   background-color: transparent;
   color: var(--primary-purple);
   border: none;
   box-shadow: none;
-  font-size: 1.5em;
+  font-size: 1.3em; 
   padding: 5px;
   text-shadow: none;
 }
@@ -127,12 +113,63 @@
     margin-top: 10px;
 }
 
+/* UPDATED styles for ordering questions */
+.ordering-section {
+  width: 100%;
+}
+.ordering-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 15px;
+}
+.ordering-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 2px solid var(--light-gray);
+  font-size: 1em;
+  font-weight: 500;
+}
+.ordering-controls button {
+  background-color: var(--surface-white);
+  border: 2px solid var(--light-gray);
+  color: var(--text-purple);
+  box-shadow: none;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  margin-left: 5px;
+  font-size: 1em;
+}
+.ordering-section > button {
+    width: 100%;
+}
 
 /* --- Answer Reveal Screen --- */
-.answer-reveal-container h2 {
+.answer-reveal-container .correct-answer-text {
     color: #28a745;
     font-size: 2em;
 }
 .leaderboard-button {
     background-color: var(--primary-purple);
+}
+
+.ordering-answer-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+    width: 100%;
+    text-align: left;
+}
+
+.ordering-answer-list li {
+    font-family: var(--font-family-body);
+    font-size: 1.0em;
+    font-weight: 500;
+    color: var(--text-purple);
+    padding: 8px 0;
 }

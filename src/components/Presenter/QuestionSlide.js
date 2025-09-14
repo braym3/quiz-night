@@ -22,7 +22,8 @@ export default function QuestionSlide({ question, round }) {
     }, [question.imageUrl]);
 
     const questionIdsInRound = Object.keys(round.questions);
-    const questionNumber = questionIdsInRound.indexOf(question.id) + 1;
+    // Find question by its text content as IDs might not be passed
+    const questionNumber = questionIdsInRound.findIndex(id => round.questions[id].text === question.text) + 1;
 
 
     return (
@@ -40,7 +41,16 @@ export default function QuestionSlide({ question, round }) {
                 
                 <p className={styles.questionText}>{question.text}</p>
                 
-                {question.options && (
+                {/* UPDATED LOGIC: Check question type */}
+                {question.type === 'ordering' && (
+                    <ul className={styles.orderingList}>
+                        {question.options.map((option, index) => (
+                            <li key={index} className={styles.orderingItem}>{option}</li>
+                        ))}
+                    </ul>
+                )}
+                
+                {(question.type === 'multiple_choice' || question.type === 'true_false') && (
                     <div className={styles.options}>
                         {Object.values(question.options).map((option, index) => (
                            <React.Fragment key={index}>

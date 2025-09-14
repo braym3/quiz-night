@@ -63,3 +63,23 @@
     font-size: 1.5em;
     padding: 0;
 }
+
+.orderingList {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+.orderingItem {
+    font-family: var(--font-family-body);
+    font-weight: 500;
+    font-size: 1.5em;
+    color: var(--text-purple);
+    background-color: #f8f9fa;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--light-gray);
+}
