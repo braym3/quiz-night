@@ -6,6 +6,7 @@ import WelcomeSlide from './WelcomeSlide';
 import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
 import AnswerSlide from './AnswerSlide';
+import WinnersSlide from './WinnersSlide'; // 1. Import the new component
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
 import quizBackground from '../../assets/images/quiz-background.png';
@@ -13,6 +14,7 @@ import quizBackground from '../../assets/images/quiz-background.png';
 export default function Presenter() {
     const [gameState, setGameState] = useState(null);
     const [quizContent, setQuizContent] = useState(null);
+    const [players, setPlayers] = useState([]);
 
     useEffect(() => {
         const rootElement = document.getElementById('root');
@@ -35,15 +37,20 @@ export default function Presenter() {
             if (snapshot.exists()) {
                 const quizId = snapshot.val();
                 get(ref(database, `quizzes/${quizId}`)).then((quizSnapshot) => {
-                    if (quizSnapshot.exists()) {
-                        setQuizContent(quizSnapshot.val());
-                    }
+                    if (quizSnapshot.exists()) setQuizContent(quizSnapshot.val());
                 });
             }
         });
-
-        onValue(ref(database, 'liveGame/gameState'), (snapshot) => {
-            setGameState(snapshot.val())
+        
+        onValue(ref(database, 'liveGame/gameState'), (snapshot) => setGameState(snapshot.val()));
+        onValue(ref(database, 'liveGame/players'), (snapshot) => {
+            if(snapshot.exists()) {
+                const playersData = snapshot.val();
+                const playersArray = Object.entries(playersData).map(([name, data]) => ({ name, ...data }));
+                setPlayers(playersArray);
+            } else {
+                setPlayers([]);
+            }
         });
     }, []);
 
@@ -54,7 +61,12 @@ export default function Presenter() {
 
         const { quizStatus, currentRoundId, currentQuestionId } = gameState;
         
-        if (quizStatus === 'waiting' || quizStatus === 'ended') {
+        // 2. UPDATED LOGIC: Show WinnersSlide when the quiz has ended
+        if (quizStatus === 'ended') {
+             return <WinnersSlide key="winners" players={players} />;
+        }
+        
+        if (quizStatus === 'waiting') {
              return <WelcomeSlide key="welcome" title="Trivia Night!" subtitle="Hannah's Birthday" />;
         }
 
