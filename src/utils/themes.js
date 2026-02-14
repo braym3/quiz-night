@@ -1,0 +1,228 @@
+// Theme configuration for different quiz visual styles
+export const themes = {
+  'fun-and-sparkly': {
+    name: 'Fun & Sparkly',
+    colors: {
+      primary: '#9669ff',
+      accent: '#feca57',
+      text: '#2c2c54',
+      background: '#f1f2f6',
+      surface: '#ffffff',
+      lightGray: '#dcdde1',
+      shadow: '#AAE7FF',
+      correct: '#28a745',
+      incorrect: '#dc3545',
+    },
+    fonts: {
+      heading: "'Teachers', sans-serif",
+      body: "'Poppins', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #f1f2f6 0%, #e8deff 100%)',
+      presenter: 'linear-gradient(135deg, #9669ff 0%, #feca57 100%)',
+      master: 'linear-gradient(135deg, #f1f2f6 0%, #ffffff 100%)',
+    },
+    effects: {
+      sparkles: true,
+      confetti: true,
+      animations: 'playful',
+    }
+  },
+  'neon-nights': {
+    name: 'Neon Nights',
+    colors: {
+      primary: '#ff006e',
+      accent: '#00f5ff',
+      text: '#ffffff',
+      background: '#0a0a0a',
+      surface: '#1a1a2e',
+      lightGray: '#2d2d44',
+      shadow: '#ff006e',
+      correct: '#00ff41',
+      incorrect: '#ff006e',
+    },
+    fonts: {
+      heading: "'Audiowide', cursive",
+      body: "'Rajdhani', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)',
+      presenter: 'radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0a 100%)',
+      master: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)',
+    },
+    effects: {
+      sparkles: false,
+      confetti: true,
+      animations: 'neon',
+      glow: true,
+    }
+  },
+  'minimalist': {
+    name: 'Minimalist',
+    colors: {
+      primary: '#000000',
+      accent: '#666666',
+      text: '#000000',
+      background: '#f5f5f5',
+      surface: '#ffffff',
+      lightGray: '#e0e0e0',
+      shadow: '#cccccc',
+      correct: '#2d7f3e',
+      incorrect: '#c9302c',
+    },
+    fonts: {
+      heading: "'Inter', sans-serif",
+      body: "'Inter', sans-serif",
+    },
+    backgrounds: {
+      player: '#f5f5f5',
+      presenter: 'linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%)',
+      master: '#ffffff',
+    },
+    effects: {
+      sparkles: false,
+      confetti: false,
+      animations: 'subtle',
+    }
+  },
+  'retro-arcade': {
+    name: 'Retro Arcade',
+    colors: {
+      primary: '#ff3864',
+      accent: '#ffed4e',
+      text: '#ffffff',
+      background: '#2d1b69',
+      surface: '#3d2c8d',
+      lightGray: '#5c4ab8',
+      shadow: '#0e153a',
+      correct: '#00e676',
+      incorrect: '#ff1744',
+    },
+    fonts: {
+      heading: "'Press Start 2P', cursive",
+      body: "'Courier New', monospace",
+    },
+    backgrounds: {
+      player: 'repeating-linear-gradient(0deg, #2d1b69 0px, #2d1b69 2px, #1a0f3d 2px, #1a0f3d 4px)',
+      presenter: 'repeating-linear-gradient(0deg, #2d1b69 0px, #2d1b69 2px, #1a0f3d 2px, #1a0f3d 4px)',
+      master: 'repeating-linear-gradient(0deg, #2d1b69 0px, #2d1b69 2px, #1a0f3d 2px, #1a0f3d 4px)',
+    },
+    effects: {
+      sparkles: false,
+      confetti: true,
+      animations: 'pixelated',
+      scanlines: true,
+    }
+  },
+  'ocean-breeze': {
+    name: 'Ocean Breeze',
+    colors: {
+      primary: '#006994',
+      accent: '#ff9f68',
+      text: '#1a3a52',
+      background: '#e0f4f8',
+      surface: '#ffffff',
+      lightGray: '#b8dbe5',
+      shadow: '#2a9d8f',
+      correct: '#2a9d8f',
+      incorrect: '#e07856',
+    },
+    fonts: {
+      heading: "'Righteous', cursive",
+      body: "'Quicksand', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #e0f4f8 0%, #cfe9f3 100%)',
+      presenter: 'linear-gradient(180deg, #87ceeb 0%, #4fc3dc 50%, #006994 100%)',
+      master: 'linear-gradient(135deg, #e0f4f8 0%, #ffffff 100%)',
+    },
+    effects: {
+      sparkles: false,
+      confetti: true,
+      animations: 'smooth',
+      waves: true,
+    }
+  },
+  'sunset-vibes': {
+    name: 'Sunset Vibes',
+    colors: {
+      primary: '#d35400',
+      accent: '#f39c12',
+      text: '#5c3d2e',
+      background: '#fef5e7',
+      surface: '#ffffff',
+      lightGray: '#fad7a0',
+      shadow: '#e67e22',
+      correct: '#27ae60',
+      incorrect: '#c0392b',
+    },
+    fonts: {
+      heading: "'Titan One', cursive",
+      body: "'Nunito', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%)',
+      presenter: 'linear-gradient(180deg, #f39c12 0%, #e67e22 50%, #d35400 100%)',
+      master: 'linear-gradient(135deg, #fef5e7 0%, #ffffff 100%)',
+    },
+    effects: {
+      sparkles: true,
+      confetti: true,
+      animations: 'smooth',
+      gradient: true,
+    }
+  }
+};
+
+export const defaultTheme = 'fun-and-sparkly';
+
+export const getTheme = (themeId) => {
+  return themes[themeId] || themes[defaultTheme];
+};
+
+export const applyTheme = (themeId, viewType = 'player') => {
+  const theme = getTheme(themeId);
+  const root = document.documentElement;
+  const body = document.body;
+
+  // Apply color variables
+  Object.entries(theme.colors).forEach(([key, value]) => {
+    root.style.setProperty(`--${key}`, value);
+  });
+
+  // Apply font variables
+  root.style.setProperty('--font-heading', theme.fonts.heading);
+  root.style.setProperty('--font-body', theme.fonts.body);
+
+  // Apply background based on view type
+  const backgroundKey = viewType === 'presenter' ? 'presenter' :
+      viewType === 'master' ? 'master' : 'player';
+  const background = theme.backgrounds[backgroundKey];
+
+  if (background) {
+    body.style.background = background;
+    body.style.backgroundAttachment = 'fixed';
+
+    // For presenter view, ensure full coverage
+    if (viewType === 'presenter') {
+      body.style.minHeight = '100vh';
+    }
+  }
+
+  // Apply theme-specific effects
+  body.className = body.className.replace(/theme-\S+/g, '');
+  body.classList.add(`theme-${themeId}`);
+
+  return theme;
+};
+
+// Helper to get current active theme
+export const getCurrentTheme = () => {
+  const classes = document.body.className.split(' ');
+  const themeClass = classes.find(c => c.startsWith('theme-'));
+  if (themeClass) {
+    const themeId = themeClass.replace('theme-', '');
+    return themes[themeId] || themes[defaultTheme];
+  }
+  return themes[defaultTheme];
+};

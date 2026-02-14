@@ -6,10 +6,10 @@ import WelcomeSlide from './WelcomeSlide';
 import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
 import AnswerSlide from './AnswerSlide';
-import WinnersSlide from './WinnersSlide'; // 1. Import the new component
+import WinnersSlide from './WinnersSlide';
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
-import quizBackground from '../../assets/images/quiz-background.png';
+import { applyTheme } from '../../utils/themes';
 
 export default function Presenter() {
     const [gameState, setGameState] = useState(null);
@@ -17,15 +17,16 @@ export default function Presenter() {
     const [players, setPlayers] = useState([]);
 
     useEffect(() => {
+        // Remove default background for presenter view
         const rootElement = document.getElementById('root');
-        
         document.body.style.backgroundImage = 'none';
+
         if (rootElement) {
             rootElement.style.padding = '0';
         }
 
         return () => {
-            document.body.style.backgroundImage = `url(${quizBackground})`;
+            // Cleanup if needed
             if (rootElement) {
                 rootElement.style.padding = '20px';
             }
@@ -33,15 +34,33 @@ export default function Presenter() {
     }, []);
 
     useEffect(() => {
-        get(ref(database, 'liveGame/activeQuizId')).then((snapshot) => {
-            if (snapshot.exists()) {
-                const quizId = snapshot.val();
-                get(ref(database, `quizzes/${quizId}`)).then((quizSnapshot) => {
-                    if (quizSnapshot.exists()) setQuizContent(quizSnapshot.val());
-                });
-            }
-        });
-        
+        // Load active quiz and apply its theme
+        const loadActiveQuiz = async () => {
+            const activeQuizIdRef = ref(database, 'liveGame/activeQuizId');
+
+            // Listen for changes to active quiz
+            const unsubscribe = onValue(activeQuizIdRef, async (snapshot) => {
+                if (snapshot.exists()) {
+                    const quizId = snapshot.val();
+                    const quizRef = ref(database, `quizzes/${quizId}`);
+                    const quizSnapshot = await get(quizRef);
+
+                    if (quizSnapshot.exists()) {
+                        const quiz = quizSnapshot.val();
+                        setQuizContent(quiz);
+
+                        // Apply theme for presenter view
+                        const theme = quiz.theme || 'fun-and-sparkly';
+                        applyTheme(theme, 'presenter');
+                    }
+                }
+            });
+
+            return unsubscribe;
+        };
+
+        loadActiveQuiz();
+
         onValue(ref(database, 'liveGame/gameState'), (snapshot) => setGameState(snapshot.val()));
         onValue(ref(database, 'liveGame/players'), (snapshot) => {
             if(snapshot.exists()) {
@@ -60,14 +79,13 @@ export default function Presenter() {
         }
 
         const { quizStatus, currentRoundId, currentQuestionId } = gameState;
-        
-        // 2. UPDATED LOGIC: Show WinnersSlide when the quiz has ended
+
         if (quizStatus === 'ended') {
-             return <WinnersSlide key="winners" players={players} />;
+            return <WinnersSlide key="winners" players={players} />;
         }
-        
+
         if (quizStatus === 'waiting') {
-             return <WelcomeSlide key="welcome" title="Trivia Night!" subtitle="Hannah's Birthday" />;
+            return <WelcomeSlide key="welcome" title={quizContent.title || "Trivia Night!"} subtitle="Get Ready!" />;
         }
 
         const round = quizContent.rounds[currentRoundId];
@@ -76,12 +94,12 @@ export default function Presenter() {
         if (quizStatus === 'round-interstitial') {
             return <RoundSlide key={currentRoundId} round={round} roundId={currentRoundId} />;
         }
-        
+
         if (quizStatus === 'active' && question) {
-             const questionWithId = { ...question, id: currentQuestionId };
-             return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} />;
-        } 
-        
+            const questionWithId = { ...question, id: currentQuestionId };
+            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} />;
+        }
+
         if (quizStatus === 'moderating' && question) {
             return <AnswerSlide key={`${currentQuestionId}-answer`} question={question} />;
         }
@@ -89,9 +107,13 @@ export default function Presenter() {
         return <WelcomeSlide key="fallback" title="Trivia Night!" subtitle="Please wait..." />;
     };
 
+    // Only show sparkles for themes that support it
+    const showSparkles = quizContent?.theme === 'fun-and-sparkly' ||
+        quizContent?.theme === 'sunset-vibes';
+
     return (
         <div className={styles.presenterContainer}>
-          <Sparkles /> 
+            {showSparkles && <Sparkles />}
             <AnimatePresence mode="wait">
                 {renderSlide()}
             </AnimatePresence>

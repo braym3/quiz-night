@@ -1,0 +1,458 @@
+/* Theme-specific styles and effects */
+
+/* ===================================
+   RETRO ARCADE THEME
+   =================================== */
+.theme-retro-arcade {
+    font-size: 14px; /* Smaller base font for retro feel */
+}
+
+.theme-retro-arcade * {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.theme-retro-arcade h1,
+.theme-retro-arcade h2,
+.theme-retro-arcade h3 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0px #0e153a;
+}
+
+.theme-retro-arcade button {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+/* Scanline effect for retro arcade */
+.theme-retro-arcade::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.15) 0px,
+            rgba(0, 0, 0, 0.15) 1px,
+            transparent 1px,
+            transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.theme-retro-arcade .App,
+.theme-retro-arcade .presenterContainer {
+    border: 4px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+}
+
+/* ===================================
+   NEON NIGHTS THEME
+   =================================== */
+.theme-neon-nights {
+    color: var(--text);
+}
+
+.theme-neon-nights h1,
+.theme-neon-nights h2,
+.theme-neon-nights h3,
+.theme-neon-nights .round-title {
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+    letter-spacing: 3px;
+}
+
+.theme-neon-nights .questionText,
+.theme-neon-nights .question-text {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+}
+
+.theme-neon-nights button {
+    box-shadow: 0 0 10px var(--primary), 0 4px 0 0 var(--text);
+}
+
+.theme-neon-nights button:hover {
+    box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary), 0 6px 0 0 var(--text);
+}
+
+.theme-neon-nights .App,
+.theme-neon-nights .presenterContainer {
+    border: 3px solid var(--primary);
+    box-shadow: 0 0 30px var(--primary), inset 0 0 30px rgba(255, 0, 110, 0.1);
+}
+
+.theme-neon-nights .card,
+.theme-neon-nights .leaderboard-item {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+}
+
+/* ===================================
+   OCEAN BREEZE THEME
+   =================================== */
+.theme-ocean-breeze h1,
+.theme-ocean-breeze h2,
+.theme-ocean-breeze h3 {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.theme-ocean-breeze .round-title {
+    color: var(--primary);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.theme-ocean-breeze .App,
+.theme-ocean-breeze .presenterContainer {
+    border: 3px solid var(--primary);
+    border-radius: 30px;
+    box-shadow: 0 10px 40px rgba(0, 105, 148, 0.2);
+}
+
+.theme-ocean-breeze button {
+    border-radius: 25px;
+    font-weight: 700;
+}
+
+.theme-ocean-breeze .card {
+    border-radius: 30px;
+    border: 3px solid var(--primary);
+}
+
+/* Subtle wave animation */
+.theme-ocean-breeze::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M0,60 C300,100 600,20 900,60 C1050,80 1200,60 1200,60 L1200,120 L0,120 Z' fill='%23006994' opacity='0.1'/%3E%3C/svg%3E");
+    background-size: 1200px 120px;
+    background-repeat: repeat-x;
+    pointer-events: none;
+    animation: wave 20s linear infinite;
+}
+
+@keyframes wave {
+    0% { background-position: 0 0; }
+    100% { background-position: 1200px 0; }
+}
+
+/* ===================================
+   SUNSET VIBES THEME
+   =================================== */
+.theme-sunset-vibes h1,
+.theme-sunset-vibes h2,
+.theme-sunset-vibes h3 {
+    color: var(--primary);
+    font-weight: 900;
+    text-shadow: 2px 2px 0px var(--accent);
+}
+
+.theme-sunset-vibes .round-title {
+    color: var(--primary);
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.theme-sunset-vibes .App,
+.theme-sunset-vibes .presenterContainer {
+    border: 4px solid var(--primary);
+    border-radius: 25px;
+    box-shadow: 0 15px 50px rgba(211, 84, 0, 0.3);
+}
+
+.theme-sunset-vibes button {
+    border-radius: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.theme-sunset-vibes .card {
+    border-radius: 25px;
+    border: 4px solid var(--accent);
+    background: linear-gradient(135deg, #ffffff 0%, #fef5e7 100%);
+}
+
+/* ===================================
+   MINIMALIST THEME
+   =================================== */
+.theme-minimalist {
+    font-weight: 400;
+}
+
+.theme-minimalist h1,
+.theme-minimalist h2,
+.theme-minimalist h3 {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.theme-minimalist .App,
+.theme-minimalist .presenterContainer {
+    border: 2px solid var(--lightGray);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-minimalist button {
+    border-radius: 6px;
+    box-shadow: none;
+    border: 2px solid var(--primary);
+}
+
+.theme-minimalist button:hover {
+    box-shadow: none;
+    background-color: var(--primary);
+    color: white;
+}
+
+.theme-minimalist .card {
+    border: 2px solid var(--lightGray);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+/* ===================================
+   PRESENTER VIEW THEME STYLING
+   =================================== */
+
+/* Fun & Sparkly Presenter */
+.theme-fun-and-sparkly .presenterContainer {
+    background: linear-gradient(135deg, #9669ff 0%, #feca57 100%);
+}
+
+.theme-fun-and-sparkly .card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+/* Neon Nights Presenter */
+.theme-neon-nights .presenterContainer {
+    background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0a 100%);
+}
+
+.theme-neon-nights .card {
+    background: rgba(26, 26, 46, 0.9);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--accent);
+}
+
+.theme-neon-nights .questionText,
+.theme-neon-nights .title {
+    color: var(--accent);
+}
+
+.theme-neon-nights .correctAnswer {
+    color: var(--correct);
+    text-shadow: 0 0 20px var(--correct);
+}
+
+/* Minimalist Presenter */
+.theme-minimalist .presenterContainer {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+}
+
+.theme-minimalist .card {
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+}
+
+/* Retro Arcade Presenter */
+.theme-retro-arcade .presenterContainer {
+    background: repeating-linear-gradient(
+            0deg,
+            #2d1b69 0px,
+            #2d1b69 2px,
+            #1a0f3d 2px,
+            #1a0f3d 4px
+    );
+}
+
+.theme-retro-arcade .card {
+    background: #3d2c8d;
+    border: 4px solid var(--accent);
+    box-shadow: 8px 8px 0px var(--shadow);
+}
+
+.theme-retro-arcade .questionText,
+.theme-retro-arcade .title {
+    color: var(--accent);
+    text-shadow: 3px 3px 0px #0e153a;
+}
+
+.theme-retro-arcade .correctAnswer {
+    color: var(--accent);
+    text-shadow: 3px 3px 0px #0e153a;
+}
+
+/* Ocean Breeze Presenter */
+.theme-ocean-breeze .presenterContainer {
+    background: linear-gradient(180deg, #87ceeb 0%, #4fc3dc 50%, #006994 100%);
+}
+
+.theme-ocean-breeze .card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 3px solid #006994;
+}
+
+.theme-ocean-breeze .questionText {
+    color: #006994;
+}
+
+.theme-ocean-breeze .title {
+    color: #1a3a52;
+}
+
+/* Sunset Vibes Presenter */
+.theme-sunset-vibes .presenterContainer {
+    background: linear-gradient(180deg, #f39c12 0%, #e67e22 50%, #d35400 100%);
+}
+
+.theme-sunset-vibes .card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 4px solid #d35400;
+}
+
+.theme-sunset-vibes .questionText {
+    color: #d35400;
+}
+
+.theme-sunset-vibes .title {
+    color: #5c3d2e;
+}
+
+/* ===================================
+   GENERAL ACCESSIBILITY FIXES
+   =================================== */
+
+/* Ensure sufficient contrast for all themes */
+.theme-neon-nights .player-message h2,
+.theme-neon-nights .player-message h3,
+.theme-neon-nights .player-message p {
+    color: #ffffff;
+}
+
+.theme-retro-arcade .player-message h2,
+.theme-retro-arcade .player-message h3,
+.theme-retro-arcade .questionText {
+    color: var(--accent);
+}
+
+.theme-ocean-breeze .questionText {
+    color: var(--text);
+    font-weight: 700;
+}
+
+/* Better button visibility on dark themes */
+.theme-neon-nights button,
+.theme-retro-arcade button {
+    color: #ffffff;
+    border-color: var(--accent);
+}
+
+/* Round title visibility */
+.theme-neon-nights .round-title {
+    color: var(--accent);
+    opacity: 1;
+}
+
+.theme-retro-arcade .round-title {
+    color: var(--accent);
+    opacity: 1;
+}
+
+.theme-ocean-breeze .round-title {
+    color: var(--primary);
+    opacity: 1;
+}
+
+/* ===================================
+   ACTIVE QUIZ INDICATOR
+   =================================== */
+.active-quiz-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--correct) 0%, #20c997 100%);
+    color: white;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-left: 15px;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.active-quiz-indicator::before {
+    content: '🎮';
+    font-size: 1.2rem;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.8);
+    }
+}
+
+/* Theme badge in active indicator */
+.active-quiz-theme {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+/* ===================================
+   RESPONSIVE ADJUSTMENTS
+   =================================== */
+@media (max-width: 768px) {
+    .theme-retro-arcade {
+        font-size: 12px;
+    }
+
+    .theme-retro-arcade h1,
+    .theme-retro-arcade h2,
+    .theme-retro-arcade h3 {
+        letter-spacing: 1px;
+    }
+
+    .active-quiz-indicator {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+}
+
+/* ===================================
+   THEME TRANSITION
+   =================================== */
+body,
+.App,
+.presenterContainer {
+    transition: background 0.5s ease, border-color 0.5s ease;
+}
+
+* {
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+button {
+    transition: all 0.2s ease-in-out !important;
+}
