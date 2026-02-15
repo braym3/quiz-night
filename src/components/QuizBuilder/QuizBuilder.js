@@ -14,6 +14,10 @@ const QuizBuilder = ({ onClose }) => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [mediaLibrary, setMediaLibrary] = useState({ audio: [], images: [], logos: [] });
+  const [questionBank, setQuestionBank] = useState({});
+  const [showQuestionBank, setShowQuestionBank] = useState(false);
+  const [bankFilter, setBankFilter] = useState('all');
+  const [addToBank, setAddToBank] = useState(true);
 
   const questionTypes = [
     { id: 'text_input', name: 'Text Input', icon: '✍️' },
@@ -29,7 +33,32 @@ const QuizBuilder = ({ onClose }) => {
   useEffect(() => {
     loadQuizzes();
     loadMediaLibrary();
+    loadQuestionBank();
   }, []);
+
+  const loadQuestionBank = async () => {
+    const bankRef = dbRef(database, 'questionBank');
+    const snapshot = await get(bankRef);
+    if (snapshot.exists()) {
+      setQuestionBank(snapshot.val());
+    }
+  };
+
+  const saveToQuestionBank = async (question, category = 'general') => {
+    const bankRef = dbRef(database, `questionBank/${category}`);
+    const snapshot = await get(bankRef);
+    const questions = snapshot.exists() ? snapshot.val() : [];
+
+    const newQuestion = {
+      ...question,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    questions.push(newQuestion);
+    await set(bankRef, questions);
+    await loadQuestionBank();
+  };
 
   const loadMediaLibrary = async () => {
     try {
@@ -154,6 +183,7 @@ const QuizBuilder = ({ onClose }) => {
     setCurrentRound({ id: roundId, ...round });
     setCurrentQuestion({ id: questionId, type: 'text_input', text: '', answer: '', points: 10 });
     setCurrentView('question');
+    setShowQuestionBank(false);
   };
 
   const editQuestion = (roundId, questionId) => {
@@ -161,15 +191,34 @@ const QuizBuilder = ({ onClose }) => {
     setCurrentRound({ id: roundId, ...round });
     setCurrentQuestion({ id: questionId, ...round.questions[questionId] });
     setCurrentView('question');
+    setShowQuestionBank(false);
   };
 
-  const saveQuestion = () => {
+  const loadQuestionFromBank = (bankQuestion) => {
+    const round = currentRound;
+    const questionId = `q${Object.keys(round.questions || {}).length + 1}`;
+
+    const questionData = { ...bankQuestion };
+    delete questionData.id;
+    delete questionData.createdAt;
+
+    setCurrentQuestion({ id: questionId, ...questionData });
+    setShowQuestionBank(false);
+  };
+
+  const saveQuestion = async () => {
     const questionData = { ...currentQuestion };
     delete questionData.id;
 
     // Auto-populate words for connections
     if (questionData.type === 'connections' && questionData.connections) {
       questionData.words = questionData.connections.flatMap(g => g.words).filter(w => w);
+    }
+
+    // Save to question bank if checkbox is checked
+    if (addToBank && questionData.text && questionData.answer) {
+      const category = currentRound?.type || 'general';
+      await saveToQuestionBank(questionData, category);
     }
 
     const updatedRound = {
@@ -197,6 +246,68 @@ const QuizBuilder = ({ onClose }) => {
         [roundId]: { ...currentQuiz.rounds[roundId], questions }
       }
     });
+  };
+
+  const getQuestionPreview = (q) => {
+    const preview = q.text?.substring(0, 40) || 'Untitled';
+    return preview.length < q.text?.length ? preview + '...' : preview;
+  };
+
+  const renderQuestionBank = () => {
+    const categories = Object.keys(questionBank);
+    const filteredQuestions = bankFilter === 'all'
+        ? Object.values(questionBank).flat()
+        : questionBank[bankFilter] || [];
+
+    return (
+        <div className="question-bank-panel">
+          <div className="bank-header">
+            <h3>Question Bank ({filteredQuestions.length})</h3>
+            <button onClick={() => setShowQuestionBank(false)} className="btn-sm">✕ Close</button>
+          </div>
+
+          <div className="bank-filters">
+            <button
+                className={`filter-btn ${bankFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setBankFilter('all')}
+            >
+              All
+            </button>
+            {categories.map(cat => (
+                <button
+                    key={cat}
+                    className={`filter-btn ${bankFilter === cat ? 'active' : ''}`}
+                    onClick={() => setBankFilter(cat)}
+                >
+                  {cat}
+                </button>
+            ))}
+          </div>
+
+          <div className="bank-questions">
+            {filteredQuestions.length === 0 ? (
+                <div className="bank-empty">
+                  <p>No questions in this category yet</p>
+                  <p className="hint">Save questions with "Add to Bank" checked</p>
+                </div>
+            ) : (
+                filteredQuestions.map((q, idx) => (
+                    <div key={idx} className="bank-question-card" onClick={() => loadQuestionFromBank(q)}>
+                      <div className="bank-q-icon">
+                        {questionTypes.find(t => t.id === q.type)?.icon || '❓'}
+                      </div>
+                      <div className="bank-q-content">
+                        <div className="bank-q-text">{getQuestionPreview(q)}</div>
+                        <div className="bank-q-meta">
+                          {q.type.replace('_', ' ')} • {q.points || 10} pts
+                        </div>
+                      </div>
+                    </div>
+                ))
+            )}
+          </div>
+        </div>
+    );
   };
 
   const renderQuestionEditor = () => {
@@ -464,6 +575,17 @@ const QuizBuilder = ({ onClose }) => {
                 placeholder="Add explanation..."
             />
           </div>
+
+          <div className="input-group">
+            <label className="checkbox-label">
+              <input
+                  type="checkbox"
+                  checked={addToBank}
+                  onChange={(e) => setAddToBank(e.target.checked)}
+              />
+              Add to Question Bank
+            </label>
+          </div>
         </div>
     );
   };
@@ -532,7 +654,7 @@ const QuizBuilder = ({ onClose }) => {
                               {Object.entries(round.questions || {}).map(([qid, q]) => (
                                   <div key={qid} className="question-mini" onClick={() => editQuestion(rid, qid)}>
                                     <span>{questionTypes.find(t => t.id === q.type)?.icon}</span>
-                                    <span>{q.text || 'Untitled'}</span>
+                                    <span>{getQuestionPreview(q)}</span>
                                     <button onClick={(e) => { e.stopPropagation(); deleteQuestion(rid, qid); }}>🗑️</button>
                                   </div>
                               ))}
@@ -553,7 +675,12 @@ const QuizBuilder = ({ onClose }) => {
                     <button className="btn-save" onClick={saveQuestion}>💾</button>
                   </div>
                   <div className="modal-body">
-                    {renderQuestionEditor()}
+                    {!showQuestionBank && (
+                        <button className="question-bank-toggle" onClick={() => setShowQuestionBank(true)}>
+                          💡 Load from Question Bank
+                        </button>
+                    )}
+                    {showQuestionBank ? renderQuestionBank() : renderQuestionEditor()}
                   </div>
                 </motion.div>
             )}
