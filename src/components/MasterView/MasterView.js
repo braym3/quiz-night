@@ -1,346 +1,367 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { database } from '../../index';
-import { ref, set, get, update, onValue } from 'firebase/database';
+import { ref, set, get } from 'firebase/database';
 import './MasterView.css';
+import { motion } from 'framer-motion';
 
-const MasterView = ({ gameState, players }) => {
-    const [quizContent, setQuizContent] = useState(null);
-    const [currentAnswers, setCurrentAnswers] = useState([]);
-    const [moderatedScores, setModeratedScores] = useState({});
+export default function MasterView({ gameState, players }) {
+    const [activeTab, setActiveTab] = useState('control'); // 'control' or 'players'
+    const [editingScores, setEditingScores] = useState({});
+    const [quizData, setQuizData] = useState(null);
 
-    useEffect(() => {
-        const activeQuizRef = ref(database, 'liveGame/activeQuizId');
-        get(activeQuizRef).then((snapshot) => {
-            const quizId = snapshot.val();
-            if (quizId) {
-                const quizContentRef = ref(database, `quizzes/${quizId}`);
-                get(quizContentRef).then((quizSnapshot) => {
-                    if (quizSnapshot.exists()) {
-                        setQuizContent(quizSnapshot.val());
-                    }
-                });
+    // Load quiz data when component mounts or activeQuizId changes
+    React.useEffect(() => {
+        const loadQuizData = async () => {
+            const activeQuizIdSnapshot = await get(ref(database, 'liveGame/activeQuizId'));
+            if (activeQuizIdSnapshot.exists()) {
+                const quizId = activeQuizIdSnapshot.val();
+                const quizSnapshot = await get(ref(database, `quizzes/${quizId}`));
+                if (quizSnapshot.exists()) {
+                    setQuizData(quizSnapshot.val());
+                }
             }
-        });
-    }, []);
-
-    useEffect(() => {
-        if (!gameState?.currentQuestionId && !gameState?.currentRoundId) return;
-
-        const playersRef = ref(database, 'liveGame/players');
-        const onPlayersChange = onValue(playersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const playersData = snapshot.val();
-                const submittedAnswers = Object.entries(playersData)
-                    .map(([name, data]) => ({ name, ...data }));
-                setCurrentAnswers(submittedAnswers);
-            } else {
-                setCurrentAnswers([]);
-            }
-        });
-        return () => onPlayersChange();
+        };
+        loadQuizData();
     }, [gameState]);
 
+    const startQuiz = () => {
+        set(ref(database, 'liveGame/gameState'), {
+            quizStatus: 'waiting',
+            currentRoundId: null,
+            currentQuestionId: null
+        });
+    };
+
+    const startRound = (roundId) => {
+        set(ref(database, 'liveGame/gameState'), {
+            quizStatus: 'round-interstitial',
+            currentRoundId: roundId,
+            currentQuestionId: null
+        });
+    };
+
+    const showQuestion = (questionId) => {
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            quizStatus: 'active',
+            currentQuestionId: questionId
+        });
+    };
+
+    const showAnswer = () => {
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            quizStatus: 'moderating'
+        });
+    };
+
+    const nextQuestion = () => {
+        if (!quizData || !gameState?.currentRoundId) return;
+
+        const currentRound = quizData.rounds[gameState.currentRoundId];
+        const questionIds = Object.keys(currentRound.questions);
+        const currentIndex = questionIds.indexOf(gameState.currentQuestionId);
+
+        if (currentIndex < questionIds.length - 1) {
+            // Next question in round
+            showQuestion(questionIds[currentIndex + 1]);
+        } else {
+            // End of round
+            const roundIds = Object.keys(quizData.rounds);
+            const roundIndex = roundIds.indexOf(gameState.currentRoundId);
+
+            if (roundIndex < roundIds.length - 1) {
+                // Next round exists
+                startRound(roundIds[roundIndex + 1]);
+            } else {
+                // End of quiz
+                endQuiz();
+            }
+        }
+    };
+
+    const previousQuestion = () => {
+        if (!quizData || !gameState?.currentRoundId) return;
+
+        const currentRound = quizData.rounds[gameState.currentRoundId];
+        const questionIds = Object.keys(currentRound.questions);
+        const currentIndex = questionIds.indexOf(gameState.currentQuestionId);
+
+        if (currentIndex > 0) {
+            showQuestion(questionIds[currentIndex - 1]);
+        }
+    };
+
+    const endQuiz = () => {
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            quizStatus: 'ended'
+        });
+    };
+
+    const updatePlayerScore = (playerName, newScore) => {
+        set(ref(database, `liveGame/players/${playerName}/score`), parseInt(newScore) || 0);
+        setEditingScores({ ...editingScores, [playerName]: undefined });
+    };
+
     const getCurrentQuestion = () => {
-        if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) return null;
-        return quizContent.rounds[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
+        if (!quizData || !gameState?.currentRoundId || !gameState?.currentQuestionId) return null;
+        return quizData.rounds[gameState.currentRoundId]?.questions[gameState.currentQuestionId];
     };
 
-    const handleScoreChange = (playerName, score) => {
-        const newScore = parseFloat(score);
-        setModeratedScores(prevScores => ({
-            ...prevScores,
-            [playerName]: isNaN(newScore) ? 0 : newScore,
-        }));
-    };
+    const getPlayerAnswer = (player) => {
+        if (!player.answer) return <span className="no-answer">No answer yet</span>;
 
-    const handleScoreAdjust = (playerName, amount) => {
-        const currentScore = moderatedScores[playerName] || 0;
-        const newScore = Math.max(0, currentScore + amount);
-        setModeratedScores(prevScores => ({
-            ...prevScores,
-            [playerName]: newScore,
-        }));
-    };
+        const question = getCurrentQuestion();
+        if (!question) return <span className="answer-text">{JSON.stringify(player.answer)}</span>;
 
-    const handlePreviousQuestion = () => {
-        if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) return;
-        
-        const roundIds = Object.keys(quizContent.rounds);
-        const currentRoundId = gameState.currentRoundId;
-        const currentQuestionId = gameState.currentQuestionId;
-
-        const currentRoundQuestions = Object.keys(quizContent.rounds[currentRoundId].questions);
-        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
-
-        let prevRoundId = currentRoundId;
-        let prevQuestionId = '';
-
-        if (currentQuestionIndex > 0) {
-            prevQuestionId = currentRoundQuestions[currentQuestionIndex - 1];
-        } else {
-            const currentRoundIndex = roundIds.indexOf(currentRoundId);
-            if (currentRoundIndex > 0) {
-                prevRoundId = roundIds[currentRoundIndex - 1];
-                const prevRoundQuestions = Object.keys(quizContent.rounds[prevRoundId].questions);
-                prevQuestionId = prevRoundQuestions[prevRoundQuestions.length - 1];
-            } else {
-                return;
-            }
-        }
-        
-        update(ref(database, 'liveGame/gameState'), {
-            quizStatus: 'active',
-            currentRoundId: prevRoundId,
-            currentQuestionId: prevQuestionId,
-        });
-    };
-
-    const handleNextQuestion = () => {
-        if (!quizContent) return;
-        setModeratedScores({});
-        const roundIds = Object.keys(quizContent.rounds);
-        let currentRoundId = gameState?.currentRoundId;
-        let currentQuestionId = gameState?.currentQuestionId;
-
-        if (gameState?.quizStatus === 'ended' || gameState?.quizStatus === 'waiting') {
-            currentRoundId = '';
-            currentQuestionId = '';
-            set(ref(database, 'liveGame/players'), {});
-        }
-        
-        if (gameState?.quizStatus === 'round-interstitial') {
-            const firstQuestionId = Object.keys(quizContent.rounds[currentRoundId].questions)[0];
-            update(ref(database, 'liveGame/gameState'), {
-                quizStatus: 'active',
-                currentQuestionId: firstQuestionId,
-            });
-            return;
-        }
-
-        if (!currentRoundId) {
-            const firstRoundId = roundIds[0];
-            update(ref(database, 'liveGame/gameState'), {
-                quizStatus: 'round-interstitial',
-                currentRoundId: firstRoundId,
-                currentQuestionId: '',
-            });
-            return;
-        }
-        
-        const currentRoundQuestions = Object.keys(quizContent.rounds[currentRoundId].questions);
-        const currentQuestionIndex = currentRoundQuestions.indexOf(currentQuestionId);
-
-        if (currentQuestionIndex < currentRoundQuestions.length - 1) {
-            currentQuestionId = currentRoundQuestions[currentQuestionIndex + 1];
-        } else {
-            const currentRoundIndex = roundIds.indexOf(currentRoundId);
-            if (currentRoundIndex < roundIds.length - 1) {
-                const nextRoundId = roundIds[currentRoundIndex + 1];
-                update(ref(database, 'liveGame/gameState'), {
-                    quizStatus: 'round-interstitial',
-                    currentRoundId: nextRoundId,
-                    currentQuestionId: '',
-                });
-                return;
-            } else {
-                update(ref(database, 'liveGame/gameState'), { quizStatus: 'ended' });
-                return;
-            }
-        }
-        
-        update(ref(database, 'liveGame/gameState'), {
-            quizStatus: 'active',
-            currentRoundId: currentRoundId,
-            currentQuestionId: currentQuestionId,
-        });
-
-        const answerUpdates = {};
-        players.forEach(player => {
-            answerUpdates[`liveGame/players/${player.name}/answer`] = '';
-        });
-        update(ref(database), answerUpdates);
-    };
-
-    const handleRevealAnswer = () => {
-        const questionData = getCurrentQuestion();
-        if (!questionData) return;
-        const suggestedScores = {};
-        currentAnswers.forEach(player => {
-            let score = 0;
-            const correctAnswer = questionData.answer;
-            if (player.answer) {
-                let isCorrect = false;
-                if (questionData.type === 'ordering') {
-                    if (Array.isArray(player.answer) && player.answer.length === correctAnswer.length) {
-                        isCorrect = player.answer.every((val, index) => val === correctAnswer[index]);
-                    }
-                } else {
-                    isCorrect = player.answer.toString().toLowerCase().trim() === correctAnswer.toString().toLowerCase().trim();
-                }
-                if (isCorrect) {
-                    score = questionData.points || 10;
-                }
-            }
-            suggestedScores[player.name] = score;
-        });
-        setModeratedScores(suggestedScores);
-        update(ref(database, 'liveGame/gameState'), { quizStatus: 'moderating' });
-    };
-
-    const handleEndQuiz = () => {
-        update(ref(database, 'liveGame/gameState'), { quizStatus: 'ended' });
-    };
-
-    const currentQuestionData = getCurrentQuestion();
-
-    const totalQuestions = useMemo(() => {
-        if (!quizContent) return 0;
-        return Object.values(quizContent.rounds).reduce((total, round) => total + Object.keys(round.questions).length, 0);
-    }, [quizContent]);
-
-    let currentQuestionNumber = 0;
-    if (quizContent && gameState?.currentRoundId && gameState?.currentQuestionId) {
-        const roundIds = Object.keys(quizContent.rounds);
-        const currentRoundIndex = roundIds.indexOf(gameState.currentRoundId);
-        
-        for (let i = 0; i < currentRoundIndex; i++) {
-            currentQuestionNumber += Object.keys(quizContent.rounds[roundIds[i]].questions).length;
-        }
-        
-        const questionsInCurrentRound = Object.keys(quizContent.rounds[gameState.currentRoundId].questions);
-        currentQuestionNumber += questionsInCurrentRound.indexOf(gameState.currentQuestionId) + 1;
-    }
-    
-    let correctAnswerDisplay = '';
-    if (currentQuestionData) {
-        if (currentQuestionData.options && !Array.isArray(currentQuestionData.options)) {
-            correctAnswerDisplay = currentQuestionData.options[currentQuestionData.answer];
-        } else if (Array.isArray(currentQuestionData.answer)) {
-            correctAnswerDisplay = currentQuestionData.answer.join(' → ');
-        } else {
-            correctAnswerDisplay = currentQuestionData.answer;
-        }
-    }
-
-    const renderPrimaryButton = () => {
-        const status = gameState?.quizStatus;
-
-        if (!status || status === 'waiting' || status === 'ended') {
-            return <button className="button-primary" onClick={handleNextQuestion}>Start Quiz</button>
-        }
-        if (status === 'active') {
-            return <button className="button-primary" onClick={handleRevealAnswer}>Reveal Answer</button>
-        }
-        if (status === 'moderating') {
-            const applyAndGoNext = () => {
-                const updates = {};
-                players.forEach(player => {
-                    const roundScore = moderatedScores[player.name] || 0;
-                    if (roundScore >= 0) {
-                        const newTotalScore = (player.score || 0) + roundScore;
-                        updates[`liveGame/players/${player.name}/score`] = newTotalScore;
-                    }
-                });
-                update(ref(database), updates).then(() => {
-                    handleNextQuestion();
-                });
-            }
-            return <button className="button-primary" onClick={applyAndGoNext}>Next</button>
-        }
-        if (status === 'round-interstitial') {
-            return <button className="button-primary" onClick={handleNextQuestion}>Start Round</button>
-        }
-        return null;
-    };
-
-    const isFirstQuestionOfQuiz = useMemo(() => {
-        if (!quizContent || !gameState?.currentRoundId || !gameState?.currentQuestionId) {
-            return true;
-        }
-        const roundIds = Object.keys(quizContent.rounds);
-        const firstRoundId = roundIds[0];
-        const firstQuestionId = Object.keys(quizContent.rounds[firstRoundId].questions)[0];
-        
-        return gameState.currentRoundId === firstRoundId && gameState.currentQuestionId === firstQuestionId;
-    }, [gameState, quizContent]);
-
-    return (
-        <div className="master-view-container">
-            <h1 className="master-title">Quiz Master Dashboard</h1>
-            
-            <div className="master-card sticky-header">
-                <div className="header-info">
-                    <h2>Controls</h2>
-                    {(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating') && currentQuestionData && (
-                        <div className="question-info-details">
-                            <span><strong>Round:</strong> {quizContent.rounds[gameState.currentRoundId].title}</span>
-                            <span><strong>Answer:</strong> {correctAnswerDisplay}</span>
-                        </div>
-                    )}
+        // Format based on question type
+        if (question.type === 'text_input' || question.type === 'image_input') {
+            return <span className="answer-text">{player.answer}</span>;
+        } else if (question.type === 'multiple_choice' || question.type === 'true_false') {
+            const optionText = question.options?.[player.answer];
+            return <span className="answer-text">{player.answer.toUpperCase()}) {optionText}</span>;
+        } else if (question.type === 'music') {
+            return (
+                <div className="answer-music">
+                    <div><strong>Title:</strong> {player.answer.title || '—'}</div>
+                    <div><strong>Artist:</strong> {player.answer.artist || '—'}</div>
+                    <div><strong>Decade:</strong> {player.answer.decade || '—'}</div>
                 </div>
+            );
+        } else if (question.type === 'ordering') {
+            return (
+                <div className="answer-ordering">
+                    {(player.answer || []).map((item, i) => (
+                        <div key={i}>{i + 1}. {item}</div>
+                    ))}
+                </div>
+            );
+        } else if (question.type === 'connections') {
+            return (
+                <div className="answer-connections">
+                    {(player.answer || []).map((group, i) => (
+                        <div key={i} className="connection-group-mini">
+                            <div className="group-label">Group {i + 1}:</div>
+                            <div className="group-words">{group.join(', ')}</div>
+                        </div>
+                    ))}
+                </div>
+            );
+        } else if (question.type === 'logo_wall') {
+            return (
+                <div className="answer-logos">
+                    {Object.entries(player.answer || {}).map(([idx, name]) => (
+                        <div key={idx} className="logo-answer">{name}</div>
+                    ))}
+                </div>
+            );
+        }
 
-                <div className="controls-group">
-                    <button 
-                        onClick={handlePreviousQuestion} 
-                        className="button-secondary"
-                        disabled={!gameState || gameState.quizStatus === 'waiting' || gameState.quizStatus === 'ended' || isFirstQuestionOfQuiz}
-                    >
-                        Previous
-                    </button>
-                    {renderPrimaryButton()}
-                    <button 
-                        onClick={handleEndQuiz} 
-                        className="button-secondary"
-                        disabled={!gameState || !(gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating')}
-                    >
-                        End Quiz
-                    </button>
+        return <span className="answer-text">{JSON.stringify(player.answer)}</span>;
+    };
+
+    const renderControl = () => (
+        <div className="control-panel">
+            {/* Quiz Status */}
+            <div className="status-card">
+                <div className="status-label">Status</div>
+                <div className="status-value">
+                    {!gameState && 'No Game Active'}
+                    {gameState?.quizStatus === 'waiting' && '⏸️ Waiting to Start'}
+                    {gameState?.quizStatus === 'round-interstitial' && '📺 Round Screen'}
+                    {gameState?.quizStatus === 'active' && '▶️ Question Active'}
+                    {gameState?.quizStatus === 'moderating' && '✅ Showing Answer'}
+                    {gameState?.quizStatus === 'ended' && '🏆 Quiz Ended'}
                 </div>
             </div>
 
-            <div className="master-card answers-card">
-                <h2>Answers & Scoring</h2>
-                <ul className="answers-list">
-                    {currentAnswers.length > 0 ? currentAnswers.map((player) => {
-                        let playerAnswerDisplay = 'No answer submitted';
-                        if (player.answer) {
-                            if (currentQuestionData?.options && !Array.isArray(currentQuestionData.options) && currentQuestionData.options[player.answer]) {
-                                playerAnswerDisplay = currentQuestionData.options[player.answer];
-                            } else if (Array.isArray(player.answer)) {
-                                playerAnswerDisplay = player.answer.join(', ');
-                            } else {
-                                playerAnswerDisplay = player.answer.toString();
-                            }
-                        }
+            {/* Current Position */}
+            {gameState?.currentRoundId && (
+                <div className="position-card">
+                    <div className="position-label">Current Position</div>
+                    <div className="position-value">
+                        Round: {gameState.currentRoundId}
+                        {gameState.currentQuestionId && ` • Q: ${gameState.currentQuestionId}`}
+                    </div>
+                </div>
+            )}
 
-                        return (
-                            <li key={player.name} className="answer-item">
-                                <div className="answer-details">
-                                    <span className="player-name">{player.name}</span>
-                                    <span className="player-answer">{playerAnswerDisplay}</span>
+            {/* Control Buttons */}
+            <div className="controls-grid">
+                {!gameState?.quizStatus && (
+                    <button onClick={startQuiz} className="control-btn primary">
+                        ▶️ Start Quiz
+                    </button>
+                )}
+
+                {gameState?.quizStatus === 'waiting' && quizData && (
+                    <button
+                        onClick={() => startRound(Object.keys(quizData.rounds)[0])}
+                        className="control-btn primary"
+                    >
+                        ▶️ Start First Round
+                    </button>
+                )}
+
+                {gameState?.quizStatus === 'round-interstitial' && quizData && (
+                    <button
+                        onClick={() => showQuestion(Object.keys(quizData.rounds[gameState.currentRoundId].questions)[0])}
+                        className="control-btn primary"
+                    >
+                        ▶️ Show First Question
+                    </button>
+                )}
+
+                {gameState?.quizStatus === 'active' && (
+                    <>
+                        <button onClick={showAnswer} className="control-btn success">
+                            ✅ Show Answer
+                        </button>
+                        <button onClick={previousQuestion} className="control-btn secondary">
+                            ⏮️ Previous
+                        </button>
+                    </>
+                )}
+
+                {gameState?.quizStatus === 'moderating' && (
+                    <>
+                        <button onClick={nextQuestion} className="control-btn primary">
+                            ⏭️ Next Question
+                        </button>
+                        <button onClick={previousQuestion} className="control-btn secondary">
+                            ⏮️ Previous
+                        </button>
+                    </>
+                )}
+
+                {gameState?.quizStatus !== 'ended' && gameState?.quizStatus && (
+                    <button onClick={endQuiz} className="control-btn danger">
+                        🏁 End Quiz
+                    </button>
+                )}
+            </div>
+
+            {/* Quick Rounds Access */}
+            {quizData && gameState?.quizStatus && gameState.quizStatus !== 'ended' && (
+                <div className="rounds-quick-access">
+                    <div className="rounds-label">Jump to Round:</div>
+                    <div className="rounds-grid">
+                        {Object.entries(quizData.rounds).map(([roundId, round]) => (
+                            <button
+                                key={roundId}
+                                onClick={() => startRound(roundId)}
+                                className={`round-btn ${gameState.currentRoundId === roundId ? 'active' : ''}`}
+                            >
+                                {round.title}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderPlayers = () => (
+        <div className="players-panel">
+            <div className="players-header">
+                <h3>{players.length} Players</h3>
+                {getCurrentQuestion() && (
+                    <div className="question-type-badge">
+                        {getCurrentQuestion().type.replace('_', ' ')}
+                    </div>
+                )}
+            </div>
+
+            {players.length === 0 ? (
+                <div className="no-players">
+                    <p>No players yet</p>
+                    <p className="hint">Players will appear here when they join</p>
+                </div>
+            ) : (
+                <div className="players-list">
+                    {players.map((player, index) => (
+                        <motion.div
+                            key={player.name}
+                            className="player-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                        >
+                            <div className="player-header">
+                                <div className="player-rank">#{index + 1}</div>
+                                <div className="player-name">{player.name}</div>
+                                <div className="player-score-edit">
+                                    {editingScores[player.name] !== undefined ? (
+                                        <>
+                                            <input
+                                                type="number"
+                                                value={editingScores[player.name]}
+                                                onChange={(e) => setEditingScores({ ...editingScores, [player.name]: e.target.value })}
+                                                className="score-input"
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={() => updatePlayerScore(player.name, editingScores[player.name])}
+                                                className="score-save"
+                                            >
+                                                ✓
+                                            </button>
+                                            <button
+                                                onClick={() => setEditingScores({ ...editingScores, [player.name]: undefined })}
+                                                className="score-cancel"
+                                            >
+                                                ✕
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="player-score">{player.score || 0} pts</div>
+                                            <button
+                                                onClick={() => setEditingScores({ ...editingScores, [player.name]: player.score || 0 })}
+                                                className="score-edit-btn"
+                                            >
+                                                ✏️
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
-                                <div className="score-moderation">
-                                    <input
-                                        type="number"
-                                        step="0.5"
-                                        className="score-input"
-                                        value={moderatedScores[player.name] !== undefined ? moderatedScores[player.name] : ''}
-                                        onChange={(e) => handleScoreChange(player.name, e.target.value)}
-                                        disabled={gameState?.quizStatus !== 'active' && gameState?.quizStatus !== 'moderating'}
-                                        placeholder="0"
-                                    />
-                                    <div className="score-button-stack">
-                                        <button className="score-adjust-button" onClick={() => handleScoreAdjust(player.name, 0.5)} disabled={gameState?.quizStatus !== 'active' && gameState?.quizStatus !== 'moderating'}>▲</button>
-                                        <button className="score-adjust-button" onClick={() => handleScoreAdjust(player.name, -0.5)} disabled={gameState?.quizStatus !== 'active' && gameState?.quizStatus !== 'moderating'}>▼</button>
-                                    </div>
+                            </div>
+
+                            {gameState?.quizStatus === 'active' || gameState?.quizStatus === 'moderating' ? (
+                                <div className="player-answer">
+                                    {getPlayerAnswer(player)}
                                 </div>
-                            </li>
-                        );
-                    }) : <p className="waiting-for-answers">Waiting for players to answer...</p>}
-                </ul>
+                            ) : null}
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="master-view">
+            {/* Tab Navigation */}
+            <div className="master-tabs">
+                <button
+                    className={`master-tab ${activeTab === 'control' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('control')}
+                >
+                    🎮 Control
+                </button>
+                <button
+                    className={`master-tab ${activeTab === 'players' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('players')}
+                >
+                    👥 Players ({players.length})
+                </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="master-content">
+                {activeTab === 'control' ? renderControl() : renderPlayers()}
             </div>
         </div>
     );
-};
-
-export default MasterView;
+}

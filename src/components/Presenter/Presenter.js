@@ -15,6 +15,7 @@ export default function Presenter() {
     const [gameState, setGameState] = useState(null);
     const [quizContent, setQuizContent] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [currentTheme, setCurrentTheme] = useState('fun-and-sparkly');
 
     useEffect(() => {
         // Remove default background for presenter view
@@ -26,7 +27,6 @@ export default function Presenter() {
         }
 
         return () => {
-            // Cleanup if needed
             if (rootElement) {
                 rootElement.style.padding = '20px';
             }
@@ -34,32 +34,31 @@ export default function Presenter() {
     }, []);
 
     useEffect(() => {
-        // Load active quiz and apply its theme
-        const loadActiveQuiz = async () => {
-            const activeQuizIdRef = ref(database, 'liveGame/activeQuizId');
+        // Listen for active quiz changes and apply theme immediately
+        const activeQuizIdRef = ref(database, 'liveGame/activeQuizId');
 
-            // Listen for changes to active quiz
-            const unsubscribe = onValue(activeQuizIdRef, async (snapshot) => {
-                if (snapshot.exists()) {
-                    const quizId = snapshot.val();
-                    const quizRef = ref(database, `quizzes/${quizId}`);
-                    const quizSnapshot = await get(quizRef);
+        const unsubscribe = onValue(activeQuizIdRef, async (snapshot) => {
+            if (snapshot.exists()) {
+                const quizId = snapshot.val();
+                const quizRef = ref(database, `quizzes/${quizId}`);
+                const quizSnapshot = await get(quizRef);
 
-                    if (quizSnapshot.exists()) {
-                        const quiz = quizSnapshot.val();
-                        setQuizContent(quiz);
+                if (quizSnapshot.exists()) {
+                    const quiz = quizSnapshot.val();
+                    setQuizContent(quiz);
 
-                        // Apply theme for presenter view
-                        const theme = quiz.theme || 'fun-and-sparkly';
-                        applyTheme(theme, 'presenter');
-                    }
+                    // Apply theme for presenter view
+                    const theme = quiz.theme || 'fun-and-sparkly';
+                    setCurrentTheme(theme);
+
+                    // Apply theme immediately without reload
+                    applyTheme(theme, 'presenter');
                 }
-            });
-
-            return unsubscribe;
-        };
-
-        loadActiveQuiz();
+            } else {
+                setCurrentTheme('fun-and-sparkly');
+                applyTheme('fun-and-sparkly', 'presenter');
+            }
+        });
 
         onValue(ref(database, 'liveGame/gameState'), (snapshot) => setGameState(snapshot.val()));
         onValue(ref(database, 'liveGame/players'), (snapshot) => {
@@ -71,6 +70,8 @@ export default function Presenter() {
                 setPlayers([]);
             }
         });
+
+        return unsubscribe;
     }, []);
 
     const renderSlide = () => {
@@ -108,8 +109,8 @@ export default function Presenter() {
     };
 
     // Only show sparkles for themes that support it
-    const showSparkles = quizContent?.theme === 'fun-and-sparkly' ||
-        quizContent?.theme === 'sunset-vibes';
+    const showSparkles = currentTheme === 'fun-and-sparkly' ||
+        currentTheme === 'sunset-vibes';
 
     return (
         <div className={styles.presenterContainer}>

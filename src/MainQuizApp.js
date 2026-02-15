@@ -28,43 +28,35 @@ export default function MainQuizApp() {
   }, []);
 
   useEffect(() => {
-    // Load active quiz and apply its theme
-    const loadActiveQuiz = async () => {
-      const activeQuizIdRef = ref(database, 'liveGame/activeQuizId');
+    // Listen for active quiz changes and apply theme immediately
+    const activeQuizIdRef = ref(database, 'liveGame/activeQuizId');
 
-      // Listen for changes to active quiz
-      const unsubscribe = onValue(activeQuizIdRef, async (snapshot) => {
-        if (snapshot.exists()) {
-          const quizId = snapshot.val();
-          const quizRef = ref(database, `quizzes/${quizId}`);
-          const quizSnapshot = await get(quizRef);
+    const unsubscribe = onValue(activeQuizIdRef, async (snapshot) => {
+      if (snapshot.exists()) {
+        const quizId = snapshot.val();
+        const quizRef = ref(database, `quizzes/${quizId}`);
+        const quizSnapshot = await get(quizRef);
 
-          if (quizSnapshot.exists()) {
-            const quiz = quizSnapshot.val();
-            const theme = quiz.theme || 'fun-and-sparkly';
+        if (quizSnapshot.exists()) {
+          const quiz = quizSnapshot.val();
+          const theme = quiz.theme || 'fun-and-sparkly';
 
-            setCurrentTheme(theme);
-            setActiveQuizInfo({
-              id: quizId,
-              title: quiz.title,
-              theme: theme,
-              themeName: getTheme(theme).name
-            });
+          setCurrentTheme(theme);
+          setActiveQuizInfo({
+            id: quizId,
+            title: quiz.title,
+            theme: theme,
+            themeName: getTheme(theme).name
+          });
 
-            // Apply theme immediately
-            applyTheme(theme, 'player');
-          }
-        } else {
-          // No active quiz, use default theme
-          setActiveQuizInfo(null);
-          applyTheme('fun-and-sparkly', 'player');
+          // Apply theme immediately without reload
+          applyTheme(theme, isMaster ? 'master' : 'player');
         }
-      });
-
-      return unsubscribe;
-    };
-
-    loadActiveQuiz();
+      } else {
+        setActiveQuizInfo(null);
+        applyTheme('fun-and-sparkly', isMaster ? 'master' : 'player');
+      }
+    });
 
     const gameStateRef = ref(database, 'liveGame/gameState');
     onValue(gameStateRef, (snapshot) => {
@@ -88,6 +80,8 @@ export default function MainQuizApp() {
         setPlayers([]);
       }
     });
+
+    return unsubscribe;
   }, [isMaster]);
 
   const handleJoinQuiz = (name) => {
@@ -102,7 +96,7 @@ export default function MainQuizApp() {
       <>
         <div className="master-header">
           <div className="master-title-section">
-            <h1 className="master-title">Quiz Master Dashboard</h1>
+            <h1 className="master-title">Quiz Master</h1>
             {activeQuizInfo && (
                 <div className="active-quiz-indicator">
                   <span className="active-quiz-title">{activeQuizInfo.title}</span>
@@ -232,10 +226,6 @@ export default function MainQuizApp() {
           {showQuizBuilder && (
               <QuizBuilder
                   onClose={() => setShowQuizBuilder(false)}
-                  onQuizActivated={(quizId, theme) => {
-                    // Theme will be auto-applied by the listener above
-                    setShowQuizBuilder(false);
-                  }}
               />
           )}
         </AnimatePresence>

@@ -1,4 +1,4 @@
-/* Mobile-First Quiz Builder - Clean & Streamlined */
+/* Mobile-First Quiz Builder - SCROLLING FIXED */
 
 .quiz-builder-overlay {
   position: fixed;
@@ -23,10 +23,10 @@
   background: var(--surface, #ffffff);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* CRITICAL: Modal itself doesn't scroll */
 }
 
-/* Header */
+/* Header - Fixed at top */
 .modal-header {
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@
   padding: 15px 20px;
   background: var(--primary, #9669ff);
   color: white;
-  flex-shrink: 0;
+  flex-shrink: 0; /* CRITICAL: Don't shrink */
 }
 
 .modal-header h2 {
@@ -58,6 +58,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  flex-shrink: 0; /* CRITICAL: Don't shrink */
 }
 
 .btn-close:active,
@@ -67,12 +68,13 @@
   transform: scale(0.95);
 }
 
-/* Body */
+/* Body - THIS is what scrolls */
 .modal-body {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1; /* CRITICAL: Take remaining space */
+  overflow-y: auto; /* CRITICAL: Body scrolls */
+  overflow-x: hidden;
   padding: 20px;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
 }
 
 /* Buttons */
@@ -181,6 +183,7 @@
 .card-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Input Groups */
@@ -212,6 +215,12 @@
   margin-bottom: 10px;
 }
 
+.input-group input:last-child,
+.input-group textarea:last-child,
+.input-group select:last-child {
+  margin-bottom: 0;
+}
+
 .input-group input:focus,
 .input-group textarea:focus,
 .input-group select:focus {
@@ -235,6 +244,10 @@
   gap: 10px;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.flex-row:last-child {
+  margin-bottom: 0;
 }
 
 .flex-row input {
@@ -299,6 +312,7 @@
 
 .question-mini span:first-child {
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .question-mini span:nth-child(2) {
@@ -316,6 +330,7 @@
   padding: 5px;
   cursor: pointer;
   opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .btn-add-q {
@@ -337,7 +352,7 @@
 
 /* Question Editor */
 .question-editor {
-  /* spacing handled by input-group */
+  /* Spacing handled by input-group */
 }
 
 /* Connection Groups */
@@ -372,15 +387,18 @@
   gap: 8px;
   align-items: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .logo-item select {
   flex: 1;
+  min-width: 150px;
   margin-bottom: 0;
 }
 
 .logo-item input {
   flex: 1;
+  min-width: 120px;
   margin-bottom: 0;
 }
 
