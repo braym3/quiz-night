@@ -1,33 +1,31 @@
 .leaderboard-container {
   width: 100%;
-  text-align: center;
   padding: 0;
 }
 
-.leaderboard-container h1 {
-  color: var(--text, #2c2c54);
-  margin-bottom: 25px;
-  font-size: clamp(1.8rem, 5vw, 2.2rem);
-  background: linear-gradient(135deg, var(--primary, #9669ff), var(--accent, #feca57));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.leaderboard-title {
+  font-size: clamp(1.8rem, 6vw, 2.5rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 24px 0;
+  color: var(--primary, #9669ff);
+  font-family: var(--font-heading, 'Teachers', sans-serif);
 }
 
 .leaderboard-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
-  background-color: var(--surface, #ffffff);
-  margin-bottom: 12px;
-  padding: 15px;
-  border-radius: 12px;
-  border: 2px solid var(--text, #2c2c54);
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface, #ffffff);
+  border: 3px solid var(--lightGray, #dcdde1);
+  border-radius: 16px;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
@@ -36,170 +34,342 @@
 .leaderboard-item::before {
   content: '';
   position: absolute;
-  left: 0;
   top: 0;
-  height: 100%;
-  width: 4px;
-  background: linear-gradient(180deg, var(--primary, #9669ff), var(--accent, #feca57));
-  transform: scaleY(0);
-  transition: transform 0.3s;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(150, 105, 255, 0.03) 100%);
+  pointer-events: none;
 }
 
-.leaderboard-item:hover::before {
-  transform: scaleY(1);
-}
-
-/* Special styles for top 3 */
-.leaderboard-item.top-1 {
-  background: linear-gradient(135deg, #fffbeb 0%, #fff9e6 100%);
-  border-color: #feca57;
-  box-shadow: 0 4px 15px rgba(254, 202, 87, 0.3);
-}
-
-.leaderboard-item.top-2 {
-  background: linear-gradient(135deg, #f7f7f7 0%, #f0f0f0 100%);
-  border-color: #dcdde1;
-  box-shadow: 0 4px 15px rgba(220, 221, 225, 0.3);
-}
-
-.leaderboard-item.top-3 {
-  background: linear-gradient(135deg, #fff5eb 0%, #ffedd5 100%);
-  border-color: #ff9f43;
-  box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);
-}
-
-/* Current player highlight */
-.leaderboard-item.current-player {
-  background: linear-gradient(135deg, #e8deff 0%, #f0e6ff 100%);
-  border-color: var(--primary, #9669ff);
-  border-width: 3px;
-  box-shadow: 0 4px 20px rgba(150, 105, 255, 0.4);
-}
-
-.leaderboard-item.current-player::after {
-  content: '→';
-  position: absolute;
-  right: -10px;
-  font-size: 2rem;
-  color: var(--primary, #9669ff);
-  animation: bounce-horizontal 1s infinite;
-}
-
-@keyframes bounce-horizontal {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(-5px); }
-}
-
+/* Rank Display */
 .player-rank {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary, #9669ff);
+  border-radius: 12px;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.medal {
+  font-size: 1.8rem;
+  animation: spin-medal 2s ease-in-out infinite;
+}
+
+@keyframes spin-medal {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.rank-number {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
   font-family: var(--font-heading, 'Teachers', sans-serif);
-  color: var(--text, #2c2c54);
-  font-size: clamp(1.2rem, 3vw, 1.4rem);
-  min-width: 70px;
-  text-align: left;
+}
+
+/* Player Info */
+.player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .player-name {
-  flex-grow: 1;
-  text-align: left;
-  margin-left: 10px;
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-size: clamp(1.1rem, 4.2vw, 1.3rem);
   font-weight: 700;
-  font-family: var(--font-body, 'Poppins', sans-serif);
   color: var(--text, #2c2c54);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-family: var(--font-heading, 'Teachers', sans-serif);
 }
 
 .you-badge {
   display: inline-block;
-  background: var(--primary, #9669ff);
-  color: white;
-  font-size: 0.7rem;
-  padding: 3px 8px;
+  padding: 3px 10px;
+  background: var(--accent, #feca57);
+  color: var(--text, #2c2c54);
+  font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+  font-weight: 800;
   border-radius: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  animation: pulse-badge 2s infinite;
+  animation: pulse-badge 2s ease-in-out infinite;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 @keyframes pulse-badge {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.9; }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
+/* Player Score */
 .player-score {
-  font-family: var(--font-heading, 'Teachers', sans-serif);
-  font-size: clamp(1.1rem, 3vw, 1.3rem);
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 800;
   color: var(--primary, #9669ff);
-  font-weight: 700;
-  background: rgba(150, 105, 255, 0.1);
-  padding: 5px 15px;
-  border-radius: 20px;
-  min-width: 60px;
-  text-align: center;
+  font-family: var(--font-heading, 'Teachers', sans-serif);
 }
 
-.no-players {
-  text-align: center;
-  color: #888;
-  padding: 40px 20px;
-  font-style: italic;
-  font-size: 1.1rem;
+.pts-label {
+  font-size: clamp(0.8rem, 3vw, 0.95rem);
+  font-weight: 600;
+  color: var(--text, #2c2c54);
+  opacity: 0.7;
 }
 
-/* Podium effect for top 3 */
-.leaderboard-item.top-1 .player-rank,
-.leaderboard-item.top-2 .player-rank,
-.leaderboard-item.top-3 .player-rank {
-  font-size: 2rem;
-  animation: spin-medal 3s infinite ease-in-out;
+/* Top 3 Styling */
+.rank-1 {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border-color: #d4af37;
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
 }
 
-@keyframes spin-medal {
-  0%, 90%, 100% { transform: rotateY(0deg); }
-  45% { transform: rotateY(180deg); }
+.rank-1 .player-rank {
+  background: transparent;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .leaderboard-container h1 {
-    font-size: 1.8rem;
+.rank-2 {
+  background: linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 100%);
+  border-color: #a8a8a8;
+  box-shadow: 0 6px 20px rgba(192, 192, 192, 0.3);
+}
+
+.rank-2 .player-rank {
+  background: transparent;
+}
+
+.rank-3 {
+  background: linear-gradient(135deg, #f4a460 0%, #cd7f32 100%);
+  border-color: #b8732d;
+  box-shadow: 0 6px 20px rgba(205, 127, 50, 0.3);
+}
+
+.rank-3 .player-rank {
+  background: transparent;
+}
+
+/* Current Player Highlight */
+.current-player {
+  border-color: var(--primary, #9669ff);
+  border-width: 4px;
+  background: linear-gradient(135deg, rgba(150, 105, 255, 0.08) 0%, rgba(254, 202, 87, 0.08) 100%);
+  box-shadow: 0 6px 20px rgba(150, 105, 255, 0.2);
+  animation: pulse-current 2s ease-in-out infinite;
+}
+
+@keyframes pulse-current {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(150, 105, 255, 0.2);
   }
+  50% {
+    box-shadow: 0 8px 30px rgba(150, 105, 255, 0.4);
+  }
+}
 
+/* Empty State */
+.leaderboard-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.leaderboard-empty h3 {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  margin: 0 0 16px 0;
+  color: var(--text, #2c2c54);
+  font-family: var(--font-heading, 'Teachers', sans-serif);
+}
+
+.leaderboard-empty p {
+  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  color: #666;
+  margin: 0;
+}
+
+/* ===================================
+   THEME-SPECIFIC FIXES FOR READABILITY
+   =================================== */
+
+/* Neon Nights - White text with glow */
+.theme-neon-nights .leaderboard-item {
+  background: var(--surface, #1a1a2e);
+  border-color: var(--accent, #00f5ff);
+}
+
+.theme-neon-nights .player-name {
+  color: #ffffff;
+  text-shadow: 0 0 10px var(--accent, #00f5ff);
+}
+
+.theme-neon-nights .pts-label {
+  color: #ffffff;
+  opacity: 0.8;
+}
+
+.theme-neon-nights .player-score {
+  color: var(--accent, #00f5ff);
+  text-shadow: 0 0 15px var(--accent, #00f5ff);
+}
+
+.theme-neon-nights .you-badge {
+  background: var(--primary, #ff006e);
+  color: #ffffff;
+}
+
+/* Retro Arcade - Yellow text on purple (HIGH CONTRAST!) */
+.theme-retro-arcade .leaderboard-item {
+  background: #3d2c8d;
+  border-color: var(--accent, #ffed4e);
+  border-width: 4px;
+}
+
+.theme-retro-arcade .player-name {
+  color: #ffed4e;
+  text-shadow: 3px 3px 0px #0e153a;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+}
+
+.theme-retro-arcade .pts-label {
+  color: #ffed4e;
+  opacity: 1;
+  text-shadow: 2px 2px 0px #0e153a;
+}
+
+.theme-retro-arcade .player-score {
+  color: #ffffff;
+  text-shadow: 3px 3px 0px #0e153a;
+}
+
+.theme-retro-arcade .player-rank {
+  background: var(--accent, #ffed4e);
+}
+
+.theme-retro-arcade .rank-number {
+  color: #2d1b69;
+}
+
+.theme-retro-arcade .you-badge {
+  background: var(--primary, #ff3864);
+  color: #ffffff;
+  text-shadow: none;
+}
+
+.theme-retro-arcade .rank-1,
+.theme-retro-arcade .rank-2,
+.theme-retro-arcade .rank-3 {
+  background: #3d2c8d;
+}
+
+/* Minimalist - Clean black/white */
+.theme-minimalist .leaderboard-item {
+  background: #ffffff;
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.theme-minimalist .player-name {
+  color: #000000;
+}
+
+.theme-minimalist .pts-label {
+  color: #666666;
+}
+
+.theme-minimalist .player-score {
+  color: #000000;
+}
+
+/* Ocean Breeze - Dark blue text on light */
+.theme-ocean-breeze .leaderboard-item {
+  background: #ffffff;
+  border-color: var(--primary, #006994);
+}
+
+.theme-ocean-breeze .player-name {
+  color: #1a3a52;
+  font-weight: 800;
+}
+
+.theme-ocean-breeze .pts-label {
+  color: #1a3a52;
+}
+
+.theme-ocean-breeze .player-score {
+  color: var(--primary, #006994);
+}
+
+/* Sunset Vibes - Warm colors */
+.theme-sunset-vibes .leaderboard-item {
+  background: #ffffff;
+  border-color: var(--primary, #d35400);
+}
+
+.theme-sunset-vibes .player-name {
+  color: #5c3d2e;
+  font-weight: 800;
+}
+
+.theme-sunset-vibes .pts-label {
+  color: #5c3d2e;
+}
+
+.theme-sunset-vibes .player-score {
+  color: var(--primary, #d35400);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
   .leaderboard-item {
-    padding: 12px;
+    padding: 14px 16px;
+    gap: 12px;
   }
 
   .player-rank {
-    min-width: 50px;
-    font-size: 1.2rem;
+    width: 42px;
+    height: 42px;
   }
 
-  .player-name {
-    font-size: 1rem;
-  }
-
-  .player-score {
-    font-size: 1.1rem;
-    padding: 4px 12px;
-    min-width: 50px;
-  }
-
-  .you-badge {
-    font-size: 0.6rem;
-    padding: 2px 6px;
+  .medal {
+    font-size: 1.5rem;
   }
 }
 
 /* Accessibility */
+@media (prefers-contrast: high) {
+  .leaderboard-item {
+    border-width: 4px;
+  }
+
+  .player-name,
+  .player-score {
+    font-weight: 900;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .leaderboard-item::before,
+  .medal,
   .you-badge,
-  .leaderboard-item.top-1 .player-rank,
-  .leaderboard-item.top-2 .player-rank,
-  .leaderboard-item.top-3 .player-rank,
-  .leaderboard-item.current-player::after {
+  .current-player {
     animation: none;
+  }
+
+  .leaderboard-item {
+    transition: none;
   }
 }
