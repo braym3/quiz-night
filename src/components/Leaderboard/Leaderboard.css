@@ -295,44 +295,6 @@
   color: #000000;
 }
 
-/* Ocean Breeze - Dark blue text on light */
-.theme-ocean-breeze .leaderboard-item {
-  background: #ffffff;
-  border-color: var(--primary, #006994);
-}
-
-.theme-ocean-breeze .player-name {
-  color: #1a3a52;
-  font-weight: 800;
-}
-
-.theme-ocean-breeze .pts-label {
-  color: #1a3a52;
-}
-
-.theme-ocean-breeze .player-score {
-  color: var(--primary, #006994);
-}
-
-/* Sunset Vibes - Warm colors */
-.theme-sunset-vibes .leaderboard-item {
-  background: #ffffff;
-  border-color: var(--primary, #d35400);
-}
-
-.theme-sunset-vibes .player-name {
-  color: #5c3d2e;
-  font-weight: 800;
-}
-
-.theme-sunset-vibes .pts-label {
-  color: #5c3d2e;
-}
-
-.theme-sunset-vibes .player-score {
-  color: var(--primary, #d35400);
-}
-
 /* Pub Quiz Classic */
 .theme-pub-quiz-classic .leaderboard-item {
   background: #FFF8F0;

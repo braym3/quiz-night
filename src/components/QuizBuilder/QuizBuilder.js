@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { database, storage } from '../../index';
 import { ref as dbRef, set, get, push, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import './QuizBuilder.css';
-import { themes } from '../../utils/themes';
+import { themes, applyTheme } from '../../utils/themes';
 
 const QuizBuilder = ({ onClose }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -19,6 +19,21 @@ const QuizBuilder = ({ onClose }) => {
   const [bankFilter, setBankFilter] = useState('all');
   const [addToBank, setAddToBank] = useState(true);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
+  const originalThemeRef = useRef(null);
+
+  // Store original theme on mount so we can restore on close
+  useEffect(() => {
+    const classes = document.body.className.split(' ');
+    const themeClass = classes.find(c => c.startsWith('theme-'));
+    originalThemeRef.current = themeClass ? themeClass.replace('theme-', '') : 'fun-and-sparkly';
+  }, []);
+
+  // Live preview: apply theme whenever currentQuiz.theme changes in edit view
+  useEffect(() => {
+    if (currentView === 'edit' && currentQuiz?.theme) {
+      applyTheme(currentQuiz.theme, 'master');
+    }
+  }, [currentQuiz?.theme, currentView]);
 
   const questionTypes = [
     { id: 'text_input', name: 'Text Input', icon: '✍️' },
@@ -157,6 +172,10 @@ const QuizBuilder = ({ onClose }) => {
       await set(dbRef(database, `quizzes/${quizId}`), quizData);
       alert('Saved!');
       loadQuizzes();
+      // Restore original theme when going back to list
+      if (originalThemeRef.current) {
+        applyTheme(originalThemeRef.current, 'master');
+      }
       setCurrentView('list');
       setCurrentQuiz(null);
     } catch (error) {
@@ -591,6 +610,22 @@ const QuizBuilder = ({ onClose }) => {
     );
   };
 
+  const handleClose = () => {
+    // Restore original theme when closing the builder
+    if (originalThemeRef.current) {
+      applyTheme(originalThemeRef.current, 'master');
+    }
+    onClose();
+  };
+
+  const handleBackToList = () => {
+    // Restore original theme when going back to list
+    if (originalThemeRef.current) {
+      applyTheme(originalThemeRef.current, 'master');
+    }
+    setCurrentView('list');
+  };
+
   return (
       <div className="quiz-builder-overlay">
         <div className="quiz-builder-modal">
@@ -599,7 +634,7 @@ const QuizBuilder = ({ onClose }) => {
                 <motion.div key="list" className="modal-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <div className="modal-header">
                     <h2>📚 Quizzes</h2>
-                    <button className="btn-close" onClick={onClose}>✕</button>
+                    <button className="btn-close" onClick={handleClose}>✕</button>
                   </div>
                   <div className="modal-body">
                     <button className="btn-primary" onClick={createNewQuiz}>✨ Create Quiz</button>
@@ -621,7 +656,7 @@ const QuizBuilder = ({ onClose }) => {
             {currentView === 'edit' && (
                 <motion.div key="edit" className="modal-view" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
                   <div className="modal-header">
-                    <button className="btn-back" onClick={() => setCurrentView('list')}>←</button>
+                    <button className="btn-back" onClick={handleBackToList}>←</button>
                     <h2>Edit Quiz</h2>
                     <button className="btn-save" onClick={saveQuiz}>💾</button>
                   </div>

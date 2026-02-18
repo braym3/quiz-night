@@ -93,97 +93,6 @@
 }
 
 /* ===================================
-   OCEAN BREEZE THEME
-   =================================== */
-.theme-ocean-breeze h1,
-.theme-ocean-breeze h2,
-.theme-ocean-breeze h3 {
-    color: var(--primary);
-    font-weight: 900;
-}
-
-.theme-ocean-breeze .round-title {
-    color: var(--primary);
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.theme-ocean-breeze .App,
-.theme-ocean-breeze .presenterContainer {
-    border: 3px solid var(--primary);
-    border-radius: 30px;
-    box-shadow: 0 10px 40px rgba(0, 105, 148, 0.2);
-}
-
-.theme-ocean-breeze button {
-    border-radius: 25px;
-    font-weight: 700;
-}
-
-.theme-ocean-breeze .card {
-    border-radius: 30px;
-    border: 3px solid var(--primary);
-}
-
-/* Subtle wave animation */
-.theme-ocean-breeze::after {
-    content: '';
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M0,60 C300,100 600,20 900,60 C1050,80 1200,60 1200,60 L1200,120 L0,120 Z' fill='%23006994' opacity='0.1'/%3E%3C/svg%3E");
-    background-size: 1200px 120px;
-    background-repeat: repeat-x;
-    pointer-events: none;
-    animation: wave 20s linear infinite;
-}
-
-@keyframes wave {
-    0% { background-position: 0 0; }
-    100% { background-position: 1200px 0; }
-}
-
-/* ===================================
-   SUNSET VIBES THEME
-   =================================== */
-.theme-sunset-vibes h1,
-.theme-sunset-vibes h2,
-.theme-sunset-vibes h3 {
-    color: var(--primary);
-    font-weight: 900;
-    text-shadow: 2px 2px 0px var(--accent);
-}
-
-.theme-sunset-vibes .round-title {
-    color: var(--primary);
-    text-transform: uppercase;
-    font-weight: 900;
-    letter-spacing: 1px;
-}
-
-.theme-sunset-vibes .App,
-.theme-sunset-vibes .presenterContainer {
-    border: 4px solid var(--primary);
-    border-radius: 25px;
-    box-shadow: 0 15px 50px rgba(211, 84, 0, 0.3);
-}
-
-.theme-sunset-vibes button {
-    border-radius: 20px;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-.theme-sunset-vibes .card {
-    border-radius: 25px;
-    border: 4px solid var(--accent);
-    background: linear-gradient(135deg, #ffffff 0%, #fef5e7 100%);
-}
-
-/* ===================================
    MINIMALIST THEME
    =================================== */
 .theme-minimalist {
@@ -295,44 +204,6 @@
     text-shadow: 3px 3px 0px #0e153a;
 }
 
-/* Ocean Breeze Presenter */
-.theme-ocean-breeze .presenterContainer {
-    background: linear-gradient(180deg, #87ceeb 0%, #4fc3dc 50%, #006994 100%);
-}
-
-.theme-ocean-breeze .card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 3px solid #006994;
-}
-
-.theme-ocean-breeze .questionText {
-    color: #006994;
-}
-
-.theme-ocean-breeze .title {
-    color: #1a3a52;
-}
-
-/* Sunset Vibes Presenter */
-.theme-sunset-vibes .presenterContainer {
-    background: linear-gradient(180deg, #f39c12 0%, #e67e22 50%, #d35400 100%);
-}
-
-.theme-sunset-vibes .card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 4px solid #d35400;
-}
-
-.theme-sunset-vibes .questionText {
-    color: #d35400;
-}
-
-.theme-sunset-vibes .title {
-    color: #5c3d2e;
-}
-
 /* ===================================
    GENERAL ACCESSIBILITY FIXES
    =================================== */
@@ -350,11 +221,6 @@
     color: var(--accent);
 }
 
-.theme-ocean-breeze .questionText {
-    color: var(--text);
-    font-weight: 700;
-}
-
 /* Better button visibility on dark themes */
 .theme-neon-nights button,
 .theme-retro-arcade button {
@@ -370,11 +236,6 @@
 
 .theme-retro-arcade .round-title {
     color: var(--accent);
-    opacity: 1;
-}
-
-.theme-ocean-breeze .round-title {
-    color: var(--primary);
     opacity: 1;
 }
 

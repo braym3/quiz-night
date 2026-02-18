@@ -586,16 +586,6 @@ textarea:focus-visible {
   font-size: 0.75rem;
 }
 
-.theme-ocean-breeze .active-quiz-indicator {
-  background: linear-gradient(135deg, #006994 0%, #2a9d8f 100%);
-  box-shadow: 0 4px 15px rgba(0, 105, 148, 0.3);
-}
-
-.theme-sunset-vibes .active-quiz-indicator {
-  background: linear-gradient(135deg, #d35400 0%, #f39c12 100%);
-  box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);
-}
-
 .theme-minimalist .active-quiz-indicator {
   background: #000000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);

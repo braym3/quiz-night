@@ -114,64 +114,6 @@ export const themes = {
       scanlines: true,
     }
   },
-  'ocean-breeze': {
-    name: 'Ocean Breeze',
-    colors: {
-      primary: '#006994',
-      accent: '#ff9f68',
-      text: '#1a3a52',
-      background: '#e0f4f8',
-      surface: '#ffffff',
-      lightGray: '#b8dbe5',
-      shadow: '#2a9d8f',
-      correct: '#2a9d8f',
-      incorrect: '#e07856',
-    },
-    fonts: {
-      heading: "'Righteous', cursive",
-      body: "'Quicksand', sans-serif",
-    },
-    backgrounds: {
-      player: 'linear-gradient(135deg, #e0f4f8 0%, #cfe9f3 100%)',
-      presenter: 'linear-gradient(180deg, #87ceeb 0%, #4fc3dc 50%, #006994 100%)',
-      master: 'linear-gradient(135deg, #e0f4f8 0%, #ffffff 100%)',
-    },
-    effects: {
-      sparkles: false,
-      confetti: true,
-      animations: 'smooth',
-      waves: true,
-    }
-  },
-  'sunset-vibes': {
-    name: 'Sunset Vibes',
-    colors: {
-      primary: '#d35400',
-      accent: '#f39c12',
-      text: '#5c3d2e',
-      background: '#fef5e7',
-      surface: '#ffffff',
-      lightGray: '#fad7a0',
-      shadow: '#e67e22',
-      correct: '#27ae60',
-      incorrect: '#c0392b',
-    },
-    fonts: {
-      heading: "'Titan One', cursive",
-      body: "'Nunito', sans-serif",
-    },
-    backgrounds: {
-      player: 'linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%)',
-      presenter: 'linear-gradient(180deg, #f39c12 0%, #e67e22 50%, #d35400 100%)',
-      master: 'linear-gradient(135deg, #fef5e7 0%, #ffffff 100%)',
-    },
-    effects: {
-      sparkles: true,
-      confetti: true,
-      animations: 'smooth',
-      gradient: true,
-    }
-  },
   'pub-quiz-classic': {
     name: 'Pub Quiz Classic',
     colors: {

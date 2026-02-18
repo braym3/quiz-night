@@ -252,7 +252,8 @@ body.quiz-builder-open {
 .quiz-card p {
   margin: 0 0 12px 0;
   font-size: clamp(0.85rem, 3vw, 0.95rem);
-  color: #666;
+  color: var(--text, #2c2c54);
+  opacity: 0.6;
 }
 
 .card-actions {
@@ -371,9 +372,23 @@ body.quiz-builder-open {
 
 .round-card > input {
   width: 100%;
-  font-weight: 700;
+  padding: 12px 14px;
+  border: 2px solid var(--lightGray, #dcdde1);
+  border-radius: 10px;
   font-size: clamp(1rem, 3.8vw, 1.15rem);
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--surface, #ffffff);
+  color: var(--text, #2c2c54);
+  box-sizing: border-box;
   margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+
+.round-card > input:focus {
+  outline: none;
+  border-color: var(--primary, #9669ff);
+  box-shadow: 0 0 0 3px rgba(150, 105, 255, 0.1);
 }
 
 /* Questions Mini List */
@@ -388,7 +403,7 @@ body.quiz-builder-open {
   align-items: center;
   gap: 10px;
   padding: 12px;
-  background: white;
+  background: var(--surface, #ffffff);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
@@ -397,7 +412,7 @@ body.quiz-builder-open {
 
 .question-mini:active {
   transform: scale(0.97);
-  background: #f8f9fa;
+  opacity: 0.8;
 }
 
 .question-mini span:first-child {
@@ -630,7 +645,8 @@ body.quiz-builder-open {
 
 .bank-q-meta {
   font-size: clamp(0.8rem, 2.7vw, 0.9rem);
-  color: #666;
+  color: var(--text, #2c2c54);
+  opacity: 0.6;
   text-transform: capitalize;
 }
 
@@ -689,10 +705,15 @@ body.quiz-builder-open {
   }
 }
 
-/* Dark Themes */
+/* ===================================
+   DARK THEME OVERRIDES
+   =================================== */
 .theme-neon-nights .quiz-builder-modal,
-.theme-retro-arcade .quiz-builder-modal {
-  background: var(--surface, #1a1a2e);
+.theme-retro-arcade .quiz-builder-modal,
+.theme-game-show .quiz-builder-modal,
+.theme-midnight-galaxy .quiz-builder-modal {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .theme-neon-nights .input-group input,
@@ -700,33 +721,86 @@ body.quiz-builder-open {
 .theme-neon-nights .input-group select,
 .theme-retro-arcade .input-group input,
 .theme-retro-arcade .input-group textarea,
-.theme-retro-arcade .input-group select {
-  background: var(--background, #0a0a0a);
-  color: var(--text, #ffffff);
-  border-color: var(--lightGray, #2d2d44);
+.theme-retro-arcade .input-group select,
+.theme-game-show .input-group input,
+.theme-game-show .input-group textarea,
+.theme-game-show .input-group select,
+.theme-midnight-galaxy .input-group input,
+.theme-midnight-galaxy .input-group textarea,
+.theme-midnight-galaxy .input-group select {
+  background: var(--background);
+  color: var(--text);
+  border-color: var(--lightGray);
+}
+
+.theme-neon-nights .round-card > input,
+.theme-retro-arcade .round-card > input,
+.theme-game-show .round-card > input,
+.theme-midnight-galaxy .round-card > input {
+  background: var(--background);
+  color: var(--text);
+  border-color: var(--lightGray);
 }
 
 .theme-neon-nights .quiz-card,
 .theme-retro-arcade .quiz-card,
+.theme-game-show .quiz-card,
+.theme-midnight-galaxy .quiz-card,
 .theme-neon-nights .round-card,
 .theme-retro-arcade .round-card,
+.theme-game-show .round-card,
+.theme-midnight-galaxy .round-card,
 .theme-neon-nights .connection-group,
-.theme-retro-arcade .connection-group {
-  background: var(--background, #0a0a0a);
+.theme-retro-arcade .connection-group,
+.theme-game-show .connection-group,
+.theme-midnight-galaxy .connection-group {
+  background: var(--background);
 }
 
 .theme-neon-nights .question-mini,
 .theme-retro-arcade .question-mini,
+.theme-game-show .question-mini,
+.theme-midnight-galaxy .question-mini,
 .theme-neon-nights .bank-question-card,
-.theme-retro-arcade .bank-question-card {
-  background: var(--surface, #1a1a2e);
+.theme-retro-arcade .bank-question-card,
+.theme-game-show .bank-question-card,
+.theme-midnight-galaxy .bank-question-card {
+  background: var(--surface);
+}
+
+.theme-neon-nights .theme-picker-card,
+.theme-retro-arcade .theme-picker-card,
+.theme-game-show .theme-picker-card,
+.theme-midnight-galaxy .theme-picker-card {
+  background: var(--background);
+  border-color: var(--lightGray);
+}
+
+.theme-neon-nights .theme-picker-selected,
+.theme-retro-arcade .theme-picker-selected,
+.theme-game-show .theme-picker-selected,
+.theme-midnight-galaxy .theme-picker-selected {
+  background: var(--background);
+  border-color: var(--lightGray);
+}
+
+.theme-neon-nights .theme-picker-selected-name,
+.theme-retro-arcade .theme-picker-selected-name,
+.theme-game-show .theme-picker-selected-name,
+.theme-midnight-galaxy .theme-picker-selected-name,
+.theme-neon-nights .theme-picker-chevron,
+.theme-retro-arcade .theme-picker-chevron,
+.theme-game-show .theme-picker-chevron,
+.theme-midnight-galaxy .theme-picker-chevron {
+  color: var(--text);
 }
 
 /* Empty State */
 .bank-empty {
   text-align: center;
   padding: 48px 24px;
-  color: #999;
+  color: var(--text, #2c2c54);
+  opacity: 0.5;
 }
 
 .bank-empty p {
@@ -830,61 +904,3 @@ body.quiz-builder-open {
   text-overflow: ellipsis;
 }
 
-/* Dark theme QuizBuilder for new themes */
-.theme-game-show .quiz-builder-modal,
-.theme-midnight-galaxy .quiz-builder-modal {
-  background: var(--surface, #1B2838);
-  color: var(--text, #ffffff);
-}
-
-.theme-game-show .input-group input,
-.theme-game-show .input-group select,
-.theme-game-show .input-group textarea,
-.theme-midnight-galaxy .input-group input,
-.theme-midnight-galaxy .input-group select,
-.theme-midnight-galaxy .input-group textarea {
-  background: var(--background, #0a0a0a);
-  color: var(--text, #ffffff);
-  border-color: var(--lightGray, #2d2d44);
-}
-
-.theme-game-show .quiz-card,
-.theme-midnight-galaxy .quiz-card,
-.theme-game-show .round-card,
-.theme-midnight-galaxy .round-card,
-.theme-game-show .connection-group,
-.theme-midnight-galaxy .connection-group {
-  background: var(--background);
-}
-
-.theme-game-show .question-mini,
-.theme-midnight-galaxy .question-mini,
-.theme-game-show .bank-question-card,
-.theme-midnight-galaxy .bank-question-card {
-  background: var(--surface);
-}
-
-.theme-game-show .theme-picker-card,
-.theme-midnight-galaxy .theme-picker-card {
-  background: var(--background);
-  border-color: var(--lightGray);
-}
-
-.theme-game-show .theme-picker-selected,
-.theme-midnight-galaxy .theme-picker-selected,
-.theme-neon-nights .theme-picker-selected,
-.theme-retro-arcade .theme-picker-selected {
-  background: var(--background);
-  border-color: var(--lightGray);
-}
-
-.theme-game-show .theme-picker-selected-name,
-.theme-midnight-galaxy .theme-picker-selected-name,
-.theme-neon-nights .theme-picker-selected-name,
-.theme-retro-arcade .theme-picker-selected-name,
-.theme-game-show .theme-picker-chevron,
-.theme-midnight-galaxy .theme-picker-chevron,
-.theme-neon-nights .theme-picker-chevron,
-.theme-retro-arcade .theme-picker-chevron {
-  color: var(--text);
-}
