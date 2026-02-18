@@ -137,22 +137,42 @@
 }
 
 /* =================================== */
+/* Logo Wall Card Layout (Presenter)   */
+/* =================================== */
+
+/* Special card layout for logo wall - reduced padding, wider, fits viewport */
+.logoWallCardLayout {
+    max-width: 95vw;
+    padding: 20px 24px;
+    min-height: auto;
+    height: 85vh;
+    max-height: 85vh;
+    overflow: hidden;
+}
+
+.questionTextCompact {
+    font-size: 1.6em;
+    margin: 8px 0 4px;
+}
+
+/* =================================== */
 /* Logo Wall Grid (Presenter)          */
 /* =================================== */
 
 .logoWallGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 16px;
-    margin: 20px auto 0;
-    max-width: 900px;
+    gap: 10px;
+    margin: 10px auto 0;
     width: 100%;
+    max-width: 100%;
+    flex: 1;
+    align-content: center;
 }
 
 .logoWallItem {
     background: var(--surface);
     border: 2px solid var(--lightGray);
-    border-radius: 14px;
+    border-radius: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -162,19 +182,19 @@
 
 .logoWallImage {
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
     object-fit: contain;
-    padding: 12px;
+    padding: 8px;
     box-sizing: border-box;
 }
 
 .logoWallPlaceholder {
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3em;
+    font-size: 2em;
     font-weight: 800;
     color: var(--text);
     opacity: 0.2;
@@ -185,8 +205,8 @@
     color: var(--text);
     font-family: var(--font-heading);
     font-weight: 800;
-    font-size: 1em;
-    padding: 6px 0;
+    font-size: 0.9em;
+    padding: 4px 0;
     width: 100%;
     text-align: center;
 }

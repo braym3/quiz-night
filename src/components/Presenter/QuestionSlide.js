@@ -71,9 +71,15 @@ export default function QuestionSlide({ question, round, players = [] }) {
     const questionNumber = questionIdsInRound.indexOf(questionId) + 1;
     const answeredCount = players.filter(p => p.answer && p.answer !== '').length;
 
+    // Determine if this is a logo wall question for special card styling
+    const isLogoWall = question.type === 'logo_wall';
+    const logoCount = question.logos?.length || 0;
+    // Calculate optimal grid columns based on logo count
+    const logoGridCols = logoCount <= 4 ? 2 : logoCount <= 6 ? 3 : logoCount <= 9 ? 3 : 4;
+
     return (
         <motion.div
-            className={styles.card}
+            className={`${styles.card} ${isLogoWall ? styles.logoWallCardLayout : ''}`}
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.95 }}
@@ -89,7 +95,7 @@ export default function QuestionSlide({ question, round, players = [] }) {
 
                 {imageUrl && <img src={imageUrl} alt={question.text} className={styles.questionImage} />}
 
-                <p className={styles.questionText}>{question.text}</p>
+                <p className={`${styles.questionText} ${isLogoWall ? styles.questionTextCompact : ''}`}>{question.text}</p>
 
                 {/* Connections: show shuffled word grid */}
                 {question.type === 'connections' && shuffledWords.length > 0 && (
@@ -108,10 +114,13 @@ export default function QuestionSlide({ question, round, players = [] }) {
                     </div>
                 )}
 
-                {/* Logo Wall: show image grid */}
-                {question.type === 'logo_wall' && question.logos && (
-                    <div className={styles.logoWallGrid}>
-                        {question.logos.map((logo, i) => (
+                {/* Logo Wall: show image grid - capped at 12, fits on screen */}
+                {isLogoWall && question.logos && (
+                    <div
+                        className={styles.logoWallGrid}
+                        style={{ gridTemplateColumns: `repeat(${logoGridCols}, 1fr)` }}
+                    >
+                        {question.logos.slice(0, 12).map((logo, i) => (
                             <motion.div
                                 key={i}
                                 className={styles.logoWallItem}

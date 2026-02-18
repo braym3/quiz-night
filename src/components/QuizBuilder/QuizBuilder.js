@@ -568,13 +568,21 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                       }}>🗑️</button>
                     </div>
                 ))}
-                <button className="btn-secondary" onClick={() => setCurrentQuestion({ ...q, logos: [...(q.logos || []), { imageUrl: '', answer: '' }] })}>
-                  + Add Logo
-                </button>
-                <input type="file" accept="image/*" onChange={async (e) => {
-                  const path = await uploadFile(e.target.files[0], 'logos');
-                  if (path) setCurrentQuestion({ ...q, logos: [...(q.logos || []), { imageUrl: path, answer: '' }] });
-                }} />
+                {(q.logos || []).length < 12 && (
+                  <>
+                    <button className="btn-secondary" onClick={() => setCurrentQuestion({ ...q, logos: [...(q.logos || []), { imageUrl: '', answer: '' }] })}>
+                      + Add Logo ({(q.logos || []).length}/12)
+                    </button>
+                    <input type="file" accept="image/*" onChange={async (e) => {
+                      if ((q.logos || []).length >= 12) return;
+                      const path = await uploadFile(e.target.files[0], 'logos');
+                      if (path) setCurrentQuestion({ ...q, logos: [...(q.logos || []), { imageUrl: path, answer: '' }] });
+                    }} />
+                  </>
+                )}
+                {(q.logos || []).length >= 12 && (
+                  <p style={{ fontSize: '0.85em', opacity: 0.6, margin: '8px 0 0' }}>Maximum 12 logos reached</p>
+                )}
               </div>
           )}
 

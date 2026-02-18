@@ -108,6 +108,8 @@ export default function AnswerSlide({ question }) {
 
     // Logo wall answer reveal - answers pop up one at a time
     if (question && question.type === 'logo_wall' && question.logos) {
+        const logos = question.logos.slice(0, 12);
+        const logoGridCols = logos.length <= 4 ? 2 : logos.length <= 6 ? 3 : logos.length <= 9 ? 3 : 4;
         return (
             <motion.div
                 className={`${styles.card} ${styles.logoWallCard}`}
@@ -116,14 +118,15 @@ export default function AnswerSlide({ question }) {
                 exit={{ opacity: 0, y: -50 }}
                 transition={{ duration: 0.5 }}
             >
-                <h2 className={styles.title}>The Answers Are...</h2>
+                <h2 className={styles.titleCompact}>The Answers Are...</h2>
                 <motion.div
                     className={styles.logoRevealGrid}
+                    style={{ gridTemplateColumns: `repeat(${logoGridCols}, 1fr)` }}
                     initial="hidden"
                     animate="visible"
                     variants={logoListVariants}
                 >
-                    {question.logos.map((logo, i) => (
+                    {logos.map((logo, i) => (
                         <motion.div
                             key={i}
                             className={styles.logoRevealItem}
