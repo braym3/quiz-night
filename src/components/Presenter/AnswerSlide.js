@@ -70,6 +70,45 @@ export default function AnswerSlide({ question }) {
         }
     }, [question]);
 
+    // Music answer reveal - title, artist, decade staggered
+    if (question && question.type === 'music' && question.answer) {
+        return (
+            <motion.div
+                className={styles.card}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5 }}
+            >
+                <h2 className={styles.title}>The Answer Is...</h2>
+                <motion.div
+                    className={styles.musicReveal}
+                    initial="hidden"
+                    animate="visible"
+                    variants={listVariants}
+                >
+                    <motion.div className={styles.musicRevealRow} variants={itemVariants}>
+                        <span className={styles.musicRevealLabel}>Song</span>
+                        <span className={styles.musicRevealValue}>{question.answer.title}</span>
+                    </motion.div>
+                    <motion.div className={styles.musicRevealRow} variants={itemVariants}>
+                        <span className={styles.musicRevealLabel}>Artist</span>
+                        <span className={styles.musicRevealValue}>{question.answer.artist}</span>
+                    </motion.div>
+                    {question.answer.decade && (
+                        <motion.div className={styles.musicRevealRow} variants={itemVariants}>
+                            <span className={styles.musicRevealLabel}>Decade</span>
+                            <span className={styles.musicRevealValue}>{question.answer.decade}</span>
+                        </motion.div>
+                    )}
+                </motion.div>
+                {question.answerDetails?.detail && (
+                    <p className={styles.funFact}>{question.answerDetails.detail}</p>
+                )}
+            </motion.div>
+        );
+    }
+
     // Connections answer reveal - groups appear one at a time
     if (question && question.type === 'connections' && question.connections) {
         return (

@@ -134,6 +134,47 @@
 }
 
 /* =================================== */
+/* Music Answer Reveal                 */
+/* =================================== */
+
+.musicReveal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 80%;
+    max-width: 700px;
+    margin-top: 20px;
+}
+
+.musicRevealRow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(40, 167, 69, 0.06);
+    padding: 18px 24px;
+    border-radius: 14px;
+    border: 2px solid rgba(40, 167, 69, 0.15);
+}
+
+.musicRevealLabel {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.1em;
+    color: var(--text);
+    opacity: 0.6;
+    min-width: 80px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.musicRevealValue {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 2em;
+    color: var(--correct, #28a745);
+}
+
+/* =================================== */
 /* Connections Answer Reveal           */
 /* =================================== */
 

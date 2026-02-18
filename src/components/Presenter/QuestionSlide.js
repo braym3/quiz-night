@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import Lottie from 'lottie-react';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
+import musicAnimation from '../../assets/lottie/music-animation.json';
 import styles from './QuestionSlide.module.css';
 
 // NYT Connections colors for the presenter grid
@@ -15,6 +17,10 @@ const CONNECTION_COLORS = [
 export default function QuestionSlide({ question, round, players = [] }) {
     const [imageUrl, setImageUrl] = useState(null);
     const [logoUrls, setLogoUrls] = useState({});
+    const [audioUrl, setAudioUrl] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef(null);
+    const lottieRef = useRef(null);
 
     useEffect(() => {
         setImageUrl(null);
@@ -29,6 +35,38 @@ export default function QuestionSlide({ question, round, players = [] }) {
                 });
         }
     }, [question.imageUrl]);
+
+    // Load audio URL for music questions
+    useEffect(() => {
+        setAudioUrl(null);
+        setIsPlaying(false);
+        if (question.type === 'music' && question.audioUrl) {
+            const audioStorageRef = ref(storage, question.audioUrl);
+            getDownloadURL(audioStorageRef)
+                .then(url => setAudioUrl(url))
+                .catch(err => console.error('Audio load error:', err));
+        }
+        return () => {
+            // Stop audio on unmount / question change
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, [question]);
+
+    const toggleAudio = () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+            if (lottieRef.current) lottieRef.current.pause();
+        } else {
+            audioRef.current.play();
+            setIsPlaying(true);
+            if (lottieRef.current) lottieRef.current.play();
+        }
+    };
 
     // Load logo URLs for logo_wall questions
     useEffect(() => {
@@ -96,6 +134,36 @@ export default function QuestionSlide({ question, round, players = [] }) {
                 {imageUrl && <img src={imageUrl} alt={question.text} className={styles.questionImage} />}
 
                 <p className={`${styles.questionText} ${isLogoWall ? styles.questionTextCompact : ''}`}>{question.text}</p>
+
+                {/* Music: spinning vinyl with play/pause */}
+                {question.type === 'music' && (
+                    <div className={styles.musicPlayer}>
+                        <div className={styles.vinylContainer} onClick={toggleAudio}>
+                            <div className={`${styles.vinylWrapper} ${isPlaying ? styles.vinylSpinning : ''}`}>
+                                <Lottie
+                                    lottieRef={lottieRef}
+                                    animationData={musicAnimation}
+                                    loop={true}
+                                    autoplay={false}
+                                    style={{ width: '100%', height: '100%' }}
+                                />
+                            </div>
+                            <button className={styles.playPauseBtn} onClick={(e) => { e.stopPropagation(); toggleAudio(); }}>
+                                {isPlaying ? '⏸' : '▶'}
+                            </button>
+                        </div>
+                        {audioUrl && (
+                            <audio
+                                ref={audioRef}
+                                src={audioUrl}
+                                onEnded={() => { setIsPlaying(false); if (lottieRef.current) lottieRef.current.pause(); }}
+                            />
+                        )}
+                        <p className={styles.musicHint}>
+                            {isPlaying ? 'Now Playing...' : 'Press play to listen'}
+                        </p>
+                    </div>
+                )}
 
                 {/* Connections: show shuffled word grid */}
                 {question.type === 'connections' && shuffledWords.length > 0 && (

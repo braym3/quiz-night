@@ -51,6 +51,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [logoAnswers, setLogoAnswers] = useState({});
   const [logoUrls, setLogoUrls] = useState({});
   const [expandedLogo, setExpandedLogo] = useState(null); // index of expanded logo, null = closed
+  // Music state
+  const [musicAnswer, setMusicAnswer] = useState({ title: '', artist: '', decade: '' });
 
   useEffect(() => {
       const activeQuizRef = ref(database, 'liveGame/activeQuizId');
@@ -77,6 +79,11 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
         if (questionData.type === 'ordering') {
           setOrderedAnswer(shuffleArray([...questionData.options]));
+        }
+
+        // Reset music answer
+        if (questionData.type === 'music') {
+          setMusicAnswer({ title: '', artist: '', decade: '' });
         }
 
         // Initialize connections
@@ -184,6 +191,12 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     setIsSubmitted(true);
   };
 
+  // Music handlers
+  const handleMusicSubmit = () => {
+    set(ref(database, `liveGame/players/${playerName}/answer`), musicAnswer);
+    setIsSubmitted(true);
+  };
+
   const moveOption = (index, direction) => {
     const newOrder = [...orderedAnswer];
     const newIndex = index + direction;
@@ -277,6 +290,34 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
                                 <span className="logo-reveal-name">{logo.answer}</span>
                             </motion.div>
                         ))}
+                    </motion.div>
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Music answer reveal
+    if (currentQuestion?.type === 'music' && currentQuestion.answer) {
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container music-reveal">
+                    <p>The answer was:</p>
+                    <motion.div className="music-reveal-items" initial="hidden" animate="visible" variants={listVariants}>
+                        <motion.div className="music-reveal-row" variants={itemVariants}>
+                            <span className="music-reveal-label">Song</span>
+                            <span className="music-reveal-value">{currentQuestion.answer.title}</span>
+                        </motion.div>
+                        <motion.div className="music-reveal-row" variants={itemVariants}>
+                            <span className="music-reveal-label">Artist</span>
+                            <span className="music-reveal-value">{currentQuestion.answer.artist}</span>
+                        </motion.div>
+                        {currentQuestion.answer.decade && (
+                            <motion.div className="music-reveal-row" variants={itemVariants}>
+                                <span className="music-reveal-label">Decade</span>
+                                <span className="music-reveal-value">{currentQuestion.answer.decade}</span>
+                            </motion.div>
+                        )}
                     </motion.div>
                     <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
                 </div>
@@ -468,6 +509,49 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
                 Give Up
               </button>
             </div>
+          </div>
+        );
+
+      case 'music':
+        return (
+          <div className="music-section">
+            <div className="music-field">
+              <label className="music-field-label">Song Title</label>
+              <input
+                type="text"
+                placeholder="What's the song called?"
+                value={musicAnswer.title}
+                onChange={(e) => setMusicAnswer(prev => ({ ...prev, title: e.target.value }))}
+                className="music-input"
+              />
+            </div>
+            <div className="music-field">
+              <label className="music-field-label">Artist</label>
+              <input
+                type="text"
+                placeholder="Who sings it?"
+                value={musicAnswer.artist}
+                onChange={(e) => setMusicAnswer(prev => ({ ...prev, artist: e.target.value }))}
+                className="music-input"
+              />
+            </div>
+            <div className="music-field">
+              <label className="music-field-label">Decade</label>
+              <div className="music-decades">
+                {['1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s'].map(d => (
+                  <button
+                    key={d}
+                    className={`music-decade-btn ${musicAnswer.decade === d ? 'active' : ''}`}
+                    onClick={() => setMusicAnswer(prev => ({ ...prev, decade: prev.decade === d ? '' : d }))}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={handleMusicSubmit} className="music-submit-btn">
+              Submit Answer
+            </button>
           </div>
         );
 
