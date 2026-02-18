@@ -99,6 +99,19 @@ export default function MasterView({ gameState, players }) {
         });
     };
 
+    const restartQuiz = () => {
+        // Reset game state to waiting
+        set(ref(database, 'liveGame/gameState'), {
+            quizStatus: 'waiting',
+            currentRoundId: null,
+            currentQuestionId: null
+        });
+        // Clear all player answers but keep scores
+        players.forEach(player => {
+            set(ref(database, `liveGame/players/${player.name}/answer`), '');
+        });
+    };
+
     const updatePlayerScore = (playerName, newScore) => {
         set(ref(database, `liveGame/players/${playerName}/score`), parseInt(newScore) || 0);
         setEditingScores({ ...editingScores, [playerName]: undefined });
@@ -263,6 +276,12 @@ export default function MasterView({ gameState, players }) {
                 {gameState?.quizStatus !== 'ended' && gameState?.quizStatus && (
                     <button onClick={endQuiz} className="control-btn danger">
                         🏁 End Quiz
+                    </button>
+                )}
+
+                {gameState?.quizStatus === 'ended' && quizData && (
+                    <button onClick={restartQuiz} className="control-btn primary">
+                        🔄 Restart Quiz
                     </button>
                 )}
             </div>

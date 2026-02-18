@@ -149,7 +149,6 @@ export default function MainQuizApp() {
                 transition={{ delay: 0.2 }}
             >
               <span className="join-quiz-title">{activeQuizInfo.title}</span>
-              <span className="join-quiz-theme">{activeQuizInfo.themeName}</span>
             </motion.div>
         )}
         <motion.div
@@ -236,6 +235,7 @@ export default function MainQuizApp() {
           {showQuizBuilder && (
               <QuizBuilder
                   onClose={() => setShowQuizBuilder(false)}
+                  activeTheme={currentTheme}
               />
           )}
         </AnimatePresence>

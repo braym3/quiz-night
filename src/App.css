@@ -5,7 +5,7 @@
   padding: 20px 25px;
   border-radius: 24px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  border: 3px solid var(--text, #2c2c54);
+  border: 3px solid var(--lightGray, #dcdde1);
   position: relative;
   overflow: hidden;
 }
@@ -145,7 +145,7 @@ h1, h2, h3 {
   width: 100%;
   padding: 16px 20px;
   font-size: 1.2rem;
-  border: 3px solid var(--text, #2c2c54);
+  border: 3px solid var(--lightGray, #dcdde1);
   border-radius: 14px;
   margin-bottom: 15px;
   font-family: var(--font-body, 'Poppins', sans-serif);
@@ -175,13 +175,13 @@ button {
   letter-spacing: 1px;
   background-color: var(--primary, #9669ff);
   color: white;
-  border: 3px solid var(--text, #2c2c54);
+  border: 3px solid rgba(0, 0, 0, 0.15);
   border-radius: 12px;
   padding: 12px 20px;
   font-size: 1.1em;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 4px 0 0 var(--text, #2c2c54);
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.2);
   margin-bottom: 4px;
   position: relative;
   overflow: hidden;
@@ -207,12 +207,12 @@ button:hover::before {
 
 button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 0 var(--text, #2c2c54);
+  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.2);
 }
 
 button:active:not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 0 var(--text, #2c2c54);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.2);
 }
 
 button:disabled {
@@ -602,4 +602,46 @@ textarea:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(150, 105, 255, 0.4);
   }
+}
+
+/* Dark theme contrast fixes */
+.theme-game-show .App,
+.theme-midnight-galaxy .App,
+.theme-neon-nights .App,
+.theme-retro-arcade .App {
+  border-color: var(--lightGray);
+}
+
+.theme-game-show .question-counter,
+.theme-midnight-galaxy .question-counter {
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--accent);
+}
+
+.theme-neon-nights .question-counter {
+  background: rgba(0, 245, 255, 0.15);
+  color: var(--accent);
+}
+
+.theme-game-show .player-input-section h2,
+.theme-midnight-galaxy .player-input-section h2,
+.theme-neon-nights .player-input-section h2,
+.theme-retro-arcade .player-input-section h2 {
+  -webkit-text-fill-color: var(--accent);
+  background: none;
+}
+
+.theme-game-show .join-quiz-info,
+.theme-midnight-galaxy .join-quiz-info,
+.theme-neon-nights .join-quiz-info,
+.theme-retro-arcade .join-quiz-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--lightGray);
+}
+
+.theme-game-show .join-quiz-title,
+.theme-midnight-galaxy .join-quiz-title,
+.theme-neon-nights .join-quiz-title,
+.theme-retro-arcade .join-quiz-title {
+  color: var(--accent);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { database, storage } from '../../index';
 import { ref as dbRef, set, get, push, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './QuizBuilder.css';
 import { themes, applyTheme } from '../../utils/themes';
 
-const QuizBuilder = ({ onClose }) => {
+const QuizBuilder = ({ onClose, activeTheme }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [currentView, setCurrentView] = useState('list');
   const [currentQuiz, setCurrentQuiz] = useState(null);
@@ -19,14 +19,6 @@ const QuizBuilder = ({ onClose }) => {
   const [bankFilter, setBankFilter] = useState('all');
   const [addToBank, setAddToBank] = useState(true);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
-  const originalThemeRef = useRef(null);
-
-  // Store original theme on mount so we can restore on close
-  useEffect(() => {
-    const classes = document.body.className.split(' ');
-    const themeClass = classes.find(c => c.startsWith('theme-'));
-    originalThemeRef.current = themeClass ? themeClass.replace('theme-', '') : 'fun-and-sparkly';
-  }, []);
 
   // Live preview: apply theme whenever currentQuiz.theme changes in edit view
   useEffect(() => {
@@ -172,9 +164,9 @@ const QuizBuilder = ({ onClose }) => {
       await set(dbRef(database, `quizzes/${quizId}`), quizData);
       alert('Saved!');
       loadQuizzes();
-      // Restore original theme when going back to list
-      if (originalThemeRef.current) {
-        applyTheme(originalThemeRef.current, 'master');
+      // Restore the active quiz theme when going back to list
+      if (activeTheme) {
+        applyTheme(activeTheme, 'master');
       }
       setCurrentView('list');
       setCurrentQuiz(null);
@@ -610,19 +602,19 @@ const QuizBuilder = ({ onClose }) => {
     );
   };
 
-  const handleClose = () => {
-    // Restore original theme when closing the builder
-    if (originalThemeRef.current) {
-      applyTheme(originalThemeRef.current, 'master');
+  const restoreActiveTheme = () => {
+    if (activeTheme) {
+      applyTheme(activeTheme, 'master');
     }
+  };
+
+  const handleClose = () => {
+    restoreActiveTheme();
     onClose();
   };
 
   const handleBackToList = () => {
-    // Restore original theme when going back to list
-    if (originalThemeRef.current) {
-      applyTheme(originalThemeRef.current, 'master');
-    }
+    restoreActiveTheme();
     setCurrentView('list');
   };
 

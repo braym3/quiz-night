@@ -52,7 +52,7 @@
   font-family: var(--font-heading);
   font-size: 0.9em;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--accent);
   background: rgba(150, 105, 255, 0.1);
   padding: 4px 10px;
   border-radius: 8px;
@@ -331,4 +331,35 @@
     background: var(--surface);
     border-color: var(--lightGray);
     color: var(--text);
+}
+
+/* Ensure question text is readable on dark themes */
+.theme-game-show .question-text,
+.theme-midnight-galaxy .question-text,
+.theme-neon-nights .question-text,
+.theme-retro-arcade .question-text {
+    color: var(--text);
+}
+
+.theme-game-show .round-title,
+.theme-midnight-galaxy .round-title {
+    color: var(--text);
+    opacity: 0.8;
+}
+
+.theme-game-show .submitted-answer,
+.theme-midnight-galaxy .submitted-answer,
+.theme-neon-nights .submitted-answer,
+.theme-retro-arcade .submitted-answer {
+    color: var(--accent);
+}
+
+.theme-game-show .answer-options button:not(.option-btn),
+.theme-midnight-galaxy .answer-options button:not(.option-btn),
+.theme-neon-nights .answer-options button:not(.option-btn),
+.theme-retro-arcade .answer-options button:not(.option-btn) {
+    background-color: var(--surface);
+    color: var(--text);
+    border-color: var(--lightGray);
+    box-shadow: 0 3px 0 0 var(--lightGray);
 }
