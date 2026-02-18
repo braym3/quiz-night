@@ -171,6 +171,120 @@ export const themes = {
       animations: 'smooth',
       gradient: true,
     }
+  },
+  'pub-quiz-classic': {
+    name: 'Pub Quiz Classic',
+    colors: {
+      primary: '#8B4513',
+      accent: '#DAA520',
+      text: '#2C1810',
+      background: '#F5E6D3',
+      surface: '#FFF8F0',
+      lightGray: '#D4C4B0',
+      shadow: '#A0522D',
+      correct: '#228B22',
+      incorrect: '#B22222',
+    },
+    fonts: {
+      heading: "'Playfair Display', serif",
+      body: "'Source Serif 4', serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #F5E6D3 0%, #E8D5C0 100%)',
+      presenter: 'linear-gradient(180deg, #3E2723 0%, #5D4037 50%, #4E342E 100%)',
+      master: 'linear-gradient(135deg, #F5E6D3 0%, #FFF8F0 100%)',
+    },
+    effects: {
+      sparkles: false,
+      confetti: false,
+      animations: 'subtle',
+    }
+  },
+  'game-show': {
+    name: 'Game Show',
+    colors: {
+      primary: '#1A237E',
+      accent: '#FFD700',
+      text: '#FFFFFF',
+      background: '#0D1B2A',
+      surface: '#1B2838',
+      lightGray: '#2C3E50',
+      shadow: '#FFD700',
+      correct: '#00E676',
+      incorrect: '#FF1744',
+    },
+    fonts: {
+      heading: "'Oswald', sans-serif",
+      body: "'Roboto', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 100%)',
+      presenter: 'radial-gradient(ellipse at center, #1A237E 0%, #0D1B2A 70%)',
+      master: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 100%)',
+    },
+    effects: {
+      sparkles: false,
+      confetti: true,
+      animations: 'dramatic',
+      spotlight: true,
+    }
+  },
+  'tropical-party': {
+    name: 'Tropical Party',
+    colors: {
+      primary: '#E91E63',
+      accent: '#00BFA5',
+      text: '#1B5E20',
+      background: '#E8F5E9',
+      surface: '#FFFFFF',
+      lightGray: '#C8E6C9',
+      shadow: '#FF6F00',
+      correct: '#00C853',
+      incorrect: '#FF1744',
+    },
+    fonts: {
+      heading: "'Lobster', cursive",
+      body: "'Nunito', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #E8F5E9 0%, #FFF3E0 100%)',
+      presenter: 'linear-gradient(135deg, #00BFA5 0%, #E91E63 50%, #FF6F00 100%)',
+      master: 'linear-gradient(135deg, #E8F5E9 0%, #FFFFFF 100%)',
+    },
+    effects: {
+      sparkles: true,
+      confetti: true,
+      animations: 'playful',
+    }
+  },
+  'midnight-galaxy': {
+    name: 'Midnight Galaxy',
+    colors: {
+      primary: '#7C4DFF',
+      accent: '#E040FB',
+      text: '#E8EAF6',
+      background: '#0A0E27',
+      surface: '#151A3A',
+      lightGray: '#283593',
+      shadow: '#7C4DFF',
+      correct: '#69F0AE',
+      incorrect: '#FF5252',
+    },
+    fonts: {
+      heading: "'Orbitron', sans-serif",
+      body: "'Exo 2', sans-serif",
+    },
+    backgrounds: {
+      player: 'linear-gradient(135deg, #0A0E27 0%, #151A3A 100%)',
+      presenter: 'radial-gradient(ellipse at 30% 40%, #1A237E 0%, #0A0E27 60%, #000000 100%)',
+      master: 'linear-gradient(135deg, #0A0E27 0%, #151A3A 100%)',
+    },
+    effects: {
+      sparkles: true,
+      confetti: true,
+      animations: 'cosmic',
+      glow: true,
+    }
   }
 };
 

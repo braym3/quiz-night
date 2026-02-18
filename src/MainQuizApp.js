@@ -122,6 +122,14 @@ export default function MainQuizApp() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
       >
+        <motion.div
+            className="join-icon"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+        >
+          &#127912;
+        </motion.div>
         <motion.h2
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
@@ -134,14 +142,15 @@ export default function MainQuizApp() {
           Join the Quiz!
         </motion.h2>
         {activeQuizInfo && (
-            <motion.p
-                className="quiz-info"
+            <motion.div
+                className="join-quiz-info"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
             >
-              Playing: <strong>{activeQuizInfo.title}</strong>
-            </motion.p>
+              <span className="join-quiz-title">{activeQuizInfo.title}</span>
+              <span className="join-quiz-theme">{activeQuizInfo.themeName}</span>
+            </motion.div>
         )}
         <motion.div
             initial={{ opacity: 0 }}
@@ -159,8 +168,9 @@ export default function MainQuizApp() {
               onClick={() => handleJoinQuiz(playerName)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="join-button"
           >
-            Join Quiz
+            Let's Go!
           </motion.button>
         </motion.div>
       </motion.div>

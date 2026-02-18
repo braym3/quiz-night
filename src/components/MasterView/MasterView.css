@@ -479,31 +479,119 @@
 
 /* Dark Themes */
 .theme-neon-nights .player-card,
-.theme-retro-arcade .player-card {
-    background: var(--surface, #1a1a2e);
-    border-color: var(--lightGray, #2d2d44);
+.theme-retro-arcade .player-card,
+.theme-game-show .player-card,
+.theme-midnight-galaxy .player-card {
+    background: var(--surface);
+    border-color: var(--lightGray);
 }
 
 .theme-neon-nights .player-answer,
-.theme-retro-arcade .player-answer {
-    background: var(--background, #0a0a0a);
+.theme-retro-arcade .player-answer,
+.theme-game-show .player-answer,
+.theme-midnight-galaxy .player-answer {
+    background: var(--background);
 }
 
 .theme-neon-nights .round-btn,
-.theme-retro-arcade .round-btn {
-    background: var(--surface, #1a1a2e);
-    border-color: var(--lightGray, #2d2d44);
-    color: var(--text, #ffffff);
+.theme-retro-arcade .round-btn,
+.theme-game-show .round-btn,
+.theme-midnight-galaxy .round-btn {
+    background: var(--surface);
+    border-color: var(--lightGray);
+    color: var(--text);
 }
 
 .theme-neon-nights .position-card,
-.theme-retro-arcade .position-card {
-    background: var(--surface, #1a1a2e);
-    border-color: var(--lightGray, #2d2d44);
+.theme-retro-arcade .position-card,
+.theme-game-show .position-card,
+.theme-midnight-galaxy .position-card {
+    background: var(--surface);
+    border-color: var(--lightGray);
 }
 
 .theme-neon-nights .rounds-quick-access,
-.theme-retro-arcade .rounds-quick-access {
-    background: var(--surface, #1a1a2e);
-    border-color: var(--lightGray, #2d2d44);
+.theme-retro-arcade .rounds-quick-access,
+.theme-game-show .rounds-quick-access,
+.theme-midnight-galaxy .rounds-quick-access {
+    background: var(--surface);
+    border-color: var(--lightGray);
+}
+
+/* Answer Count Card */
+.answer-count-card {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.answer-count-value {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.answer-count-label {
+    font-size: clamp(0.8rem, 2.8vw, 0.85rem);
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.answer-count-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--lightGray);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.answer-count-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Quick Score Buttons */
+.quick-score-buttons {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.quick-score-btn {
+    width: 38px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 800;
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+    padding: 0;
+    box-shadow: none;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.quick-score-btn::before {
+    display: none;
+}
+
+.quick-score-btn:active {
+    transform: scale(0.9);
+    box-shadow: none;
+}
+
+.quick-score-btn.positive {
+    background: var(--correct, #28a745);
+    color: white;
+}
+
+.quick-score-btn.negative {
+    background: var(--incorrect, #dc3545);
+    color: white;
 }

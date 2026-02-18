@@ -181,8 +181,33 @@ export default function MasterView({ gameState, players }) {
                 <div className="position-card">
                     <div className="position-label">Current Position</div>
                     <div className="position-value">
-                        Round: {gameState.currentRoundId}
-                        {gameState.currentQuestionId && ` • Q: ${gameState.currentQuestionId}`}
+                        {quizData?.rounds?.[gameState.currentRoundId]?.title || gameState.currentRoundId}
+                        {gameState.currentQuestionId && (() => {
+                            const round = quizData?.rounds?.[gameState.currentRoundId];
+                            const qIds = round ? Object.keys(round.questions) : [];
+                            const qNum = qIds.indexOf(gameState.currentQuestionId) + 1;
+                            return ` \u2022 Question ${qNum}/${qIds.length}`;
+                        })()}
+                    </div>
+                </div>
+            )}
+
+            {/* Answer Count */}
+            {gameState?.quizStatus === 'active' && (
+                <div className="answer-count-card">
+                    <div className="answer-count-value">
+                        {players.filter(p => p.answer && p.answer !== '').length} / {players.length}
+                    </div>
+                    <div className="answer-count-label">players answered</div>
+                    <div className="answer-count-bar">
+                        <div
+                          className="answer-count-fill"
+                          style={{
+                            width: `${players.length > 0
+                              ? (players.filter(p => p.answer && p.answer !== '').length / players.length) * 100
+                              : 0}%`
+                          }}
+                        ></div>
                     </div>
                 </div>
             )}
@@ -317,12 +342,29 @@ export default function MasterView({ gameState, players }) {
                                     ) : (
                                         <>
                                             <div className="player-score">{player.score || 0} pts</div>
-                                            <button
-                                                onClick={() => setEditingScores({ ...editingScores, [player.name]: player.score || 0 })}
-                                                className="score-edit-btn"
-                                            >
-                                                ✏️
-                                            </button>
+                                            {gameState?.quizStatus === 'moderating' ? (
+                                                <div className="quick-score-buttons">
+                                                    <button
+                                                        className="quick-score-btn positive"
+                                                        onClick={() => updatePlayerScore(player.name, (player.score || 0) + 5)}
+                                                    >+5</button>
+                                                    <button
+                                                        className="quick-score-btn positive"
+                                                        onClick={() => updatePlayerScore(player.name, (player.score || 0) + 10)}
+                                                    >+10</button>
+                                                    <button
+                                                        className="quick-score-btn negative"
+                                                        onClick={() => updatePlayerScore(player.name, Math.max(0, (player.score || 0) - 5))}
+                                                    >-5</button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setEditingScores({ ...editingScores, [player.name]: player.score || 0 })}
+                                                    className="score-edit-btn"
+                                                >
+                                                    ✏️
+                                                </button>
+                                            )}
                                         </>
                                     )}
                                 </div>

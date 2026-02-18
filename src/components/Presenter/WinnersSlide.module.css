@@ -10,10 +10,10 @@
 }
 
 .title {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: clamp(3rem, 10vw, 7rem);
-    color: var(--accent-yellow);
-    text-shadow: 4px 4px 0 var(--text-purple);
+    color: var(--accent);
+    text-shadow: 4px 4px 0 var(--text);
     margin-bottom: 5vh;
 }
 
@@ -27,8 +27,8 @@
 }
 
 .podiumStep {
-    background-color: var(--surface-white);
-    border: 3px solid var(--text-purple);
+    background-color: var(--surface);
+    border: 3px solid var(--text);
     border-radius: 12px 12px 0 0;
     width: 20%;
     max-width: 250px;
@@ -58,15 +58,15 @@
 }
 
 .playerName {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: clamp(1.2rem, 2.5vw, 2.2rem);
     font-weight: 700;
 }
 
 .playerScore {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-size: clamp(1rem, 2vw, 1.8rem);
-    color: var(--primary-purple);
+    color: var(--primary);
     font-weight: 700;
     margin-top: 10px;
 }
@@ -76,7 +76,7 @@
     max-width: 600px;
     margin-top: 5vh;
     height: 25vh;
-    overflow: hidden; 
+    overflow: hidden;
     position: relative;
     -webkit-mask-image: linear-gradient(transparent, black 20%, black 80%, transparent);
     mask-image: linear-gradient(transparent, black 20%, black 80%, transparent);
@@ -88,15 +88,14 @@
     margin: 0;
     font-size: clamp(1rem, 2vw, 1.5rem);
     animation: scrollList 15s linear infinite;
-    /* THIS IS THE FIX: Add padding equal to the container's height */
-    padding-top: 25vh; 
+    padding-top: 25vh;
 }
 
 .playerList li {
     display: flex;
     justify-content: space-between;
     padding: 8px 15px;
-    background-color: var(--primary-purple);
+    background-color: var(--primary);
     color: white;
     border-radius: 8px;
     margin-bottom: 8px;

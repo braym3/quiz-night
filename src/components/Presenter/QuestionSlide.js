@@ -4,7 +4,7 @@ import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
 import styles from './QuestionSlide.module.css';
 
-export default function QuestionSlide({ question, round }) {
+export default function QuestionSlide({ question, round, players = [] }) {
     const [imageUrl, setImageUrl] = useState(null);
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export default function QuestionSlide({ question, round }) {
     const questionIdsInRound = Object.keys(round.questions);
     const questionId = questionIdsInRound.find(id => round.questions[id].text === question.text);
     const questionNumber = questionIdsInRound.indexOf(questionId) + 1;
-
+    const answeredCount = players.filter(p => p.answer && p.answer !== '').length;
 
     return (
         <motion.div
@@ -34,7 +34,12 @@ export default function QuestionSlide({ question, round }) {
             exit={{ opacity: 0, y: -50, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 100, damping: 20, duration: 0.5 }}
         >
-            <div className={styles.questionNumberBanner}>Question {questionNumber}</div>
+            <div className={styles.questionNumberBanner}>
+                Question {questionNumber}
+                {players.length > 0 && (
+                    <span className={styles.answerCount}>{answeredCount}/{players.length} answered</span>
+                )}
+            </div>
             <div className={styles.questionContent}>
                 
                 {imageUrl && <img src={imageUrl} alt={question.text} className={styles.questionImage} />}

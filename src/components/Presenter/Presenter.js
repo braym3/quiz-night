@@ -9,7 +9,7 @@ import AnswerSlide from './AnswerSlide';
 import WinnersSlide from './WinnersSlide';
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
-import { applyTheme } from '../../utils/themes';
+import { applyTheme, getTheme } from '../../utils/themes';
 
 export default function Presenter() {
     const [gameState, setGameState] = useState(null);
@@ -86,7 +86,7 @@ export default function Presenter() {
         }
 
         if (quizStatus === 'waiting') {
-            return <WelcomeSlide key="welcome" title={quizContent.title || "Trivia Night!"} subtitle="Get Ready!" />;
+            return <WelcomeSlide key="welcome" title={quizContent.title || "Trivia Night!"} subtitle="Get Ready!" playerCount={players.length} />;
         }
 
         const round = quizContent.rounds[currentRoundId];
@@ -98,7 +98,7 @@ export default function Presenter() {
 
         if (quizStatus === 'active' && question) {
             const questionWithId = { ...question, id: currentQuestionId };
-            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} />;
+            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} players={players} />;
         }
 
         if (quizStatus === 'moderating' && question) {
@@ -108,12 +108,12 @@ export default function Presenter() {
         return <WelcomeSlide key="fallback" title="Trivia Night!" subtitle="Please wait..." />;
     };
 
-    // Only show sparkles for themes that support it
-    const showSparkles = currentTheme === 'fun-and-sparkly' ||
-        currentTheme === 'sunset-vibes';
+    // Use theme config to determine sparkles instead of hardcoded IDs
+    const theme = getTheme(currentTheme);
+    const showSparkles = theme.effects?.sparkles === true;
 
     return (
-        <div className={styles.presenterContainer}>
+        <div className={`${styles.presenterContainer} presenterContainer`}>
             {showSparkles && <Sparkles />}
             <AnimatePresence mode="wait">
                 {renderSlide()}

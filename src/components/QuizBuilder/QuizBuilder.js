@@ -631,9 +631,23 @@ const QuizBuilder = ({ onClose }) => {
                     </div>
                     <div className="input-group">
                       <label>Theme</label>
-                      <select value={currentQuiz.theme} onChange={(e) => setCurrentQuiz({ ...currentQuiz, theme: e.target.value })}>
-                        {Object.entries(themes).map(([id, t]) => <option key={id} value={id}>{t.name}</option>)}
-                      </select>
+                      <div className="theme-picker-grid">
+                        {Object.entries(themes).map(([id, theme]) => (
+                          <div
+                            key={id}
+                            className={`theme-picker-card ${currentQuiz.theme === id ? 'selected' : ''}`}
+                            onClick={() => setCurrentQuiz({ ...currentQuiz, theme: id })}
+                          >
+                            <div className="theme-swatches">
+                              <span className="swatch" style={{ background: theme.colors.primary }}></span>
+                              <span className="swatch" style={{ background: theme.colors.accent }}></span>
+                              <span className="swatch" style={{ background: theme.colors.background }}></span>
+                              <span className="swatch" style={{ background: theme.colors.text }}></span>
+                            </div>
+                            <div className="theme-picker-name">{theme.name}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div className="rounds-section">
                       <div className="section-header">

@@ -333,6 +333,90 @@
   color: var(--primary, #d35400);
 }
 
+/* Pub Quiz Classic */
+.theme-pub-quiz-classic .leaderboard-item {
+  background: #FFF8F0;
+  border-color: var(--primary, #8B4513);
+}
+
+.theme-pub-quiz-classic .player-name {
+  color: #2C1810;
+  font-weight: 800;
+}
+
+.theme-pub-quiz-classic .player-score {
+  color: var(--primary, #8B4513);
+}
+
+/* Game Show - Dark theme */
+.theme-game-show .leaderboard-item {
+  background: var(--surface, #1B2838);
+  border-color: var(--accent, #FFD700);
+}
+
+.theme-game-show .player-name {
+  color: #ffffff;
+  text-shadow: 0 0 10px var(--accent, #FFD700);
+}
+
+.theme-game-show .player-score {
+  color: var(--accent, #FFD700);
+  text-shadow: 0 0 15px var(--accent, #FFD700);
+}
+
+.theme-game-show .you-badge {
+  background: var(--primary, #1A237E);
+  color: var(--accent, #FFD700);
+}
+
+.theme-game-show .rank-1,
+.theme-game-show .rank-2,
+.theme-game-show .rank-3 {
+  background: var(--surface, #1B2838);
+}
+
+/* Tropical Party */
+.theme-tropical-party .leaderboard-item {
+  background: #ffffff;
+  border-color: var(--primary, #E91E63);
+}
+
+.theme-tropical-party .player-name {
+  color: #1B5E20;
+  font-weight: 800;
+}
+
+.theme-tropical-party .player-score {
+  color: var(--primary, #E91E63);
+}
+
+/* Midnight Galaxy - Dark theme */
+.theme-midnight-galaxy .leaderboard-item {
+  background: var(--surface, #151A3A);
+  border-color: var(--primary, #7C4DFF);
+}
+
+.theme-midnight-galaxy .player-name {
+  color: #E8EAF6;
+  text-shadow: 0 0 10px var(--accent, #E040FB);
+}
+
+.theme-midnight-galaxy .player-score {
+  color: var(--accent, #E040FB);
+  text-shadow: 0 0 15px var(--accent, #E040FB);
+}
+
+.theme-midnight-galaxy .you-badge {
+  background: var(--primary, #7C4DFF);
+  color: #ffffff;
+}
+
+.theme-midnight-galaxy .rank-1,
+.theme-midnight-galaxy .rank-2,
+.theme-midnight-galaxy .rank-3 {
+  background: var(--surface, #151A3A);
+}
+
 /* Mobile Optimizations */
 @media (max-width: 480px) {
   .leaderboard-item {

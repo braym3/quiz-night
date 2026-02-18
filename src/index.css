@@ -1,28 +1,41 @@
-/* Define our new vibrant color palette and fonts */
+/* Theme system variables (set dynamically by applyTheme) */
 :root {
-  --primary-purple: #9669ff;
-  --accent-yellow: #feca57;
-  --text-purple: #2c2c54;
-  --background-off-white: #f1f2f6;
-  --surface-white: #ffffff;
-  --light-gray: #dcdde1;
-  --pastel-red-shadow: #AAE7FF;
+  --primary: #9669ff;
+  --accent: #feca57;
+  --text: #2c2c54;
+  --background: #f1f2f6;
+  --surface: #ffffff;
+  --lightGray: #dcdde1;
+  --shadow: #AAE7FF;
+  --correct: #28a745;
+  --incorrect: #dc3545;
+  --font-heading: 'Teachers', sans-serif;
+  --font-body: 'Poppins', sans-serif;
 
-  --font-family-heading: 'Teachers', sans-serif;
-  --font-family-body: 'Poppins', sans-serif;
+  /* Legacy aliases - these resolve to the theme variables above,
+     so when applyTheme() updates --primary, --primary-purple follows */
+  --primary-purple: var(--primary);
+  --accent-yellow: var(--accent);
+  --text-purple: var(--text);
+  --background-off-white: var(--background);
+  --surface-white: var(--surface);
+  --light-gray: var(--lightGray);
+  --pastel-red-shadow: var(--shadow);
+  --font-family-heading: var(--font-heading);
+  --font-family-body: var(--font-body);
 }
 
 
 body {
   margin: 0;
-  font-family: var(--font-family-body);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--text-purple);
+  color: var(--text);
 
   background-image: url('./assets/images/quiz-background.png');
   background-size: contain;
-  background-color: var(--background-off-white);
+  background-color: var(--background);
 }
 
 code {

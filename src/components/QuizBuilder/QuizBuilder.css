@@ -724,3 +724,96 @@ body.quiz-builder-open {
   margin: 6px 0;
   font-size: clamp(0.9rem, 3.2vw, 1rem);
 }
+
+/* ===================================
+   THEME PICKER
+   =================================== */
+.theme-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.theme-picker-card {
+  padding: 12px 10px;
+  border: 3px solid var(--lightGray, #dcdde1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  background: var(--surface, #ffffff);
+}
+
+.theme-picker-card:active {
+  transform: scale(0.96);
+}
+
+.theme-picker-card.selected {
+  border-color: var(--primary, #9669ff);
+  box-shadow: 0 0 0 3px rgba(150, 105, 255, 0.25);
+  background: rgba(150, 105, 255, 0.06);
+}
+
+.theme-swatches {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.theme-picker-name {
+  font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+  font-weight: 700;
+  color: var(--text, #2c2c54);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dark theme QuizBuilder for new themes */
+.theme-game-show .quiz-builder-modal,
+.theme-midnight-galaxy .quiz-builder-modal {
+  background: var(--surface, #1B2838);
+  color: var(--text, #ffffff);
+}
+
+.theme-game-show .input-group input,
+.theme-game-show .input-group select,
+.theme-game-show .input-group textarea,
+.theme-midnight-galaxy .input-group input,
+.theme-midnight-galaxy .input-group select,
+.theme-midnight-galaxy .input-group textarea {
+  background: var(--background, #0a0a0a);
+  color: var(--text, #ffffff);
+  border-color: var(--lightGray, #2d2d44);
+}
+
+.theme-game-show .quiz-card,
+.theme-midnight-galaxy .quiz-card,
+.theme-game-show .round-card,
+.theme-midnight-galaxy .round-card,
+.theme-game-show .connection-group,
+.theme-midnight-galaxy .connection-group {
+  background: var(--background);
+}
+
+.theme-game-show .question-mini,
+.theme-midnight-galaxy .question-mini,
+.theme-game-show .bank-question-card,
+.theme-midnight-galaxy .bank-question-card {
+  background: var(--surface);
+}
+
+.theme-game-show .theme-picker-card,
+.theme-midnight-galaxy .theme-picker-card {
+  background: var(--background);
+  border-color: var(--lightGray);
+}

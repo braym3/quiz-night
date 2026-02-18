@@ -1,27 +1,27 @@
 .roundContainer {
     text-align: center;
-    display: flex; /* Use flexbox to easily arrange items */
+    display: flex;
     flex-direction: column;
     align-items: center;
 }
 .roundNumber {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--text-purple);
+    color: var(--text);
 }
 .roundTitle {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: clamp(3rem, 10vw, 7rem);
-    color: var(--text-purple);
+    color: var(--text);
     line-height: 1.1;
-    text-shadow: 5px 5px 0 var(--pastel-red-shadow);
-    margin: 10px 0; /* Add some margin */
+    text-shadow: 5px 5px 0 var(--shadow);
+    margin: 10px 0;
 }
 
-/* NEW: Style for the Lottie animation container */
+/* Lottie animation container */
 .lottieContainer {
     width: 100%;
-    max-width: 250px; /* Control the max size of the icon */
+    max-width: 250px;
     margin-top: 20px;
 }

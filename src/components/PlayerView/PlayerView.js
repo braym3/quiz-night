@@ -99,16 +99,19 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
     const round = quizContent.rounds[gameState.currentRoundId];
     if (!round) return null;
-    
+
     const questionsInRound = Object.keys(round.questions);
     const totalQuestions = questionsInRound.length;
     const currentQuestionIndex = questionsInRound.indexOf(gameState.currentQuestionId);
-    
+
     const progress = (currentQuestionIndex / totalQuestions) * 100;
 
     return (
         <div className="round-header">
-            <h3 className="round-title">{round.title}</h3>
+            <div className="round-header-row">
+                <h3 className="round-title">{round.title}</h3>
+                <span className="question-counter">Q{currentQuestionIndex + 1}/{totalQuestions}</span>
+            </div>
             <div className="progress-bar-container">
                 <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
             </div>
@@ -174,6 +177,23 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     );
   }
 
+  if (gameState.quizStatus === 'round-interstitial') {
+    const round = quizContent?.rounds?.[gameState.currentRoundId];
+    return (
+      <div className="player-view-container centered-view">
+        <motion.div
+          className="player-message round-interstitial-message"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+        >
+          <h2>{round?.title || 'Next Round'}</h2>
+          <p>Get ready!</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (!currentQuestion) {
     return <div className="player-view-container centered-view">
         <div className="player-message">Loading question...</div>
@@ -182,10 +202,21 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   
   const renderInteraction = () => {
     if (isSubmitted) {
-        return <div className="player-message submitted-message">
+        return (
+          <motion.div
+            className="player-message submitted-message"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 200 }}
+          >
+            <div className="submitted-checkmark">&#10003;</div>
             <h3>Answer Locked In!</h3>
-            <p>Waiting for the reveal...</p>
-        </div>
+            {typeof answer === 'string' && answer.trim() !== '' && (
+              <p className="submitted-answer">{answer}</p>
+            )}
+            <p className="submitted-hint">Waiting for the reveal...</p>
+          </motion.div>
+        );
     }
 
     switch(currentQuestion.type) {
@@ -194,8 +225,9 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         return (
           <div className="answer-options">
             {Object.entries(currentQuestion.options).map(([key, value]) => (
-              <button key={key} onClick={() => handleChoiceSubmit(key)}>
-                {value}
+              <button key={key} className={`option-btn option-${key}`} onClick={() => handleChoiceSubmit(key)}>
+                <span className="option-label">{key.toUpperCase()}</span>
+                <span className="option-text">{value}</span>
               </button>
             ))}
           </div>

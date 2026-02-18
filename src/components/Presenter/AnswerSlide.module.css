@@ -2,9 +2,9 @@
     width: 100%;
     max-width: 1000px;
     min-height: 50vh;
-    background-color: var(--surface-white);
+    background-color: var(--surface);
     border-radius: 24px;
-    border: 3px solid var(--text-purple);
+    border: 3px solid var(--text);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
     padding: 30px 40px;
     box-sizing: border-box;
@@ -16,24 +16,24 @@
 }
 
 .title {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: 2em;
-    color: var(--text-purple);
+    color: var(--text);
     opacity: 0.8;
 }
 
 .correctAnswer {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: clamp(3rem, 8vw, 6rem);
-    color: #28a745;
+    color: var(--correct, #28a745);
     line-height: 1.2;
     margin: 10px 0 0 0;
 }
 
 /* Style for the fun fact paragraph */
 .funFact {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-size: 1.2em;
     font-weight: 400;
     color: #576574;
@@ -67,14 +67,14 @@
 
 .answerListItem {
     background-color: #f8f9fa;
-    border: 2px solid var(--light-gray);
+    border: 2px solid var(--lightGray);
     border-radius: 12px;
     padding: 15px 20px;
     margin-bottom: 15px;
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: 1.8em;
-    color: var(--text-purple);
+    color: var(--text);
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -87,13 +87,13 @@
 }
 
 .itemNumber {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: 1.5em;
-    color: var(--primary-purple);
+    color: var(--primary);
     margin-right: 20px;
 }
 
-/* NEW: Styles for the multiple-choice details list */
+/* Styles for the multiple-choice details list */
 .mcDetailsList {
     list-style: none;
     padding: 0;
@@ -120,7 +120,7 @@
     padding: 8px 12px;
     border-radius: 8px;
     font-weight: 700;
-    color: #28a745;
+    color: var(--correct, #28a745);
     background-color: rgba(40, 167, 69, 0.1);
 }
 
