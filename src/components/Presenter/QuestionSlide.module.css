@@ -104,3 +104,89 @@
     font-weight: 400;
     color: #576574;
 }
+
+/* =================================== */
+/* Connections Grid (Presenter)        */
+/* =================================== */
+
+.connectionsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px auto 0;
+    max-width: 800px;
+    width: 100%;
+}
+
+.connectionsWord {
+    background: #efefe6;
+    border-radius: 8px;
+    padding: 20px 10px;
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: 1.1em;
+    color: #000;
+    text-transform: uppercase;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    word-break: break-word;
+    line-height: 1.2;
+}
+
+/* =================================== */
+/* Logo Wall Grid (Presenter)          */
+/* =================================== */
+
+.logoWallGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 20px auto 0;
+    max-width: 900px;
+    width: 100%;
+}
+
+.logoWallItem {
+    background: var(--surface);
+    border: 2px solid var(--lightGray);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.logoWallImage {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.logoWallPlaceholder {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    font-weight: 800;
+    color: var(--text);
+    opacity: 0.2;
+}
+
+.logoWallNumber {
+    background: var(--accent);
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1em;
+    padding: 6px 0;
+    width: 100%;
+    text-align: center;
+}

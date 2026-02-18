@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { database } from '../../index';
+import { database, storage } from '../../index';
 import { ref, get, set } from 'firebase/database';
+import { ref as storageRef, getDownloadURL } from 'firebase/storage';
 import './PlayerView.css';
 import { motion } from 'framer-motion';
 
@@ -15,6 +16,14 @@ const shuffleArray = (array) => {
   }
   return array;
 };
+
+// NYT Connections group colors
+const CONNECTION_COLORS = [
+  { bg: '#f9df6d', text: '#000' },  // Yellow
+  { bg: '#a0c35a', text: '#000' },  // Green
+  { bg: '#b0c4ef', text: '#000' },  // Blue
+  { bg: '#ba81c5', text: '#000' },  // Purple
+];
 
 // Animation variants for the list
 const listVariants = {
@@ -33,6 +42,14 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [answer, setAnswer] = useState('');
   const [orderedAnswer, setOrderedAnswer] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // Connections state
+  const [selectedWords, setSelectedWords] = useState([]);
+  const [solvedGroups, setSolvedGroups] = useState([]);
+  const [remainingWords, setRemainingWords] = useState([]);
+  const [connectionMistakes, setConnectionMistakes] = useState(0);
+  // Logo wall state
+  const [logoAnswers, setLogoAnswers] = useState({});
+  const [logoUrls, setLogoUrls] = useState({});
 
   useEffect(() => {
       const activeQuizRef = ref(database, 'liveGame/activeQuizId');
@@ -60,6 +77,30 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         if (questionData.type === 'ordering') {
           setOrderedAnswer(shuffleArray([...questionData.options]));
         }
+
+        // Initialize connections
+        if (questionData.type === 'connections' && questionData.connections) {
+          const allWords = questionData.connections.flatMap(g => g.words).filter(w => w);
+          setRemainingWords(shuffleArray([...allWords]));
+          setSelectedWords([]);
+          setSolvedGroups([]);
+          setConnectionMistakes(0);
+        }
+
+        // Initialize logo wall
+        if (questionData.type === 'logo_wall' && questionData.logos) {
+          setLogoAnswers({});
+          setLogoUrls({});
+          // Load all logo image URLs
+          questionData.logos.forEach((logo, i) => {
+            if (logo.imageUrl) {
+              const imgRef = storageRef(storage, logo.imageUrl);
+              getDownloadURL(imgRef).then(url => {
+                setLogoUrls(prev => ({ ...prev, [i]: url }));
+              }).catch(err => console.error('Logo load error:', err));
+            }
+          });
+        }
       }
     } else {
         setCurrentQuestion(null);
@@ -77,9 +118,68 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     set(ref(database, `liveGame/players/${playerName}/answer`), choice);
     setIsSubmitted(true);
   };
-  
+
   const handleOrderingSubmit = () => {
     set(ref(database, `liveGame/players/${playerName}/answer`), orderedAnswer);
+    setIsSubmitted(true);
+  };
+
+  // Connections handlers
+  const toggleWordSelection = (word) => {
+    if (selectedWords.includes(word)) {
+      setSelectedWords(selectedWords.filter(w => w !== word));
+    } else if (selectedWords.length < 4) {
+      setSelectedWords([...selectedWords, word]);
+    }
+  };
+
+  const handleConnectionSubmit = () => {
+    if (selectedWords.length !== 4 || !currentQuestion?.connections) return;
+
+    // Check if the selected words match any group
+    const matchedGroup = currentQuestion.connections.find(group => {
+      const groupWords = group.words.map(w => w.toUpperCase());
+      const selected = selectedWords.map(w => w.toUpperCase());
+      return groupWords.length === selected.length && groupWords.every(w => selected.includes(w));
+    });
+
+    if (matchedGroup) {
+      const newSolvedGroups = [...solvedGroups, { ...matchedGroup, colorIndex: solvedGroups.length }];
+      setSolvedGroups(newSolvedGroups);
+      setRemainingWords(remainingWords.filter(w => !selectedWords.includes(w)));
+      setSelectedWords([]);
+
+      // If all groups solved, submit
+      if (newSolvedGroups.length === currentQuestion.connections.length) {
+        const groupedAnswer = newSolvedGroups.map(g => g.words);
+        set(ref(database, `liveGame/players/${playerName}/answer`), groupedAnswer);
+        setIsSubmitted(true);
+      }
+    } else {
+      setConnectionMistakes(prev => prev + 1);
+      setSelectedWords([]);
+      // Max 4 mistakes = game over, submit what they have
+      if (connectionMistakes + 1 >= 4) {
+        const groupedAnswer = solvedGroups.map(g => g.words);
+        set(ref(database, `liveGame/players/${playerName}/answer`), groupedAnswer);
+        setIsSubmitted(true);
+      }
+    }
+  };
+
+  const handleConnectionGiveUp = () => {
+    const groupedAnswer = solvedGroups.map(g => g.words);
+    set(ref(database, `liveGame/players/${playerName}/answer`), groupedAnswer);
+    setIsSubmitted(true);
+  };
+
+  // Logo wall handlers
+  const handleLogoAnswerChange = (index, value) => {
+    setLogoAnswers(prev => ({ ...prev, [index]: value }));
+  };
+
+  const handleLogoWallSubmit = () => {
+    set(ref(database, `liveGame/players/${playerName}/answer`), logoAnswers);
     setIsSubmitted(true);
   };
 
@@ -138,6 +238,51 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   }
 
   if (gameState.quizStatus === 'reveal' || gameState.quizStatus === 'moderating') {
+    // Connections answer reveal
+    if (currentQuestion?.type === 'connections' && currentQuestion.connections) {
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container connections-reveal">
+                    <p>The connections were:</p>
+                    <motion.div className="connections-reveal-groups" initial="hidden" animate="visible" variants={listVariants}>
+                        {currentQuestion.connections.map((group, i) => (
+                            <motion.div
+                                key={i}
+                                className="connections-reveal-group"
+                                style={{ backgroundColor: CONNECTION_COLORS[i % 4].bg, color: CONNECTION_COLORS[i % 4].text }}
+                                variants={itemVariants}
+                            >
+                                <div className="connections-reveal-category">{group.category}</div>
+                                <div className="connections-reveal-words">{group.words.join(', ')}</div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Logo wall answer reveal
+    if (currentQuestion?.type === 'logo_wall' && currentQuestion.logos) {
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container logo-wall-reveal">
+                    <p>The answers were:</p>
+                    <motion.div className="logo-reveal-grid" initial="hidden" animate="visible" variants={listVariants}>
+                        {currentQuestion.logos.map((logo, i) => (
+                            <motion.div key={i} className="logo-reveal-item" variants={itemVariants}>
+                                {logoUrls[i] && <img src={logoUrls[i]} alt={logo.answer} className="logo-reveal-image" />}
+                                <span className="logo-reveal-name">{logo.answer}</span>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
     if (currentQuestion?.type === 'ordering') {
         return (
             <div className="player-view-container centered-view">
@@ -199,7 +344,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         <div className="player-message">Loading question...</div>
     </div>;
   }
-  
+
   const renderInteraction = () => {
     if (isSubmitted) {
         return (
@@ -232,7 +377,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
             ))}
           </div>
         );
-      
+
       case 'ordering':
         return (
           <div className="ordering-section">
@@ -241,8 +386,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
                 <li key={index} className="ordering-item">
                   <span>{item}</span>
                   <div className="ordering-controls">
-                    <button onClick={() => moveOption(index, -1)} disabled={index === 0}>▲</button>
-                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1}>▼</button>
+                    <button onClick={() => moveOption(index, -1)} disabled={index === 0}>&#9650;</button>
+                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1}>&#9660;</button>
                   </div>
                 </li>
               ))}
@@ -250,7 +395,110 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
             <button onClick={handleOrderingSubmit}>Submit Order</button>
           </div>
         );
-      
+
+      case 'connections':
+        return (
+          <div className="connections-section">
+            {/* Solved groups at the top */}
+            {solvedGroups.length > 0 && (
+              <div className="connections-solved">
+                {solvedGroups.map((group, i) => (
+                  <motion.div
+                    key={i}
+                    className="connections-solved-group"
+                    style={{ backgroundColor: CONNECTION_COLORS[group.colorIndex % 4].bg, color: CONNECTION_COLORS[group.colorIndex % 4].text }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                  >
+                    <div className="connections-solved-category">{group.category}</div>
+                    <div className="connections-solved-words">{group.words.join(', ')}</div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Word grid */}
+            <div className="connections-grid">
+              {remainingWords.map((word, i) => (
+                <motion.button
+                  key={word}
+                  className={`connections-word ${selectedWords.includes(word) ? 'selected' : ''}`}
+                  onClick={() => toggleWordSelection(word)}
+                  whileTap={{ scale: 0.95 }}
+                  layout
+                >
+                  {word}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Mistakes indicator */}
+            <div className="connections-mistakes">
+              <span>Mistakes remaining: </span>
+              {[...Array(4 - connectionMistakes)].map((_, i) => (
+                <span key={i} className="mistake-dot active">&#9679;</span>
+              ))}
+              {[...Array(connectionMistakes)].map((_, i) => (
+                <span key={i} className="mistake-dot used">&#9679;</span>
+              ))}
+            </div>
+
+            {/* Action buttons */}
+            <div className="connections-actions">
+              <button
+                className="connections-submit-btn"
+                disabled={selectedWords.length !== 4}
+                onClick={handleConnectionSubmit}
+              >
+                Submit ({selectedWords.length}/4)
+              </button>
+              <button
+                className="connections-deselect-btn"
+                onClick={() => setSelectedWords([])}
+                disabled={selectedWords.length === 0}
+              >
+                Deselect All
+              </button>
+              <button
+                className="connections-giveup-btn"
+                onClick={handleConnectionGiveUp}
+              >
+                Give Up
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'logo_wall':
+        return (
+          <div className="logo-wall-section">
+            <div className="logo-wall-grid">
+              {(currentQuestion.logos || []).map((logo, i) => (
+                <div key={i} className="logo-wall-item">
+                  <div className="logo-wall-image-container">
+                    {logoUrls[i] ? (
+                      <img src={logoUrls[i]} alt={`Logo ${i + 1}`} className="logo-wall-image" />
+                    ) : (
+                      <div className="logo-wall-placeholder">?</div>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={`Name ${i + 1}...`}
+                    value={logoAnswers[i] || ''}
+                    onChange={(e) => handleLogoAnswerChange(i, e.target.value)}
+                    className="logo-wall-input"
+                  />
+                </div>
+              ))}
+            </div>
+            <button onClick={handleLogoWallSubmit} className="logo-wall-submit-btn">
+              Submit Answers
+            </button>
+          </div>
+        );
+
       default:
         return (
           <div className="text-input-section">

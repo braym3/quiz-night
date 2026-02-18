@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
 import styles from './QuestionSlide.module.css';
 
+// NYT Connections colors for the presenter grid
+const CONNECTION_COLORS = [
+  { bg: '#f9df6d', text: '#000' },
+  { bg: '#a0c35a', text: '#000' },
+  { bg: '#b0c4ef', text: '#000' },
+  { bg: '#ba81c5', text: '#000' },
+];
+
 export default function QuestionSlide({ question, round, players = [] }) {
     const [imageUrl, setImageUrl] = useState(null);
+    const [logoUrls, setLogoUrls] = useState({});
 
     useEffect(() => {
         setImageUrl(null);
@@ -20,6 +29,42 @@ export default function QuestionSlide({ question, round, players = [] }) {
                 });
         }
     }, [question.imageUrl]);
+
+    // Load logo URLs for logo_wall questions
+    useEffect(() => {
+        if (question.type === 'logo_wall' && question.logos) {
+            setLogoUrls({});
+            question.logos.forEach((logo, i) => {
+                if (logo.imageUrl) {
+                    const imgRef = ref(storage, logo.imageUrl);
+                    getDownloadURL(imgRef).then(url => {
+                        setLogoUrls(prev => ({ ...prev, [i]: url }));
+                    }).catch(err => console.error('Logo load error:', err));
+                }
+            });
+        }
+    }, [question]);
+
+    // Shuffle words for connections display (stable per question)
+    const shuffledWords = useMemo(() => {
+        if (question.type === 'connections' && question.connections) {
+            const allWords = question.connections.flatMap(g => g.words).filter(w => w);
+            // Seeded shuffle based on question text for consistency
+            const arr = [...allWords];
+            let seed = 0;
+            for (let i = 0; i < (question.text || '').length; i++) {
+                seed = ((seed << 5) - seed) + question.text.charCodeAt(i);
+                seed |= 0;
+            }
+            for (let i = arr.length - 1; i > 0; i--) {
+                seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+                const j = seed % (i + 1);
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+        return [];
+    }, [question]);
 
     const questionIdsInRound = Object.keys(round.questions);
     const questionId = questionIdsInRound.find(id => round.questions[id].text === question.text);
@@ -41,14 +86,52 @@ export default function QuestionSlide({ question, round, players = [] }) {
                 )}
             </div>
             <div className={styles.questionContent}>
-                
+
                 {imageUrl && <img src={imageUrl} alt={question.text} className={styles.questionImage} />}
-                
+
                 <p className={styles.questionText}>{question.text}</p>
-                
+
+                {/* Connections: show shuffled word grid */}
+                {question.type === 'connections' && shuffledWords.length > 0 && (
+                    <div className={styles.connectionsGrid}>
+                        {shuffledWords.map((word, i) => (
+                            <motion.div
+                                key={word}
+                                className={styles.connectionsWord}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.05 }}
+                            >
+                                {word}
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Logo Wall: show image grid */}
+                {question.type === 'logo_wall' && question.logos && (
+                    <div className={styles.logoWallGrid}>
+                        {question.logos.map((logo, i) => (
+                            <motion.div
+                                key={i}
+                                className={styles.logoWallItem}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.08 }}
+                            >
+                                {logoUrls[i] ? (
+                                    <img src={logoUrls[i]} alt={`Logo ${i + 1}`} className={styles.logoWallImage} />
+                                ) : (
+                                    <div className={styles.logoWallPlaceholder}>?</div>
+                                )}
+                                <div className={styles.logoWallNumber}>{i + 1}</div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+
                 {question.type === 'ordering' && (
                     <ul className={styles.orderingList}>
-                        {/* REMOVED the logic that was showing the answer details here */}
                         {question.options.map((option, index) => (
                             <li key={index} className={styles.orderingItem}>
                                 {option}
@@ -56,7 +139,7 @@ export default function QuestionSlide({ question, round, players = [] }) {
                         ))}
                     </ul>
                 )}
-                
+
                 {(question.type === 'multiple_choice' || question.type === 'true_false') && (
                     <div className={styles.options}>
                         {Object.values(question.options).map((option, index) => (

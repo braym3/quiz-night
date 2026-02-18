@@ -304,6 +304,283 @@
     padding: 8px 0;
 }
 
+/* =================================== */
+/* Connections (NYT-style)             */
+/* =================================== */
+
+.connections-section {
+  width: 100%;
+}
+
+.connections-solved {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.connections-solved-group {
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.connections-solved-category {
+  font-weight: 800;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.connections-solved-words {
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.connections-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.connections-word {
+  background: var(--surface);
+  border: 2px solid var(--lightGray);
+  border-radius: 8px;
+  padding: 12px 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  box-shadow: 0 2px 0 0 var(--lightGray);
+}
+
+.connections-word.selected {
+  background: #5a5a5a;
+  color: #fff;
+  border-color: #5a5a5a;
+  box-shadow: 0 2px 0 0 #3a3a3a;
+}
+
+.connections-word:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 var(--lightGray);
+}
+
+.connections-mistakes {
+  text-align: center;
+  margin: 8px 0;
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.mistake-dot {
+  margin-left: 4px;
+  font-size: 0.8em;
+}
+
+.mistake-dot.active {
+  color: var(--text);
+}
+
+.mistake-dot.used {
+  opacity: 0.25;
+}
+
+.connections-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.connections-submit-btn {
+  flex: 2;
+  background: #5a5a5a !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 24px !important;
+  padding: 12px 16px !important;
+  font-weight: 700;
+  font-size: 1em;
+  box-shadow: none !important;
+}
+
+.connections-submit-btn:disabled {
+  opacity: 0.4;
+}
+
+.connections-deselect-btn {
+  flex: 1;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 2px solid var(--lightGray) !important;
+  border-radius: 24px !important;
+  padding: 12px 12px !important;
+  font-weight: 600;
+  font-size: 0.9em;
+  box-shadow: none !important;
+}
+
+.connections-deselect-btn:disabled {
+  opacity: 0.4;
+}
+
+.connections-giveup-btn {
+  flex: 1;
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 2px solid var(--lightGray) !important;
+  border-radius: 24px !important;
+  padding: 12px 12px !important;
+  font-weight: 600;
+  font-size: 0.9em;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+/* Connections reveal on player */
+.connections-reveal-groups {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.connections-reveal-group {
+  border-radius: 10px;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.connections-reveal-category {
+  font-weight: 800;
+  font-size: 1em;
+  text-transform: uppercase;
+}
+
+.connections-reveal-words {
+  font-size: 0.9em;
+  font-weight: 600;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* =================================== */
+/* Logo Wall                           */
+/* =================================== */
+
+.logo-wall-section {
+  width: 100%;
+}
+
+.logo-wall-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.logo-wall-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.logo-wall-image-container {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 2px solid var(--lightGray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-wall-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.logo-wall-placeholder {
+  font-size: 2em;
+  font-weight: 800;
+  color: var(--text);
+  opacity: 0.3;
+}
+
+.logo-wall-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.9em;
+  padding: 8px 10px;
+  border: 2px solid var(--lightGray);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  text-align: center;
+}
+
+.logo-wall-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(150, 105, 255, 0.15);
+}
+
+.logo-wall-submit-btn {
+  width: 100%;
+}
+
+/* Logo wall reveal on player */
+.logo-reveal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+  width: 100%;
+}
+
+.logo-reveal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.logo-reveal-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.logo-reveal-name {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--correct, #28a745);
+  text-align: center;
+}
+
 /* --- Dark Theme Adjustments --- */
 .theme-neon-nights .answer-options .option-btn,
 .theme-retro-arcade .answer-options .option-btn,
@@ -362,4 +639,42 @@
     color: var(--text);
     border-color: var(--lightGray);
     box-shadow: 0 3px 0 0 var(--lightGray);
+}
+
+/* Dark theme: connections word tiles */
+.theme-neon-nights .connections-word,
+.theme-retro-arcade .connections-word,
+.theme-game-show .connections-word,
+.theme-midnight-galaxy .connections-word {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--lightGray);
+    box-shadow: 0 2px 0 0 var(--lightGray);
+}
+
+.theme-neon-nights .connections-word.selected,
+.theme-retro-arcade .connections-word.selected,
+.theme-game-show .connections-word.selected,
+.theme-midnight-galaxy .connections-word.selected {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+/* Dark theme: logo wall inputs */
+.theme-neon-nights .logo-wall-input,
+.theme-retro-arcade .logo-wall-input,
+.theme-game-show .logo-wall-input,
+.theme-midnight-galaxy .logo-wall-input {
+    background: var(--surface);
+    border-color: var(--lightGray);
+    color: var(--text);
+}
+
+/* Dark theme: connections mistakes text */
+.theme-neon-nights .connections-mistakes,
+.theme-retro-arcade .connections-mistakes,
+.theme-game-show .connections-mistakes,
+.theme-midnight-galaxy .connections-mistakes {
+    color: var(--text);
 }

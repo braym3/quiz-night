@@ -14,12 +14,12 @@
 
 .curvedTextContainer {
     width: 100%;
+    max-width: 90vw;
     overflow: visible;
 }
 
 .titleText {
     font-family: var(--font-heading);
-    font-size: 8.5rem;
     font-weight: 900;
     fill: var(--text);
     filter: drop-shadow(5px 5px 0 var(--shadow));
@@ -41,8 +41,3 @@
     backdrop-filter: blur(5px);
 }
 
-@media (max-width: 768px) {
-    .titleText {
-        font-size: 6rem;
-    }
-}
