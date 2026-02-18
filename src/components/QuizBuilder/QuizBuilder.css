@@ -5,7 +5,7 @@ body.quiz-builder-open {
   height: 100%;
 }
 
-/* Overlay - no scroll */
+/* Overlay - no scroll on overlay itself */
 .quiz-builder-overlay {
   position: fixed;
   top: 0;
@@ -21,7 +21,7 @@ body.quiz-builder-open {
   align-items: center;
   justify-content: center;
   padding: 0;
-  overflow: hidden !important;
+  overflow: hidden;
 }
 
 /* Modal takes full space */
@@ -33,8 +33,17 @@ body.quiz-builder-open {
   background: var(--surface, #ffffff);
   display: flex;
   flex-direction: column;
-  overflow: hidden !important;
+  overflow: hidden;
   position: relative;
+}
+
+/* Each animated view panel must fill the modal */
+.modal-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Header fixed at top */
@@ -728,10 +737,53 @@ body.quiz-builder-open {
 /* ===================================
    THEME PICKER
    =================================== */
+
+/* Selected theme summary (always visible) */
+.theme-picker-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 2px solid var(--lightGray, #dcdde1);
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--surface, #ffffff);
+  transition: all 0.2s;
+}
+
+.theme-picker-selected:active {
+  transform: scale(0.98);
+}
+
+.theme-picker-selected .theme-swatches {
+  margin-bottom: 0;
+}
+
+.theme-picker-selected-name {
+  flex: 1;
+  font-size: clamp(0.95rem, 3.4vw, 1.05rem);
+  font-weight: 700;
+  color: var(--text, #2c2c54);
+}
+
+.theme-picker-chevron {
+  font-size: 0.7em;
+  color: var(--text, #2c2c54);
+  opacity: 0.5;
+  transition: transform 0.25s;
+}
+
+.theme-picker-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Expandable grid */
 .theme-picker-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  margin-top: 10px;
+  overflow: hidden;
 }
 
 .theme-picker-card {
@@ -816,4 +868,23 @@ body.quiz-builder-open {
 .theme-midnight-galaxy .theme-picker-card {
   background: var(--background);
   border-color: var(--lightGray);
+}
+
+.theme-game-show .theme-picker-selected,
+.theme-midnight-galaxy .theme-picker-selected,
+.theme-neon-nights .theme-picker-selected,
+.theme-retro-arcade .theme-picker-selected {
+  background: var(--background);
+  border-color: var(--lightGray);
+}
+
+.theme-game-show .theme-picker-selected-name,
+.theme-midnight-galaxy .theme-picker-selected-name,
+.theme-neon-nights .theme-picker-selected-name,
+.theme-retro-arcade .theme-picker-selected-name,
+.theme-game-show .theme-picker-chevron,
+.theme-midnight-galaxy .theme-picker-chevron,
+.theme-neon-nights .theme-picker-chevron,
+.theme-retro-arcade .theme-picker-chevron {
+  color: var(--text);
 }

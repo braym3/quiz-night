@@ -18,6 +18,7 @@ const QuizBuilder = ({ onClose }) => {
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [bankFilter, setBankFilter] = useState('all');
   const [addToBank, setAddToBank] = useState(true);
+  const [themePickerOpen, setThemePickerOpen] = useState(false);
 
   const questionTypes = [
     { id: 'text_input', name: 'Text Input', icon: '✍️' },
@@ -595,7 +596,7 @@ const QuizBuilder = ({ onClose }) => {
         <div className="quiz-builder-modal">
           <AnimatePresence mode="wait">
             {currentView === 'list' && (
-                <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div key="list" className="modal-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <div className="modal-header">
                     <h2>📚 Quizzes</h2>
                     <button className="btn-close" onClick={onClose}>✕</button>
@@ -618,7 +619,7 @@ const QuizBuilder = ({ onClose }) => {
             )}
 
             {currentView === 'edit' && (
-                <motion.div key="edit" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
+                <motion.div key="edit" className="modal-view" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
                   <div className="modal-header">
                     <button className="btn-back" onClick={() => setCurrentView('list')}>←</button>
                     <h2>Edit Quiz</h2>
@@ -631,23 +632,49 @@ const QuizBuilder = ({ onClose }) => {
                     </div>
                     <div className="input-group">
                       <label>Theme</label>
-                      <div className="theme-picker-grid">
-                        {Object.entries(themes).map(([id, theme]) => (
-                          <div
-                            key={id}
-                            className={`theme-picker-card ${currentQuiz.theme === id ? 'selected' : ''}`}
-                            onClick={() => setCurrentQuiz({ ...currentQuiz, theme: id })}
-                          >
-                            <div className="theme-swatches">
-                              <span className="swatch" style={{ background: theme.colors.primary }}></span>
-                              <span className="swatch" style={{ background: theme.colors.accent }}></span>
-                              <span className="swatch" style={{ background: theme.colors.background }}></span>
-                              <span className="swatch" style={{ background: theme.colors.text }}></span>
-                            </div>
-                            <div className="theme-picker-name">{theme.name}</div>
-                          </div>
-                        ))}
+                      <div
+                        className="theme-picker-selected"
+                        onClick={() => setThemePickerOpen(!themePickerOpen)}
+                      >
+                        <div className="theme-swatches">
+                          <span className="swatch" style={{ background: themes[currentQuiz.theme]?.colors.primary }}></span>
+                          <span className="swatch" style={{ background: themes[currentQuiz.theme]?.colors.accent }}></span>
+                          <span className="swatch" style={{ background: themes[currentQuiz.theme]?.colors.background }}></span>
+                          <span className="swatch" style={{ background: themes[currentQuiz.theme]?.colors.text }}></span>
+                        </div>
+                        <span className="theme-picker-selected-name">{themes[currentQuiz.theme]?.name || 'Select theme'}</span>
+                        <span className={`theme-picker-chevron ${themePickerOpen ? 'open' : ''}`}>&#9660;</span>
                       </div>
+                      <AnimatePresence>
+                        {themePickerOpen && (
+                          <motion.div
+                            className="theme-picker-grid"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            {Object.entries(themes).map(([id, theme]) => (
+                              <div
+                                key={id}
+                                className={`theme-picker-card ${currentQuiz.theme === id ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setCurrentQuiz({ ...currentQuiz, theme: id });
+                                  setThemePickerOpen(false);
+                                }}
+                              >
+                                <div className="theme-swatches">
+                                  <span className="swatch" style={{ background: theme.colors.primary }}></span>
+                                  <span className="swatch" style={{ background: theme.colors.accent }}></span>
+                                  <span className="swatch" style={{ background: theme.colors.background }}></span>
+                                  <span className="swatch" style={{ background: theme.colors.text }}></span>
+                                </div>
+                                <div className="theme-picker-name">{theme.name}</div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                     <div className="rounds-section">
                       <div className="section-header">
@@ -682,7 +709,7 @@ const QuizBuilder = ({ onClose }) => {
             )}
 
             {currentView === 'question' && (
-                <motion.div key="question" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
+                <motion.div key="question" className="modal-view" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
                   <div className="modal-header">
                     <button className="btn-back" onClick={() => setCurrentView('edit')}>←</button>
                     <h2>Question</h2>
