@@ -109,7 +109,7 @@ export default function AnswerSlide({ question }) {
     // Logo wall answer reveal - answers pop up one at a time
     if (question && question.type === 'logo_wall' && question.logos) {
         const logos = question.logos.slice(0, 12);
-        const logoGridCols = logos.length <= 4 ? 2 : logos.length <= 6 ? 3 : logos.length <= 9 ? 3 : 4;
+        const logoGridCols = Math.max(2, Math.min(6, Math.ceil(logos.length / 2)));
         return (
             <motion.div
                 className={`${styles.card} ${styles.logoWallCard}`}

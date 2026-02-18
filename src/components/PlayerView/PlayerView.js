@@ -50,6 +50,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   // Logo wall state
   const [logoAnswers, setLogoAnswers] = useState({});
   const [logoUrls, setLogoUrls] = useState({});
+  const [expandedLogo, setExpandedLogo] = useState(null); // index of expanded logo, null = closed
 
   useEffect(() => {
       const activeQuizRef = ref(database, 'liveGame/activeQuizId');
@@ -476,16 +477,21 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
             <div className="logo-wall-grid">
               {(currentQuestion.logos || []).map((logo, i) => (
                 <div key={i} className="logo-wall-item">
-                  <div className="logo-wall-image-container">
+                  <div
+                    className="logo-wall-image-container"
+                    onClick={() => setExpandedLogo(i)}
+                  >
                     {logoUrls[i] ? (
                       <img src={logoUrls[i]} alt={`Logo ${i + 1}`} className="logo-wall-image" />
                     ) : (
                       <div className="logo-wall-placeholder">?</div>
                     )}
+                    <div className="logo-wall-tap-hint">Tap to zoom</div>
+                    <div className="logo-wall-badge">{i + 1}</div>
                   </div>
                   <input
                     type="text"
-                    placeholder={`Name ${i + 1}...`}
+                    placeholder={`Name...`}
                     value={logoAnswers[i] || ''}
                     onChange={(e) => handleLogoAnswerChange(i, e.target.value)}
                     className="logo-wall-input"
@@ -493,6 +499,59 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
                 </div>
               ))}
             </div>
+
+            {/* Expanded logo lightbox */}
+            {expandedLogo !== null && logoUrls[expandedLogo] && (
+              <motion.div
+                className="logo-lightbox"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setExpandedLogo(null)}
+              >
+                <motion.div
+                  className="logo-lightbox-content"
+                  initial={{ scale: 0.7 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <img src={logoUrls[expandedLogo]} alt={`Logo ${expandedLogo + 1}`} className="logo-lightbox-image" />
+                  <div className="logo-lightbox-number">#{expandedLogo + 1}</div>
+                  <input
+                    type="text"
+                    placeholder="Type your answer..."
+                    value={logoAnswers[expandedLogo] || ''}
+                    onChange={(e) => handleLogoAnswerChange(expandedLogo, e.target.value)}
+                    className="logo-lightbox-input"
+                    autoFocus
+                  />
+                  <div className="logo-lightbox-nav">
+                    <button
+                      className="logo-lightbox-nav-btn"
+                      disabled={expandedLogo === 0}
+                      onClick={() => setExpandedLogo(expandedLogo - 1)}
+                    >
+                      &#9664; Prev
+                    </button>
+                    <button
+                      className="logo-lightbox-close-btn"
+                      onClick={() => setExpandedLogo(null)}
+                    >
+                      Close
+                    </button>
+                    <button
+                      className="logo-lightbox-nav-btn"
+                      disabled={expandedLogo >= (currentQuestion.logos || []).length - 1}
+                      onClick={() => setExpandedLogo(expandedLogo + 1)}
+                    >
+                      Next &#9654;
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
             <button onClick={handleLogoWallSubmit} className="logo-wall-submit-btn">
               Submit Answers
             </button>

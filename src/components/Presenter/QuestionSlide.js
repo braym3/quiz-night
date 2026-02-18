@@ -73,9 +73,9 @@ export default function QuestionSlide({ question, round, players = [] }) {
 
     // Determine if this is a logo wall question for special card styling
     const isLogoWall = question.type === 'logo_wall';
-    const logoCount = question.logos?.length || 0;
-    // Calculate optimal grid columns based on logo count
-    const logoGridCols = logoCount <= 4 ? 2 : logoCount <= 6 ? 3 : logoCount <= 9 ? 3 : 4;
+    const logoCount = Math.min(question.logos?.length || 0, 12);
+    // Always aim for 2 rows: cols = ceil(count / 2), min 2, max 6
+    const logoGridCols = Math.max(2, Math.min(6, Math.ceil(logoCount / 2)));
 
     return (
         <motion.div
@@ -114,7 +114,7 @@ export default function QuestionSlide({ question, round, players = [] }) {
                     </div>
                 )}
 
-                {/* Logo Wall: show image grid - capped at 12, fits on screen */}
+                {/* Logo Wall: show image grid - capped at 12, always 2 rows */}
                 {isLogoWall && question.logos && (
                     <div
                         className={styles.logoWallGrid}
@@ -128,11 +128,13 @@ export default function QuestionSlide({ question, round, players = [] }) {
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: i * 0.08 }}
                             >
-                                {logoUrls[i] ? (
-                                    <img src={logoUrls[i]} alt={`Logo ${i + 1}`} className={styles.logoWallImage} />
-                                ) : (
-                                    <div className={styles.logoWallPlaceholder}>?</div>
-                                )}
+                                <div className={styles.logoWallImageWrap}>
+                                    {logoUrls[i] ? (
+                                        <img src={logoUrls[i]} alt={`Logo ${i + 1}`} className={styles.logoWallImage} />
+                                    ) : (
+                                        <div className={styles.logoWallPlaceholder}>?</div>
+                                    )}
+                                </div>
                                 <div className={styles.logoWallNumber}>{i + 1}</div>
                             </motion.div>
                         ))}

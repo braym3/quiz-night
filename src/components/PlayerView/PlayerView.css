@@ -512,6 +512,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s;
+}
+
+.logo-wall-image-container:active {
+  border-color: var(--primary);
 }
 
 .logo-wall-image {
@@ -528,11 +535,40 @@
   opacity: 0.3;
 }
 
+.logo-wall-tap-hint {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6em;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.logo-wall-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--text);
+  font-size: 0.7em;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .logo-wall-input {
   width: 100%;
   box-sizing: border-box;
-  font-size: 0.9em;
-  padding: 8px 10px;
+  font-size: 0.85em;
+  padding: 7px 8px;
   border: 2px solid var(--lightGray);
   border-radius: 10px;
   background: var(--surface);
@@ -549,6 +585,101 @@
 
 .logo-wall-submit-btn {
   width: 100%;
+}
+
+/* === Logo Lightbox (tap-to-expand) === */
+.logo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.logo-lightbox-content {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 20px;
+  width: 90vw;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--lightGray);
+}
+
+.logo-lightbox-image {
+  width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.logo-lightbox-number {
+  font-family: var(--font-heading);
+  font-size: 1.2em;
+  font-weight: 800;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.logo-lightbox-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.1em;
+  padding: 12px 16px;
+  border: 3px solid var(--lightGray);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  text-align: center;
+}
+
+.logo-lightbox-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(150, 105, 255, 0.15);
+}
+
+.logo-lightbox-nav {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.logo-lightbox-nav-btn {
+  flex: 1;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 2px solid var(--lightGray) !important;
+  border-radius: 12px !important;
+  padding: 10px 8px !important;
+  font-weight: 600;
+  font-size: 0.9em;
+  box-shadow: none !important;
+}
+
+.logo-lightbox-nav-btn:disabled {
+  opacity: 0.3;
+}
+
+.logo-lightbox-close-btn {
+  flex: 1;
+  background: var(--primary) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 8px !important;
+  font-weight: 700;
+  font-size: 0.9em;
+  box-shadow: none !important;
 }
 
 /* Logo wall reveal on player */
