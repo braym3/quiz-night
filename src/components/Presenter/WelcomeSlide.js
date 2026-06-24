@@ -67,8 +67,13 @@ export default function WelcomeSlide({ title, subtitle, playerCount = 0, players
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0, transition: { delay: 0.8 } }}
                 >
-                    <span className={styles.joinLabel}>Join at</span>
-                    <span className={styles.joinUrl}>{joinHost}</span>
+                    <div className={styles.qrBox}>
+                        <QRCodeSVG value={joinUrl} size={120} bgColor="#ffffff" fgColor="#16151c" level="M" />
+                    </div>
+                    <div className={styles.joinTextCol}>
+                        <span className={styles.joinLabel}>Scan to join</span>
+                        <span className={styles.joinUrl}>{joinHost}</span>
+                    </div>
                 </motion.div>
             )}
 

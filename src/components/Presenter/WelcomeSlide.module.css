@@ -83,17 +83,31 @@
 .joinPrompt {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
+    gap: clamp(14px, 1.6vw, 22px);
     margin-top: clamp(14px, 2.5vh, 28px);
-    padding: clamp(8px, 1.2vh, 14px) clamp(18px, 2vw, 28px);
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 999px;
-    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
+    padding: clamp(12px, 1.4vh, 18px);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.25);
+}
+.qrBox {
+    background: #fff;
+    padding: 8px;
+    border-radius: 12px;
+    display: flex;
+    line-height: 0;
+}
+.joinTextCol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: clamp(8px, 1vw, 16px);
+    text-align: left;
 }
 .joinLabel {
     font-family: var(--font-body);
     font-weight: 600;
-    font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+    font-size: clamp(0.8rem, 1.2vw, 1.05rem);
     color: #555;
     text-transform: uppercase;
     letter-spacing: 1.5px;

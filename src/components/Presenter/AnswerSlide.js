@@ -70,6 +70,9 @@ export default function AnswerSlide({ question, players = [] }) {
                 {keys.map((k, i) => {
                     const correct = k === question.answer;
                     const color = correct ? 'var(--correct)' : (OPT_VARS[k] || 'var(--primary)');
+                    // True/false reads clearer with the actual words; MC keeps its A/B/C/D letters
+                    const isTF = question.type === 'true_false';
+                    const label = isTF ? question.options[k] : k.toUpperCase();
                     return (
                         <div key={k} className={styles.distBar}>
                             <div className={styles.distCount}>{counts[i]}</div>
@@ -77,10 +80,10 @@ export default function AnswerSlide({ question, players = [] }) {
                                 className={styles.distCol}
                                 style={{ background: color }}
                                 initial={{ height: 0 }}
-                                animate={{ height: 24 + (counts[i] / max) * 150 }}
+                                animate={{ height: 16 + (counts[i] / max) * 120 }}
                                 transition={{ delay: 0.3 + i * 0.1, type: 'spring', stiffness: 120, damping: 18 }}
                             />
-                            <div className={styles.distKey} style={{ background: color }}>{k.toUpperCase()}</div>
+                            <div className={`${styles.distKey} ${isTF ? styles.distKeyWide : ''}`} style={{ background: color }}>{label}</div>
                         </div>
                     );
                 })}
