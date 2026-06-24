@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import AnimatedIcon from './AnimatedIcon';
 import Avatar from '../Avatar/Avatar';
+import { QRCodeSVG } from 'qrcode.react';
 import styles from './WelcomeSlide.module.css';
 
 export default function WelcomeSlide({ title, subtitle, playerCount = 0, players = [] }) {
@@ -25,6 +26,8 @@ export default function WelcomeSlide({ title, subtitle, playerCount = 0, players
     }, [title]);
 
     const curvePath = `M 30 140 C ${svgWidth * 0.25} 70, ${svgWidth * 0.75} 70, ${svgWidth - 30} 140`;
+    const joinHost = typeof window !== 'undefined' ? window.location.host : '';
+    const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
 
     return (
         <motion.div
@@ -57,6 +60,17 @@ export default function WelcomeSlide({ title, subtitle, playerCount = 0, players
             >
                 <AnimatedIcon />
             </motion.div>
+
+            {joinHost && (
+                <motion.div
+                    className={styles.joinPrompt}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 0.8 } }}
+                >
+                    <span className={styles.joinLabel}>Join at</span>
+                    <span className={styles.joinUrl}>{joinHost}</span>
+                </motion.div>
+            )}
 
             {players.length > 0 && (
                 <motion.div

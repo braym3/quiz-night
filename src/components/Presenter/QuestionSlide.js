@@ -4,7 +4,10 @@ import Lottie from 'lottie-react';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
 import musicAnimation from '../../assets/lottie/music-animation.json';
+import Icon from '../Icon/Icon';
 import styles from './QuestionSlide.module.css';
+
+const OPT_VARS = { a: 'var(--opt-a)', b: 'var(--opt-b)', c: 'var(--opt-c)', d: 'var(--opt-d)' };
 
 // NYT Connections colors for the presenter grid
 const CONNECTION_COLORS = [
@@ -189,8 +192,8 @@ export default function QuestionSlide({ question, round, players = [], timerDead
                                     style={{ width: '100%', height: '100%' }}
                                 />
                             </div>
-                            <button className={styles.playPauseBtn} onClick={(e) => { e.stopPropagation(); toggleAudio(); }}>
-                                {isPlaying ? '⏸' : '▶'}
+                            <button className={styles.playPauseBtn} onClick={(e) => { e.stopPropagation(); toggleAudio(); }} aria-label={isPlaying ? 'Pause' : 'Play'}>
+                                <Icon name={isPlaying ? 'pause' : 'play'} size={30} style={{ color: '#fff' }} />
                             </button>
                         </div>
                         {audioUrl && (
@@ -261,12 +264,18 @@ export default function QuestionSlide({ question, round, players = [], timerDead
                 )}
 
                 {(question.type === 'multiple_choice' || question.type === 'true_false') && (
-                    <div className={styles.options}>
-                        {Object.values(question.options).map((option, index) => (
-                           <React.Fragment key={index}>
-                             <span className={styles.option}>{option}</span>
-                             {index < Object.values(question.options).length - 1 && <span className={styles.or}>OR</span>}
-                           </React.Fragment>
+                    <div className={styles.optionCards}>
+                        {Object.entries(question.options).map(([key, value], index) => (
+                            <motion.div
+                                key={key}
+                                className={styles.optionCard}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.08 }}
+                            >
+                                <span className={styles.optionLetter} style={{ background: OPT_VARS[key] || 'var(--primary)' }}>{key.toUpperCase()}</span>
+                                <span className={styles.optionValue}>{value}</span>
+                            </motion.div>
                         ))}
                     </div>
                 )}

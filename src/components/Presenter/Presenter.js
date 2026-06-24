@@ -106,7 +106,7 @@ export default function Presenter() {
         }
 
         if (quizStatus === 'moderating' && question) {
-            return <AnswerSlide key={`${currentQuestionId}-answer`} question={question} />;
+            return <AnswerSlide key={`${currentQuestionId}-answer`} question={question} players={players} />;
         }
 
         return <WelcomeSlide key="fallback" title="Trivia Night!" subtitle="Please wait..." />;

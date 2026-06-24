@@ -52,8 +52,41 @@ const logoItemVariants = {
 };
 
 
-export default function AnswerSlide({ question }) {
+const OPT_VARS = { a: 'var(--opt-a)', b: 'var(--opt-b)', c: 'var(--opt-c)', d: 'var(--opt-d)' };
+
+export default function AnswerSlide({ question, players = [] }) {
     const [logoUrls, setLogoUrls] = useState({});
+
+    // Answer distribution bars for multiple choice / true-false
+    const renderDistribution = () => {
+        if (!players.length || !question) return null;
+        if (question.type !== 'multiple_choice' && question.type !== 'true_false') return null;
+        const keys = Object.keys(question.options || {});
+        if (!keys.length) return null;
+        const counts = keys.map(k => players.filter(p => p.answer === k).length);
+        const max = Math.max(1, ...counts);
+        return (
+            <div className={styles.dist}>
+                {keys.map((k, i) => {
+                    const correct = k === question.answer;
+                    const color = correct ? 'var(--correct)' : (OPT_VARS[k] || 'var(--primary)');
+                    return (
+                        <div key={k} className={styles.distBar}>
+                            <div className={styles.distCount}>{counts[i]}</div>
+                            <motion.div
+                                className={styles.distCol}
+                                style={{ background: color }}
+                                initial={{ height: 0 }}
+                                animate={{ height: 24 + (counts[i] / max) * 150 }}
+                                transition={{ delay: 0.3 + i * 0.1, type: 'spring', stiffness: 120, damping: 18 }}
+                            />
+                            <div className={styles.distKey} style={{ background: color }}>{k.toUpperCase()}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
 
     // Load logo URLs for logo_wall questions
     useEffect(() => {
@@ -245,6 +278,7 @@ export default function AnswerSlide({ question }) {
             >
                 <h2 className={styles.title}>The Answer Is...</h2>
                 <p className={styles.correctAnswer}>{correctAnswerText}</p>
+                {renderDistribution()}
                 <ul className={styles.mcDetailsList}>
                     {Object.entries(question.options).map(([key, value]) => (
                         <li key={key} className={key === question.answer ? styles.correctMcItem : styles.mcItem}>
@@ -281,6 +315,7 @@ export default function AnswerSlide({ question }) {
             <div className={styles.answerContent}>
                 <h2 className={styles.title}>The Answer Is...</h2>
                 <p className={styles.correctAnswer}>{correctAnswerText}</p>
+                {renderDistribution()}
                 {detailText && <p className={styles.funFact}>{detailText}</p>}
             </div>
         </motion.div>
