@@ -13,7 +13,7 @@
     font-family: var(--font-heading);
     font-size: clamp(3rem, 10vw, 7rem);
     color: var(--accent);
-    text-shadow: 4px 4px 0 var(--text);
+    text-shadow: 4px 4px 0 var(--shadow);
     margin-bottom: 5vh;
 }
 
@@ -28,7 +28,7 @@
 
 .podiumStep {
     background-color: var(--surface);
-    border: 3px solid var(--text);
+    border: 3px solid var(--lightGray);
     border-radius: 12px 12px 0 0;
     width: 20%;
     max-width: 250px;
@@ -38,23 +38,26 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .place1 { /* 2nd place */
     height: 70%;
-    background-color: #f7f7f7;
-    border-color: #dcdde1;
+    border-color: var(--lightGray);
 }
 .place2 { /* 1st place */
     height: 100%;
-    background-color: #fffbeb;
-    border-color: #feca57;
+    border-color: var(--accent);
+    box-shadow: 0 0 25px rgba(254, 202, 87, 0.3), 0 8px 20px rgba(0,0,0,0.15);
 }
 .place3 { /* 3rd place */
     height: 50%;
-    background-color: #fff5eb;
-    border-color: #ff9f43;
+    border-color: var(--primary);
+}
+
+.playerAvatar {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    margin-bottom: 4px;
 }
 
 .playerName {

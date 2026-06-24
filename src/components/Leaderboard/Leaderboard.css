@@ -3,6 +3,13 @@
   padding: 0;
 }
 
+.leaderboard-container h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+}
+
 .leaderboard-title {
   font-size: clamp(1.8rem, 6vw, 2.5rem);
   font-weight: 800;
@@ -95,6 +102,11 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-heading, 'Teachers', sans-serif);
+}
+
+.leaderboard-avatar {
+  font-size: 1.2em;
+  flex-shrink: 0;
 }
 
 .you-badge {
@@ -198,7 +210,8 @@
 
 .leaderboard-empty p {
   font-size: clamp(1rem, 3.5vw, 1.1rem);
-  color: #666;
+  color: var(--text, #666);
+  opacity: 0.5;
   margin: 0;
 }
 

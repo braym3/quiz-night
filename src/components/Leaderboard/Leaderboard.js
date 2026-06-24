@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import Avatar from '../Avatar/Avatar';
+import Icon from '../Icon/Icon';
 import './Leaderboard.css';
 
 const Leaderboard = ({ players, currentPlayer }) => {
@@ -18,17 +20,11 @@ const Leaderboard = ({ players, currentPlayer }) => {
     visible: { opacity: 1, x: 0 },
   };
 
-  const getMedalEmoji = (rank) => {
-    switch (rank) {
-      case 1:
-        return '🥇';
-      case 2:
-        return '🥈';
-      case 3:
-        return '🥉';
-      default:
-        return `${rank}.`;
-    }
+  const MEDAL_COLORS = { 1: '#f6c945', 2: '#c4ccd6', 3: '#cd8c52' };
+  const renderRank = (rank) => {
+    if (rank === 1) return <Icon name="crown" size={26} style={{ color: MEDAL_COLORS[1] }} title="1st" />;
+    if (rank === 2 || rank === 3) return <Icon name="medal" size={24} style={{ color: MEDAL_COLORS[rank] }} title={`${rank}${rank === 2 ? 'nd' : 'rd'}`} />;
+    return `${rank}`;
   };
 
   return (
@@ -38,7 +34,7 @@ const Leaderboard = ({ players, currentPlayer }) => {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200 }}
       >
-        🏆 Leaderboard
+        <Icon name="trophy" size={26} /> Leaderboard
       </motion.h1>
       <motion.ul
         className="leaderboard-list"
@@ -54,21 +50,24 @@ const Leaderboard = ({ players, currentPlayer }) => {
           return (
             <motion.li
               key={player.name}
+              layout
               className={`leaderboard-item ${isTopThree ? `top-${rank}` : ''} ${isCurrentPlayer ? 'current-player' : ''}`}
               variants={itemVariants}
               whileHover={{ scale: 1.02, x: 5 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              <span className="player-rank">{getMedalEmoji(rank)}</span>
+              <span className="player-rank">{renderRank(rank)}</span>
               <span className="player-name">
+                <span className="leaderboard-avatar"><Avatar value={player.avatar} size={36} alt={player.name} /></span>
                 {player.name}
                 {isCurrentPlayer && <span className="you-badge">YOU</span>}
               </span>
               <motion.span
                 className="player-score"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', delay: index * 0.1 + 0.2 }}
+                key={player.score}
+                initial={{ scale: 1.3, color: '#28a745' }}
+                animate={{ scale: 1, color: 'var(--primary, #9669ff)' }}
+                transition={{ type: 'spring', stiffness: 200 }}
               >
                 {player.score || 0}
               </motion.span>

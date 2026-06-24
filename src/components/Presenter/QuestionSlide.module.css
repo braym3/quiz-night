@@ -3,9 +3,9 @@
     max-width: 1000px;
     min-height: 50vh;
     background-color: var(--surface);
-    border-radius: 24px;
-    border: 3px solid var(--text);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 28px;
+    border: 3px solid var(--lightGray);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
     padding: 30px 40px;
     box-sizing: border-box;
     text-align: center;
@@ -17,14 +17,15 @@
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    background-color: var(--accent);
-    color: var(--text);
+    background-color: var(--primary);
+    color: #ffffff;
     font-family: var(--font-heading);
     padding: 10px 30px;
-    border-radius: 8px;
+    border-radius: 30px;
     font-size: 1.5em;
     margin-bottom: 20px;
-    border: 2px solid var(--text);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .answerCount {
@@ -61,19 +62,23 @@
     margin-top: 30px;
     align-items: center;
 }
-.option, .or {
+.option {
     font-family: var(--font-heading);
     font-size: 2em;
-    color: var(--primary);
-    background-color: rgba(72, 52, 212, 0.1);
-    padding: 5px 20px;
-    border-radius: 8px;
+    color: var(--text);
+    background-color: var(--lightGray);
+    padding: 10px 30px;
+    border-radius: 12px;
     display: inline-block;
+    border-left: 5px solid var(--primary);
 }
 .or {
-    background-color: transparent;
+    font-family: var(--font-heading);
     font-size: 1.5em;
+    color: var(--text);
+    opacity: 0.35;
     padding: 0;
+    display: inline-block;
 }
 
 .orderingList {
@@ -90,7 +95,7 @@
     font-weight: 500;
     font-size: 1.5em;
     color: var(--text);
-    background-color: #f8f9fa;
+    background-color: var(--surface);
     padding: 10px 20px;
     border-radius: 8px;
     border: 2px solid var(--lightGray);
@@ -102,7 +107,8 @@
 .itemDetail {
     font-size: 0.8em;
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.55;
 }
 
 /* =================================== */
@@ -119,13 +125,13 @@
 }
 
 .connectionsWord {
-    background: #efefe6;
+    background: var(--lightGray);
     border-radius: 8px;
     padding: 20px 10px;
     font-family: var(--font-body);
     font-weight: 800;
     font-size: 1.1em;
-    color: #000;
+    color: var(--text);
     text-transform: uppercase;
     text-align: center;
     display: flex;
@@ -225,8 +231,8 @@
 }
 
 .logoWallNumber {
-    background: var(--accent);
-    color: var(--text);
+    background: var(--primary);
+    color: #ffffff;
     font-family: var(--font-heading);
     font-weight: 800;
     font-size: 0.85em;
@@ -308,4 +314,64 @@
     color: var(--text);
     opacity: 0.7;
     margin: 0;
+}
+
+/* =================================== */
+/* Timer Display                       */
+/* =================================== */
+
+.timerDisplay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.timerNumber {
+    font-family: var(--font-heading);
+    font-size: 3.5em;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+.timerUrgent .timerNumber {
+    color: var(--incorrect, #dc3545);
+    animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.timerBar {
+    width: 60%;
+    max-width: 400px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.timerBarFill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.timerUrgent .timerBarFill {
+    background: var(--incorrect, #dc3545);
+}
+
+.timesUp {
+    font-family: var(--font-heading);
+    font-size: 2.5em;
+    font-weight: 900;
+    color: var(--incorrect, #dc3545);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }

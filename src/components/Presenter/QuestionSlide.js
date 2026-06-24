@@ -14,13 +14,29 @@ const CONNECTION_COLORS = [
   { bg: '#ba81c5', text: '#000' },
 ];
 
-export default function QuestionSlide({ question, round, players = [] }) {
+export default function QuestionSlide({ question, round, players = [], timerDeadline, timerDuration }) {
     const [imageUrl, setImageUrl] = useState(null);
     const [logoUrls, setLogoUrls] = useState({});
     const [audioUrl, setAudioUrl] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(null);
     const audioRef = useRef(null);
     const lottieRef = useRef(null);
+
+    // Timer countdown
+    useEffect(() => {
+        if (!timerDeadline) {
+            setTimeLeft(null);
+            return;
+        }
+        const tick = () => {
+            const remaining = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+            setTimeLeft(remaining);
+        };
+        tick();
+        const interval = setInterval(tick, 200);
+        return () => clearInterval(interval);
+    }, [timerDeadline]);
 
     useEffect(() => {
         setImageUrl(null);
@@ -129,6 +145,31 @@ export default function QuestionSlide({ question, round, players = [] }) {
                     <span className={styles.answerCount}>{answeredCount}/{players.length} answered</span>
                 )}
             </div>
+
+            {/* Timer display */}
+            {timeLeft !== null && timeLeft > 0 && (
+                <div className={`${styles.timerDisplay} ${timeLeft <= 5 ? styles.timerUrgent : ''}`}>
+                    <div className={styles.timerNumber}>{timeLeft}</div>
+                    <div className={styles.timerBar}>
+                        <motion.div
+                            className={styles.timerBarFill}
+                            initial={{ width: '100%' }}
+                            animate={{ width: `${(timeLeft / (timerDuration || 30)) * 100}%` }}
+                            transition={{ duration: 0.3 }}
+                        />
+                    </div>
+                </div>
+            )}
+            {timeLeft === 0 && (
+                <motion.div
+                    className={styles.timesUp}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                >
+                    Time's Up!
+                </motion.div>
+            )}
             <div className={styles.questionContent}>
 
                 {imageUrl && <img src={imageUrl} alt={question.text} className={styles.questionImage} />}

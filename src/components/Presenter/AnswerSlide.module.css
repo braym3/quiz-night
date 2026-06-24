@@ -3,9 +3,9 @@
     max-width: 1000px;
     min-height: 50vh;
     background-color: var(--surface);
-    border-radius: 24px;
-    border: 3px solid var(--text);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 28px;
+    border: 3px solid var(--lightGray);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
     padding: 30px 40px;
     box-sizing: border-box;
     text-align: center;
@@ -18,9 +18,11 @@
 .title {
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: 2em;
+    font-size: 1.6em;
     color: var(--text);
-    opacity: 0.8;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .correctAnswer {
@@ -36,7 +38,8 @@
     font-family: var(--font-body);
     font-size: 1.2em;
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.65;
     margin-top: 20px;
     max-width: 80%;
     text-align: center;
@@ -47,7 +50,8 @@
 .itemDetail {
     font-size: 0.8em;
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.55;
     white-space: nowrap;
 }
 
@@ -66,7 +70,7 @@
 }
 
 .answerListItem {
-    background-color: #f8f9fa;
+    background-color: var(--surface);
     border: 2px solid var(--lightGray);
     border-radius: 12px;
     padding: 15px 20px;
@@ -121,7 +125,7 @@
     border-radius: 8px;
     font-weight: 700;
     color: var(--correct, #28a745);
-    background-color: rgba(40, 167, 69, 0.1);
+    background-color: var(--lightGray);
 }
 
 .mcItem span:first-child, .correctMcItem span:first-child {
@@ -130,7 +134,8 @@
 
 .mcItem span:last-child, .correctMcItem span:last-child {
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.55;
 }
 
 /* =================================== */
@@ -150,10 +155,10 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    background: rgba(40, 167, 69, 0.06);
+    background: var(--lightGray);
     padding: 18px 24px;
     border-radius: 14px;
-    border: 2px solid rgba(40, 167, 69, 0.15);
+    border: 2px solid var(--lightGray);
 }
 
 .musicRevealLabel {
@@ -233,9 +238,11 @@
 .titleCompact {
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: 1.4em;
+    font-size: 1.2em;
     color: var(--text);
-    opacity: 0.8;
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     margin: 0 0 6px 0;
     flex-shrink: 0;
 }
@@ -294,7 +301,7 @@
     color: var(--correct, #28a745);
     text-align: center;
     padding: 2px 8px;
-    background: rgba(40, 167, 69, 0.1);
+    background: var(--lightGray);
     border-radius: 6px;
     flex-shrink: 0;
 }

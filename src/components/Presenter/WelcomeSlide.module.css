@@ -8,7 +8,7 @@
     font-family: var(--font-body);
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--text);
+    color: var(--presenterText, var(--text));
     margin-bottom: 0;
 }
 
@@ -21,7 +21,7 @@
 .titleText {
     font-family: var(--font-heading);
     font-weight: 900;
-    fill: var(--text);
+    fill: var(--presenterText, var(--text));
     filter: drop-shadow(5px 5px 0 var(--shadow));
 }
 
@@ -29,15 +29,52 @@
     margin-top: 1rem;
 }
 
+.playerLobby {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
 .playerCount {
     font-family: var(--font-body);
     font-size: clamp(1.2rem, 3vw, 1.8rem);
-    color: var(--text);
+    color: var(--presenterText, var(--text));
     opacity: 0.8;
-    margin-top: 20px;
     padding: 10px 30px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 30px;
     backdrop-filter: blur(5px);
+}
+
+.playerAvatarRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 80vw;
+}
+
+.playerChip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.chipAvatar {
+    font-size: 1.3em;
+}
+
+.chipName {
+    font-family: var(--font-body);
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-weight: 700;
+    color: var(--presenterText, var(--text));
 }
 

@@ -7,11 +7,18 @@ import PlayerView from './components/PlayerView/PlayerView';
 import MasterView from './components/MasterView/MasterView';
 import QuizBuilder from './components/QuizBuilder/QuizBuilder';
 import { applyTheme, getTheme } from './utils/themes';
+import { loadAvatarManifest } from './utils/avatars';
+import Avatar from './components/Avatar/Avatar';
+import Icon from './components/Icon/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const AVATAR_EMOJIS = ['😎', '🤓', '🦊', '🐱', '🦄', '🐸', '🦋', '🎸', '🌟', '🍕', '🎯', '🚀', '🌈', '🎨', '🎵', '🏆'];
 
 export default function MainQuizApp() {
   const [isMaster, setIsMaster] = useState(false);
   const [playerName, setPlayerName] = useState('');
+  const [playerAvatar, setPlayerAvatar] = useState('😎');
+  const [avatars, setAvatars] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [players, setPlayers] = useState([]);
   const [hasJoined, setHasJoined] = useState(false);
@@ -19,12 +26,31 @@ export default function MainQuizApp() {
   const [showQuizBuilder, setShowQuizBuilder] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('fun-and-sparkly');
   const [activeQuizInfo, setActiveQuizInfo] = useState(null);
+  const [joinError, setJoinError] = useState('');
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('role') === 'master') {
       setIsMaster(true);
     }
+  }, []);
+
+  // Load avatar set and default to the first one
+  useEffect(() => {
+    loadAvatarManifest().then((list) => {
+      setAvatars(list);
+      if (list.length > 0) setPlayerAvatar(list[0].file);
+    });
+  }, []);
+
+  // Firebase connection status
+  useEffect(() => {
+    const connectedRef = ref(database, '.info/connected');
+    const unsubConn = onValue(connectedRef, (snap) => {
+      setIsOnline(snap.val() === true);
+    });
+    return unsubConn;
   }, []);
 
   useEffect(() => {
@@ -85,10 +111,24 @@ export default function MainQuizApp() {
   }, [isMaster]);
 
   const handleJoinQuiz = (name) => {
-    if (name.trim() === '') return;
+    if (name.trim() === '') {
+      setJoinError('Please enter your name');
+      return;
+    }
     const sanitizedName = name.trim();
+    if (sanitizedName.length > 20) {
+      setJoinError('Name must be 20 characters or less');
+      return;
+    }
+    // Check for duplicate names
+    const existingPlayer = players.find(p => p.name.toLowerCase() === sanitizedName.toLowerCase());
+    if (existingPlayer) {
+      setJoinError('That name is already taken!');
+      return;
+    }
+    setJoinError('');
     setPlayerName(sanitizedName);
-    set(ref(database, `liveGame/players/${sanitizedName}`), { score: 0, answer: '' });
+    set(ref(database, `liveGame/players/${sanitizedName}`), { score: 0, answer: '', avatar: playerAvatar });
     setHasJoined(true);
   };
 
@@ -108,7 +148,7 @@ export default function MainQuizApp() {
               onClick={() => setShowQuizBuilder(true)}
               className="quiz-builder-toggle"
           >
-            📚 Manage Quizzes
+            <Icon name="book" size={18} /> Manage Quizzes
           </button>
         </div>
         <MasterView gameState={gameState} players={players} />
@@ -128,7 +168,7 @@ export default function MainQuizApp() {
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
         >
-          &#127912;
+          <span className="join-icon-badge"><Icon name="sparkles" size={40} /></span>
         </motion.div>
         <motion.h2
             initial={{ scale: 0.9 }}
@@ -151,25 +191,63 @@ export default function MainQuizApp() {
               <span className="join-quiz-title">{activeQuizInfo.title}</span>
             </motion.div>
         )}
+        {players.length > 0 && (
+            <motion.div
+                className="join-player-count"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+            >
+              {players.length} player{players.length !== 1 ? 's' : ''} already in
+            </motion.div>
+        )}
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
         >
+          <div className="avatar-picker">
+            <span className="avatar-label">Pick your avatar</span>
+            <div className="avatar-grid">
+              {(avatars.length > 0 ? avatars : AVATAR_EMOJIS.map(e => ({ file: e, label: e }))).map(({ file, label }) => (
+                <motion.button
+                    key={file}
+                    className={`avatar-option ${playerAvatar === file ? 'selected' : ''}`}
+                    onClick={() => setPlayerAvatar(file)}
+                    whileTap={{ scale: 0.85 }}
+                    title={label}
+                    type="button"
+                >
+                  <Avatar value={file} size={44} alt={label} />
+                </motion.button>
+              ))}
+            </div>
+          </div>
           <input
               type="text"
               placeholder="Enter your name"
-              onChange={(e) => setPlayerName(e.target.value)}
+              value={playerName}
+              onChange={(e) => { setPlayerName(e.target.value); setJoinError(''); }}
               onKeyPress={(e) => e.key === 'Enter' && handleJoinQuiz(playerName)}
+              maxLength={20}
               autoFocus
           />
+          {joinError && (
+              <motion.div
+                  className="join-error"
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+              >
+                {joinError}
+              </motion.div>
+          )}
           <motion.button
               onClick={() => handleJoinQuiz(playerName)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="join-button"
           >
-            Let's Go!
+            <Avatar value={playerAvatar} size={26} alt="" /> Let's Go!
           </motion.button>
         </motion.div>
       </motion.div>
@@ -229,6 +307,20 @@ export default function MainQuizApp() {
   return (
       <>
         <div className={isMaster ? 'App master-mode' : 'App'}>
+          <AnimatePresence>
+            {!isOnline && (
+              <motion.div
+                className="offline-banner"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <span className="offline-icon"><Icon name="bolt" size={16} /></span>
+                <span>Connection lost — reconnecting...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {renderView()}
         </div>
         <AnimatePresence>

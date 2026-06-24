@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { database, storage } from '../../index';
 import { ref, get, set } from 'firebase/database';
 import { ref as storageRef, getDownloadURL } from 'firebase/storage';
 import './PlayerView.css';
 import { motion } from 'framer-motion';
+import Icon from '../Icon/Icon';
+
+// Haptic feedback helper
+const vibrate = (pattern = 10) => {
+  if (navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
+};
 
 // A helper function to shuffle an array
 const shuffleArray = (array) => {
@@ -50,9 +58,86 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   // Logo wall state
   const [logoAnswers, setLogoAnswers] = useState({});
   const [logoUrls, setLogoUrls] = useState({});
-  const [expandedLogo, setExpandedLogo] = useState(null); // index of expanded logo, null = closed
+  const [expandedLogo, setExpandedLogo] = useState(null);
   // Music state
   const [musicAnswer, setMusicAnswer] = useState({ title: '', artist: '', decade: '' });
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(null);
+  // Per-player result feedback
+  const [myAnswer, setMyAnswer] = useState(null);
+  const [verdict, setVerdict] = useState(null); // 'correct' | 'wrong' | 'none'
+  const [streak, setStreak] = useState(0);
+  const scoredRef = useRef(null);
+
+  const OBJECTIVE_TYPES = ['multiple_choice', 'true_false', 'text_input', 'image_input', 'ordering'];
+  const normalize = (s) => (typeof s === 'string' ? s : '').trim().toLowerCase();
+  const isAnswered = (a) => a != null && (Array.isArray(a) ? a.length > 0 : (typeof a === 'string' ? a.trim() !== '' : true));
+  const checkCorrect = (q, a) => {
+    if (!q) return false;
+    if (q.type === 'multiple_choice' || q.type === 'true_false') return a === q.answer;
+    if (q.type === 'text_input' || q.type === 'image_input') return normalize(a) === normalize(q.answer);
+    if (q.type === 'ordering') return Array.isArray(a) && Array.isArray(q.answer) && JSON.stringify(a) === JSON.stringify(q.answer);
+    return false;
+  };
+
+  // Timer countdown + auto-submit when time expires
+  useEffect(() => {
+    if (!gameState?.timerDeadline) {
+      setTimeLeft(null);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((gameState.timerDeadline - Date.now()) / 1000));
+      setTimeLeft(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 200);
+    return () => clearInterval(interval);
+  }, [gameState?.timerDeadline]);
+
+  // Auto-submit when timer hits 0
+  useEffect(() => {
+    if (timeLeft !== 0 || isSubmitted || !currentQuestion) return;
+
+    // Auto-submit whatever they have
+    vibrate([30, 50, 30]);
+    const playerAnswerRef = ref(database, `liveGame/players/${playerName}/answer`);
+
+    if (currentQuestion.type === 'logo_wall') {
+      // Submit partial logo answers
+      const hasAny = Object.values(logoAnswers).some(v => v && v.trim() !== '');
+      if (hasAny) set(playerAnswerRef, logoAnswers);
+    } else if (currentQuestion.type === 'music') {
+      const hasAny = musicAnswer.title || musicAnswer.artist || musicAnswer.decade;
+      if (hasAny) set(playerAnswerRef, musicAnswer);
+    } else if (currentQuestion.type === 'connections') {
+      if (solvedGroups.length > 0) {
+        set(playerAnswerRef, solvedGroups.map(g => g.words));
+      }
+    } else if (currentQuestion.type === 'ordering') {
+      set(playerAnswerRef, orderedAnswer);
+      setMyAnswer(orderedAnswer);
+    } else if (currentQuestion.type === 'text_input' || currentQuestion.type === 'image_input') {
+      if (answer.trim()) { set(playerAnswerRef, answer); setMyAnswer(answer); }
+    }
+    // MC / true_false: if they haven't clicked, nothing to submit
+
+    setIsSubmitted(true);
+  }, [timeLeft]);
+
+  // Work out this player's result once per question when the answer is revealed
+  useEffect(() => {
+    const revealing = gameState?.quizStatus === 'reveal' || gameState?.quizStatus === 'moderating';
+    if (!revealing || !currentQuestion) return;
+    const qid = gameState?.currentQuestionId;
+    if (scoredRef.current === qid) return;
+    scoredRef.current = qid;
+
+    if (!OBJECTIVE_TYPES.includes(currentQuestion.type)) { setVerdict(null); return; }
+    if (!isAnswered(myAnswer)) { setVerdict('none'); setStreak(0); return; }
+    if (checkCorrect(currentQuestion, myAnswer)) { setVerdict('correct'); setStreak((s) => s + 1); }
+    else { setVerdict('wrong'); setStreak(0); }
+  }, [gameState?.quizStatus, gameState?.currentQuestionId, currentQuestion, myAnswer]);
 
   useEffect(() => {
       const activeQuizRef = ref(database, 'liveGame/activeQuizId');
@@ -76,30 +161,31 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         setCurrentQuestion(questionData);
         setIsSubmitted(false);
         setAnswer('');
+        setMyAnswer(null);
+        setVerdict(null);
 
+        // Always reset all question-type state to prevent bleed-through
+        setOrderedAnswer([]);
+        setMusicAnswer({ title: '', artist: '', decade: '' });
+        setSelectedWords([]);
+        setSolvedGroups([]);
+        setRemainingWords([]);
+        setConnectionMistakes(0);
+        setLogoAnswers({});
+        setExpandedLogo(null);
+
+        // Then initialize for the current question type
         if (questionData.type === 'ordering') {
           setOrderedAnswer(shuffleArray([...questionData.options]));
         }
 
-        // Reset music answer
-        if (questionData.type === 'music') {
-          setMusicAnswer({ title: '', artist: '', decade: '' });
-        }
-
-        // Initialize connections
         if (questionData.type === 'connections' && questionData.connections) {
           const allWords = questionData.connections.flatMap(g => g.words).filter(w => w);
           setRemainingWords(shuffleArray([...allWords]));
-          setSelectedWords([]);
-          setSolvedGroups([]);
-          setConnectionMistakes(0);
         }
 
-        // Initialize logo wall
         if (questionData.type === 'logo_wall' && questionData.logos) {
-          setLogoAnswers({});
           setLogoUrls({});
-          // Load all logo image URLs
           questionData.logos.forEach((logo, i) => {
             if (logo.imageUrl) {
               const imgRef = storageRef(storage, logo.imageUrl);
@@ -117,23 +203,30 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
   const handleTextAnswerSubmit = () => {
     if (answer.trim() !== '') {
+      vibrate(15);
       set(ref(database, `liveGame/players/${playerName}/answer`), answer);
+      setMyAnswer(answer);
       setIsSubmitted(true);
     }
   };
 
   const handleChoiceSubmit = (choice) => {
+    vibrate(15);
     set(ref(database, `liveGame/players/${playerName}/answer`), choice);
+    setMyAnswer(choice);
     setIsSubmitted(true);
   };
 
   const handleOrderingSubmit = () => {
+    vibrate(15);
     set(ref(database, `liveGame/players/${playerName}/answer`), orderedAnswer);
+    setMyAnswer(orderedAnswer);
     setIsSubmitted(true);
   };
 
   // Connections handlers
   const toggleWordSelection = (word) => {
+    vibrate(5);
     if (selectedWords.includes(word)) {
       setSelectedWords(selectedWords.filter(w => w !== word));
     } else if (selectedWords.length < 4) {
@@ -152,6 +245,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     });
 
     if (matchedGroup) {
+      vibrate([15, 50, 15]);
       const newSolvedGroups = [...solvedGroups, { ...matchedGroup, colorIndex: solvedGroups.length }];
       setSolvedGroups(newSolvedGroups);
       setRemainingWords(remainingWords.filter(w => !selectedWords.includes(w)));
@@ -164,6 +258,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         setIsSubmitted(true);
       }
     } else {
+      vibrate([30, 30, 30]);
       setConnectionMistakes(prev => prev + 1);
       setSelectedWords([]);
       // Max 4 mistakes = game over, submit what they have
@@ -187,12 +282,14 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   };
 
   const handleLogoWallSubmit = () => {
+    vibrate(15);
     set(ref(database, `liveGame/players/${playerName}/answer`), logoAnswers);
     setIsSubmitted(true);
   };
 
   // Music handlers
   const handleMusicSubmit = () => {
+    vibrate(15);
     set(ref(database, `liveGame/players/${playerName}/answer`), musicAnswer);
     setIsSubmitted(true);
   };
@@ -204,6 +301,44 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
       [newOrder[index], newOrder[newIndex]] = [newOrder[newIndex], newOrder[index]];
       setOrderedAnswer(newOrder);
     }
+  };
+
+  const formatMyAnswer = () => {
+    const q = currentQuestion;
+    if (!q) return '';
+    if (q.type === 'multiple_choice' || q.type === 'true_false') return `${String(myAnswer).toUpperCase()}) ${q.options?.[myAnswer] || ''}`;
+    if (q.type === 'text_input' || q.type === 'image_input') return myAnswer;
+    return '';
+  };
+
+  const renderVerdict = () => {
+    if (!verdict) return null;
+    const pts = typeof currentQuestion?.points === 'number' ? currentQuestion.points : 10;
+    if (verdict === 'correct') {
+      return (
+        <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+          <div className="pv-result-icon ok"><Icon name="check" size={42} strokeWidth={2.6} /></div>
+          <h2 className="pv-result-title pv-ok">Correct!</h2>
+          <div className="pv-points">+{pts}</div>
+          {streak >= 2 && <div className="pv-streak"><Icon name="flame" size={15} /> {streak} in a row!</div>}
+        </motion.div>
+      );
+    }
+    if (verdict === 'wrong') {
+      return (
+        <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+          <div className="pv-result-icon no"><Icon name="x" size={40} strokeWidth={2.6} /></div>
+          <h2 className="pv-result-title pv-no">Not this time</h2>
+          {formatMyAnswer() && <div className="pv-your-wrong">You said: {formatMyAnswer()}</div>}
+        </motion.div>
+      );
+    }
+    return (
+      <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <div className="pv-result-icon none"><Icon name="clock" size={38} /></div>
+        <h2 className="pv-result-title">No answer this time</h2>
+      </motion.div>
+    );
   };
 
   const renderRoundInfo = () => {
@@ -329,6 +464,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         return (
             <div className="player-view-container centered-view">
                 <div className="answer-reveal-container">
+                    {renderVerdict()}
                     <p>The correct order was:</p>
                     <motion.ol className="ordering-answer-list" initial="hidden" animate="visible" variants={listVariants}>
                         {currentQuestion.answer.map((item, index) => (
@@ -356,8 +492,19 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     return (
         <div className="player-view-container centered-view">
             <div className="answer-reveal-container">
+                {renderVerdict()}
                 <p>The correct answer was:</p>
                 <h2 className="correct-answer-text">{correctAnswerText}</h2>
+                {currentQuestion?.answerDetails?.detail && (
+                    <motion.p
+                        className="fun-fact-text"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        {currentQuestion.answerDetails.detail}
+                    </motion.p>
+                )}
                 <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
             </div>
         </div>
@@ -387,8 +534,20 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     </div>;
   }
 
+  const waitingMessages = [
+    "Fingers crossed...",
+    "Waiting for the reveal...",
+    "Did you nail it?",
+    "Confidence level: high",
+    "The suspense...",
+    "Let's see how you did!",
+    "No going back now!",
+    "Good luck!",
+  ];
+
   const renderInteraction = () => {
     if (isSubmitted) {
+        const waitMsg = waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
         return (
           <motion.div
             className="player-message submitted-message"
@@ -396,12 +555,39 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 200 }}
           >
-            <div className="submitted-checkmark">&#10003;</div>
-            <h3>Answer Locked In!</h3>
+            <motion.div
+              className="submitted-checkmark"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+            >
+              <Icon name="check" size={30} strokeWidth={2.6} />
+            </motion.div>
+            <motion.h3
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              Answer Locked In!
+            </motion.h3>
             {typeof answer === 'string' && answer.trim() !== '' && (
-              <p className="submitted-answer">{answer}</p>
+              <motion.p
+                className="submitted-answer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                {answer}
+              </motion.p>
             )}
-            <p className="submitted-hint">Waiting for the reveal...</p>
+            <motion.p
+              className="submitted-hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              {waitMsg}
+            </motion.p>
           </motion.div>
         );
     }
@@ -638,6 +824,9 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
             <button onClick={handleLogoWallSubmit} className="logo-wall-submit-btn">
               Submit Answers
+              <span className="logo-wall-progress">
+                ({Object.values(logoAnswers).filter(v => v && v.trim() !== '').length}/{(currentQuestion.logos || []).length})
+              </span>
             </button>
           </div>
         );
@@ -663,6 +852,24 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   return (
     <div className="player-view-container">
         {renderRoundInfo()}
+        {timeLeft !== null && timeLeft > 0 && !isSubmitted && (
+            <div className={`player-timer ${timeLeft <= 5 ? 'player-timer-urgent' : ''}`}>
+                <span className="player-timer-number">{timeLeft}</span>
+                <div className="player-timer-bar">
+                    <div className="player-timer-fill" style={{ width: `${(timeLeft / (gameState?.timerDuration || 30)) * 100}%` }} />
+                </div>
+            </div>
+        )}
+        {timeLeft === 0 && (
+            <motion.div
+                className="player-times-up"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+            >
+                <Icon name="clock" size={20} /> Time's Up!
+            </motion.div>
+        )}
         <div className="question-section">
             <p className="question-text">{currentQuestion.text}</p>
         </div>

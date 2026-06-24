@@ -5,6 +5,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL, listAll } from 'firebas
 import { motion, AnimatePresence } from 'framer-motion';
 import './QuizBuilder.css';
 import { themes, applyTheme } from '../../utils/themes';
+import Icon from '../Icon/Icon';
 
 const QuizBuilder = ({ onClose, activeTheme }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -19,6 +20,12 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
   const [bankFilter, setBankFilter] = useState('all');
   const [addToBank, setAddToBank] = useState(true);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2200);
+  };
 
   // Live preview: apply theme whenever currentQuiz.theme changes in edit view
   useEffect(() => {
@@ -28,14 +35,14 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
   }, [currentQuiz?.theme, currentView]);
 
   const questionTypes = [
-    { id: 'text_input', name: 'Text Input', icon: '✍️' },
-    { id: 'multiple_choice', name: 'Multiple Choice', icon: '📝' },
-    { id: 'true_false', name: 'True/False', icon: '❓' },
-    { id: 'image_input', name: 'Image Question', icon: '🖼️' },
-    { id: 'ordering', name: 'Order Items', icon: '🔢' },
-    { id: 'music', name: 'Music Round', icon: '🎵' },
-    { id: 'connections', name: 'Connections', icon: '🔗' },
-    { id: 'logo_wall', name: 'Logo Wall', icon: '🏢' },
+    { id: 'text_input', name: 'Text Input', icon: 'text' },
+    { id: 'multiple_choice', name: 'Multiple Choice', icon: 'list' },
+    { id: 'true_false', name: 'True/False', icon: 'true-false' },
+    { id: 'image_input', name: 'Image Question', icon: 'image' },
+    { id: 'ordering', name: 'Order Items', icon: 'numbers' },
+    { id: 'music', name: 'Music Round', icon: 'music' },
+    { id: 'connections', name: 'Connections', icon: 'link' },
+    { id: 'logo_wall', name: 'Logo Wall', icon: 'grid' },
   ];
 
   useEffect(() => {
@@ -162,7 +169,7 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
       const quizData = { ...currentQuiz };
       delete quizData.id;
       await set(dbRef(database, `quizzes/${quizId}`), quizData);
-      alert('Saved!');
+      showToast('Quiz saved');
       loadQuizzes();
       // Restore the active quiz theme when going back to list
       if (activeTheme) {
@@ -275,7 +282,7 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
         <div className="question-bank-panel">
           <div className="bank-header">
             <h3>Question Bank ({filteredQuestions.length})</h3>
-            <button onClick={() => setShowQuestionBank(false)} className="btn-sm">✕ Close</button>
+            <button onClick={() => setShowQuestionBank(false)} className="btn-sm"><Icon name="x" size={15} /> Close</button>
           </div>
 
           <div className="bank-filters">
@@ -306,7 +313,7 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                 filteredQuestions.map((q, idx) => (
                     <div key={idx} className="bank-question-card" onClick={() => loadQuestionFromBank(q)}>
                       <div className="bank-q-icon">
-                        {questionTypes.find(t => t.id === q.type)?.icon || '❓'}
+                        <Icon name={questionTypes.find(t => t.id === q.type)?.icon || 'text'} size={20} />
                       </div>
                       <div className="bank-q-content">
                         <div className="bank-q-text">{getQuestionPreview(q)}</div>
@@ -328,10 +335,20 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
     return (
         <div className="question-editor">
           <div className="input-group">
-            <label>Question Type</label>
-            <select value={q.type} onChange={(e) => setCurrentQuestion({ ...q, type: e.target.value })}>
-              {questionTypes.map(t => <option key={t.id} value={t.id}>{t.icon} {t.name}</option>)}
-            </select>
+            <label>Question type</label>
+            <div className="qb-type-grid">
+              {questionTypes.map(t => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`qb-type ${q.type === t.id ? 'sel' : ''}`}
+                  onClick={() => setCurrentQuestion({ ...q, type: t.id })}
+                >
+                  <Icon name={t.icon} size={22} />
+                  <span>{t.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="input-group">
@@ -434,10 +451,10 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                             }}
                             placeholder="Item"
                         />
-                        <button className="btn-icon" onClick={() => {
+                        <button className="btn-icon" aria-label="Remove item" onClick={() => {
                           const opts = q.options.filter((_, idx) => idx !== i);
                           setCurrentQuestion({ ...q, options: opts });
-                        }}>🗑️</button>
+                        }}><Icon name="trash" size={16} /></button>
                       </div>
                   ))}
                   <button className="btn-secondary" onClick={() => setCurrentQuestion({ ...q, options: [...(q.options || []), ''] })}>
@@ -562,10 +579,10 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                             setCurrentQuestion({ ...q, logos });
                           }}
                       />
-                      <button className="btn-icon" onClick={() => {
+                      <button className="btn-icon" aria-label="Remove logo" onClick={() => {
                         const logos = q.logos.filter((_, idx) => idx !== i);
                         setCurrentQuestion({ ...q, logos });
-                      }}>🗑️</button>
+                      }}><Icon name="trash" size={16} /></button>
                     </div>
                 ))}
                 {(q.logos || []).length < 12 && (
@@ -629,15 +646,22 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
   return (
       <div className="quiz-builder-overlay">
         <div className="quiz-builder-modal">
+          <AnimatePresence>
+            {toast && (
+              <motion.div className="qb-toast" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+                <Icon name="check" size={16} /> {toast}
+              </motion.div>
+            )}
+          </AnimatePresence>
           <AnimatePresence mode="wait">
             {currentView === 'list' && (
                 <motion.div key="list" className="modal-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <div className="modal-header">
-                    <h2>📚 Quizzes</h2>
-                    <button className="btn-close" onClick={handleClose}>✕</button>
+                    <h2><Icon name="book" size={20} /> Quizzes</h2>
+                    <button className="btn-close" onClick={handleClose} aria-label="Close"><Icon name="x" size={18} /></button>
                   </div>
                   <div className="modal-body">
-                    <button className="btn-primary" onClick={createNewQuiz}>✨ Create Quiz</button>
+                    <button className="btn-primary" onClick={createNewQuiz}><Icon name="plus" size={18} /> Create Quiz</button>
                     {quizzes.map(quiz => (
                         <div key={quiz.id} className="quiz-card">
                           <h3>{quiz.title}</h3>
@@ -645,7 +669,7 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                           <div className="card-actions">
                             <button className="btn-sm" onClick={() => { setCurrentQuiz({ id: quiz.id, ...quiz }); setCurrentView('edit'); }}>Edit</button>
                             <button className="btn-sm btn-danger" onClick={() => deleteQuiz(quiz.id)}>Delete</button>
-                            <button className="btn-sm btn-success" onClick={() => { set(dbRef(database, 'liveGame/activeQuizId'), quiz.id); alert('Activated!'); }}>Activate</button>
+                            <button className="btn-sm btn-success" onClick={() => { set(dbRef(database, 'liveGame/activeQuizId'), quiz.id); showToast(`"${quiz.title}" is now live`); }}>Activate</button>
                           </div>
                         </div>
                     ))}
@@ -656,9 +680,9 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
             {currentView === 'edit' && (
                 <motion.div key="edit" className="modal-view" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
                   <div className="modal-header">
-                    <button className="btn-back" onClick={handleBackToList}>←</button>
+                    <button className="btn-back" onClick={handleBackToList} aria-label="Back"><Icon name="arrow-left" size={20} /></button>
                     <h2>Edit Quiz</h2>
-                    <button className="btn-save" onClick={saveQuiz}>💾</button>
+                    <button className="btn-save" onClick={saveQuiz}><Icon name="save" size={16} /> Save</button>
                   </div>
                   <div className="modal-body">
                     <div className="input-group">
@@ -729,9 +753,9 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                             <div className="questions-mini">
                               {Object.entries(round.questions || {}).map(([qid, q]) => (
                                   <div key={qid} className="question-mini" onClick={() => editQuestion(rid, qid)}>
-                                    <span>{questionTypes.find(t => t.id === q.type)?.icon}</span>
+                                    <Icon name={questionTypes.find(t => t.id === q.type)?.icon || 'text'} size={18} />
                                     <span>{getQuestionPreview(q)}</span>
-                                    <button onClick={(e) => { e.stopPropagation(); deleteQuestion(rid, qid); }}>🗑️</button>
+                                    <button onClick={(e) => { e.stopPropagation(); deleteQuestion(rid, qid); }} aria-label="Delete question"><Icon name="trash" size={15} /></button>
                                   </div>
                               ))}
                               <button className="btn-add-q" onClick={() => addQuestion(rid)}>+ Question</button>
@@ -746,14 +770,14 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
             {currentView === 'question' && (
                 <motion.div key="question" className="modal-view" initial={{ x: 20 }} animate={{ x: 0 }} exit={{ x: -20 }}>
                   <div className="modal-header">
-                    <button className="btn-back" onClick={() => setCurrentView('edit')}>←</button>
+                    <button className="btn-back" onClick={() => setCurrentView('edit')} aria-label="Back"><Icon name="arrow-left" size={20} /></button>
                     <h2>Question</h2>
-                    <button className="btn-save" onClick={saveQuestion}>💾</button>
+                    <button className="btn-save" onClick={saveQuestion}><Icon name="save" size={16} /> Save</button>
                   </div>
                   <div className="modal-body">
                     {!showQuestionBank && (
                         <button className="question-bank-toggle" onClick={() => setShowQuestionBank(true)}>
-                          💡 Load from Question Bank
+                          <Icon name="bulb" size={16} /> Load from Question Bank
                         </button>
                     )}
                     {showQuestionBank ? renderQuestionBank() : renderQuestionEditor()}

@@ -60,9 +60,9 @@ export const themes = {
   'minimalist': {
     name: 'Minimalist',
     colors: {
-      primary: '#000000',
-      accent: '#666666',
-      text: '#000000',
+      primary: '#1a1a1a',
+      accent: '#444444',
+      text: '#1a1a1a',
       background: '#f5f5f5',
       surface: '#ffffff',
       lightGray: '#e0e0e0',
@@ -120,6 +120,7 @@ export const themes = {
       primary: '#8B4513',
       accent: '#DAA520',
       text: '#2C1810',
+      presenterText: '#FFF8F0',
       background: '#F5E6D3',
       surface: '#FFF8F0',
       lightGray: '#D4C4B0',
@@ -145,12 +146,12 @@ export const themes = {
   'game-show': {
     name: 'Game Show',
     colors: {
-      primary: '#1A237E',
+      primary: '#3949AB',
       accent: '#FFD700',
       text: '#FFFFFF',
       background: '#0D1B2A',
       surface: '#1B2838',
-      lightGray: '#2C3E50',
+      lightGray: '#34495E',
       shadow: '#FFD700',
       correct: '#00E676',
       incorrect: '#FF1744',
@@ -161,7 +162,7 @@ export const themes = {
     },
     backgrounds: {
       player: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 100%)',
-      presenter: 'radial-gradient(ellipse at center, #1A237E 0%, #0D1B2A 70%)',
+      presenter: 'radial-gradient(ellipse at center, #283593 0%, #0D1B2A 70%)',
       master: 'linear-gradient(135deg, #0D1B2A 0%, #1B2838 100%)',
     },
     effects: {
@@ -177,6 +178,7 @@ export const themes = {
       primary: '#E91E63',
       accent: '#00BFA5',
       text: '#1B5E20',
+      presenterText: '#FFFFFF',
       background: '#E8F5E9',
       surface: '#FFFFFF',
       lightGray: '#C8E6C9',
@@ -236,38 +238,144 @@ export const getTheme = (themeId) => {
   return themes[themeId] || themes[defaultTheme];
 };
 
+/* ---------- colour maths (so themes stay concise) ---------- */
+const hexToRgb = (hex) => {
+  if (typeof hex !== 'string' || hex[0] !== '#') return null;
+  let h = hex.slice(1);
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (h.length !== 6) return null;
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+};
+
+const toHex = ({ r, g, b }) =>
+  '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+
+// relative luminance, 0 (black) .. 1 (white)
+const luminance = (hex) => {
+  const c = hexToRgb(hex);
+  if (!c) return 0.5;
+  const f = (v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+};
+
+// readable text colour on a given background
+const onColor = (hex) => (luminance(hex) > 0.5 ? '#1a1a1a' : '#ffffff');
+
+// blend a -> b by t (0..1)
+const mix = (a, b, t) => {
+  const x = hexToRgb(a);
+  const y = hexToRgb(b);
+  if (!x || !y) return a;
+  return toHex({ r: x.r + (y.r - x.r) * t, g: x.g + (y.g - x.g) * t, b: x.b + (y.b - x.b) * t });
+};
+
+/* ---------- per-theme personality ---------- */
+const RADIUS_SCALE = {
+  'retro-arcade': 0,
+  minimalist: 0.55,
+  'pub-quiz-classic': 0.55,
+  'game-show': 0.7,
+  'tropical-party': 1.5,
+};
+const BORDER_WIDTH = { 'retro-arcade': '4px', minimalist: '2px' };
+const GLOW_THEMES = new Set(['neon-nights', 'midnight-galaxy', 'game-show', 'retro-arcade']);
+// Brighter option palettes that pop on dark surfaces
+const OPTION_PALETTES = {
+  'neon-nights': ['#00f5ff', '#ff2e88', '#00ff9d', '#ffe14d'],
+  'midnight-galaxy': ['#7c9bff', '#e040fb', '#69f0ae', '#ffd54f'],
+  'retro-arcade': ['#00e5ff', '#ff3864', '#00e676', '#ffed4e'],
+  'game-show': ['#42a5f5', '#ef5350', '#66bb6a', '#ffd700'],
+};
+const DEFAULT_OPTIONS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b'];
+
+const setVars = (root, vars) => {
+  Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+};
+
 export const applyTheme = (themeId, viewType = 'player') => {
   const theme = getTheme(themeId);
   const root = document.documentElement;
   const body = document.body;
+  const c = theme.colors;
 
-  // Apply color variables
-  Object.entries(theme.colors).forEach(([key, value]) => {
-    root.style.setProperty(`--${key}`, value);
+  const isDark = luminance(c.background) < 0.4;
+  const surface = c.surface || (isDark ? '#1a1a2e' : '#ffffff');
+  const border = c.lightGray || mix(surface, isDark ? '#ffffff' : '#000000', 0.18);
+  const surface2 = isDark ? mix(surface, '#ffffff', 0.07) : mix(surface, '#000000', 0.04);
+  const textMuted = mix(c.text, c.background, 0.42);
+  const options = OPTION_PALETTES[themeId] || DEFAULT_OPTIONS;
+  const radiusScale = RADIUS_SCALE[themeId] ?? 1;
+  const r = (px) => Math.round(px * radiusScale) + 'px';
+
+  // ---- semantic tokens ----
+  setVars(root, {
+    '--font-heading': theme.fonts.heading,
+    '--font-body': theme.fonts.body,
+
+    '--color-primary': c.primary,
+    '--color-on-primary': onColor(c.primary),
+    '--color-accent': c.accent,
+    '--color-on-accent': onColor(c.accent),
+    '--color-text': c.text,
+    '--color-text-muted': textMuted,
+    '--color-bg': c.background,
+    '--color-surface': surface,
+    '--color-surface-2': surface2,
+    '--color-border': border,
+    '--color-focus': c.primary,
+
+    '--color-success': c.correct,
+    '--color-danger': c.incorrect,
+    '--color-warning': c.accent,
+    '--color-on-reveal': isDark ? mix(c.correct, '#ffffff', 0.25) : c.correct,
+
+    '--opt-a': options[0],
+    '--opt-b': options[1],
+    '--opt-c': options[2],
+    '--opt-d': options[3],
+    '--opt-on': '#ffffff',
+
+    '--radius-sm': r(8),
+    '--radius-md': r(12),
+    '--radius-lg': r(16),
+    '--radius-xl': r(24),
+    '--border-width': BORDER_WIDTH[themeId] || '3px',
+
+    '--shadow-sm': isDark ? '0 2px 10px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.08)',
+    '--shadow-md': isDark ? '0 10px 30px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.12)',
+    '--shadow-lg': isDark ? '0 18px 50px rgba(0,0,0,0.6)' : '0 16px 48px rgba(0,0,0,0.18)',
+    '--shadow-press': `0 4px 0 0 ${mix(c.primary, '#000000', 0.45)}`,
+    '--glow': GLOW_THEMES.has(themeId) ? `0 0 22px ${c.primary}66` : '0 0 0 0 transparent',
+
+    // ---- legacy aliases (concrete values for untouched components) ----
+    '--primary': c.primary,
+    '--accent': c.accent,
+    '--text': c.text,
+    '--background': c.background,
+    '--surface': surface,
+    '--lightGray': border,
+    '--shadow': c.shadow || '#AAE7FF',
+    '--correct': c.correct,
+    '--incorrect': c.incorrect,
+    '--presenterText': c.presenterText || c.text,
   });
 
-  // Apply font variables
-  root.style.setProperty('--font-heading', theme.fonts.heading);
-  root.style.setProperty('--font-body', theme.fonts.body);
-
-  // Apply background based on view type
-  const backgroundKey = viewType === 'presenter' ? 'presenter' :
-      viewType === 'master' ? 'master' : 'player';
+  // ---- view background ----
+  const backgroundKey = viewType === 'presenter' ? 'presenter' : viewType === 'master' ? 'master' : 'player';
   const background = theme.backgrounds[backgroundKey];
-
   if (background) {
     body.style.background = background;
     body.style.backgroundAttachment = 'fixed';
-
-    // For presenter view, ensure full coverage
-    if (viewType === 'presenter') {
-      body.style.minHeight = '100vh';
-    }
+    if (viewType === 'presenter') body.style.minHeight = '100vh';
   }
 
-  // Apply theme-specific effects
-  body.className = body.className.replace(/theme-\S+/g, '');
+  // ---- theme + mode classes ----
+  body.className = body.className.replace(/theme-\S+/g, '').replace(/\bmode-(light|dark)\b/g, '').trim();
   body.classList.add(`theme-${themeId}`);
+  body.classList.add(isDark ? 'mode-dark' : 'mode-light');
 
   return theme;
 };

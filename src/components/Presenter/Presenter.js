@@ -60,8 +60,8 @@ export default function Presenter() {
             }
         });
 
-        onValue(ref(database, 'liveGame/gameState'), (snapshot) => setGameState(snapshot.val()));
-        onValue(ref(database, 'liveGame/players'), (snapshot) => {
+        const unsubGameState = onValue(ref(database, 'liveGame/gameState'), (snapshot) => setGameState(snapshot.val()));
+        const unsubPlayers = onValue(ref(database, 'liveGame/players'), (snapshot) => {
             if(snapshot.exists()) {
                 const playersData = snapshot.val();
                 const playersArray = Object.entries(playersData).map(([name, data]) => ({ name, ...data }));
@@ -71,7 +71,11 @@ export default function Presenter() {
             }
         });
 
-        return unsubscribe;
+        return () => {
+            unsubscribe();
+            unsubGameState();
+            unsubPlayers();
+        };
     }, []);
 
     const renderSlide = () => {
@@ -86,7 +90,7 @@ export default function Presenter() {
         }
 
         if (quizStatus === 'waiting') {
-            return <WelcomeSlide key="welcome" title={quizContent.title || "Trivia Night!"} subtitle="Get Ready!" playerCount={players.length} />;
+            return <WelcomeSlide key="welcome" title={quizContent.title || "Trivia Night!"} subtitle="Get Ready!" playerCount={players.length} players={players} />;
         }
 
         const round = quizContent.rounds[currentRoundId];
@@ -98,7 +102,7 @@ export default function Presenter() {
 
         if (quizStatus === 'active' && question) {
             const questionWithId = { ...question, id: currentQuestionId };
-            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} players={players} />;
+            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} players={players} timerDeadline={gameState.timerDeadline} timerDuration={gameState.timerDuration} />;
         }
 
         if (quizStatus === 'moderating' && question) {

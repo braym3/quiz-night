@@ -8,12 +8,12 @@
     font-family: var(--font-body);
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--text);
+    color: var(--presenterText, var(--text));
 }
 .roundTitle {
     font-family: var(--font-heading);
     font-size: clamp(3rem, 10vw, 7rem);
-    color: var(--text);
+    color: var(--presenterText, var(--text));
     line-height: 1.1;
     text-shadow: 5px 5px 0 var(--shadow);
     margin: 10px 0;

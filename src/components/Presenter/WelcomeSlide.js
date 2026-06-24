@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import AnimatedIcon from './AnimatedIcon';
+import Avatar from '../Avatar/Avatar';
 import styles from './WelcomeSlide.module.css';
 
-export default function WelcomeSlide({ title, subtitle, playerCount = 0 }) {
+export default function WelcomeSlide({ title, subtitle, playerCount = 0, players = [] }) {
     // Calculate font size based on title length so it never clips
     const titleFontSize = useMemo(() => {
         const len = (title || '').length;
@@ -57,13 +58,38 @@ export default function WelcomeSlide({ title, subtitle, playerCount = 0 }) {
                 <AnimatedIcon />
             </motion.div>
 
-            {playerCount > 0 && (
+            {players.length > 0 && (
+                <motion.div
+                    className={styles.playerLobby}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.9 } }}
+                >
+                    <div className={styles.playerCount}>
+                        {playerCount} player{playerCount !== 1 ? 's' : ''} joined
+                    </div>
+                    <div className={styles.playerAvatarRow}>
+                        {players.map((player, i) => (
+                            <motion.div
+                                key={player.name}
+                                className={styles.playerChip}
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 1 + i * 0.1, type: 'spring', stiffness: 200 }}
+                            >
+                                <span className={styles.chipAvatar}><Avatar value={player.avatar} size={30} alt={player.name} /></span>
+                                <span className={styles.chipName}>{player.name}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+            {playerCount === 0 && (
                 <motion.div
                     className={styles.playerCount}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, transition: { delay: 0.9 } }}
                 >
-                    {playerCount} player{playerCount !== 1 ? 's' : ''} joined
+                    Waiting for players...
                 </motion.div>
             )}
         </motion.div>

@@ -1,53 +1,43 @@
-/* Theme system variables (set dynamically by applyTheme) */
-:root {
-  --primary: #9669ff;
-  --accent: #feca57;
-  --text: #2c2c54;
-  --background: #f1f2f6;
-  --surface: #ffffff;
-  --lightGray: #dcdde1;
-  --shadow: #AAE7FF;
-  --correct: #28a745;
-  --incorrect: #dc3545;
-  --font-heading: 'Teachers', sans-serif;
-  --font-body: 'Poppins', sans-serif;
+/* Base document styles. Design tokens live in styles/tokens.css and are
+   set at runtime by applyTheme(). */
 
-  /* Legacy aliases - these resolve to the theme variables above,
-     so when applyTheme() updates --primary, --primary-purple follows */
-  --primary-purple: var(--primary);
-  --accent-yellow: var(--accent);
-  --text-purple: var(--text);
-  --background-off-white: var(--background);
-  --surface-white: var(--surface);
-  --light-gray: var(--lightGray);
-  --pastel-red-shadow: var(--shadow);
-  --font-family-heading: var(--font-heading);
-  --font-family-body: var(--font-body);
+* {
+  box-sizing: border-box;
 }
-
 
 body {
   margin: 0;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--text);
-
-  background-image: url('./assets/images/quiz-background.png');
-  background-size: contain;
-  background-color: var(--background);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  background-attachment: fixed;
+  transition: background-color var(--dur-slow) var(--ease);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 #root {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
-  padding: 20px;
+  min-height: 100dvh;
+  padding: clamp(12px, 3vw, 28px);
   box-sizing: border-box;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

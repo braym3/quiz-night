@@ -1,0 +1,20 @@
+{
+  "avatars": [
+    { "file": "chill-guy.png", "label": "Chill Guy" },
+    { "file": "grumpy-cat.png", "label": "Grumpy Cat" },
+    { "file": "kermit.png", "label": "Kermit" },
+    { "file": "club-penguin.png", "label": "Club Penguin" },
+    { "file": "patrick.jpeg", "label": "Patrick" },
+    { "file": "spongebob-normal.jpg", "label": "SpongeBob" },
+    { "file": "pikachu-surprised.jpeg", "label": "Pikachu" },
+    { "file": "tom-nook.jpeg", "label": "Tom Nook" },
+    { "file": "furby.jpeg", "label": "Furby" },
+    { "file": "hamster.png", "label": "Hamster" },
+    { "file": "pigeon.webp", "label": "Pigeon" },
+    { "file": "cat-tongue.jpeg", "label": "Cat" },
+    { "file": "dog-tongue.webp", "label": "Dog Tongue" },
+    { "file": "watermelon-dog.jpeg", "label": "Watermelon Dog" },
+    { "file": "bucktooth.jpg", "label": "Bucktooth" },
+    { "file": "moshi-donut.jpg", "label": "Oddie" }
+  ]
+}
