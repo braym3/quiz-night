@@ -7,6 +7,7 @@ import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
 import AnswerSlide from './AnswerSlide';
 import WinnersSlide from './WinnersSlide';
+import LeaderboardSlide from './LeaderboardSlide';
 import Sparkles from './Sparkles';
 import styles from './Presenter.module.css';
 import { applyTheme, getTheme } from '../../utils/themes';
@@ -84,6 +85,11 @@ export default function Presenter() {
         }
 
         const { quizStatus, currentRoundId, currentQuestionId } = gameState;
+
+        // Master can throw the live leaderboard onto the TV at any point
+        if (gameState.showLeaderboard) {
+            return <LeaderboardSlide key="leaderboard" players={players} />;
+        }
 
         if (quizStatus === 'ended') {
             return <WinnersSlide key="winners" players={players} />;

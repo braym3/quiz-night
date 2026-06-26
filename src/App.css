@@ -394,6 +394,24 @@ button:disabled {
   box-shadow: none;
 }
 
+.sound-toggle {
+  flex: 0 0 auto;
+  width: 42px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 -2px 0;
+  padding: var(--space-3) 0;
+}
+
+.sound-toggle:hover { color: var(--color-primary); transform: none; box-shadow: none; }
+
 .tab-content {
   padding: var(--space-3) 0;
   min-height: 400px;

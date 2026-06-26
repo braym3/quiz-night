@@ -42,6 +42,8 @@ const STROKE = {
   'true-false': <><path d="M5 9l2 2 3-4" /><circle cx="17" cy="14" r="4" /></>,
   numbers: <path d="M8 6l-2 1M8 6v6M14 7a2 2 0 113 1.7L14 12h5" />,
   grid: <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>,
+  volume: <><path d="M11 5L6 9H3v6h3l5 4z" /><path d="M15.5 8.5a4 4 0 010 7M18 6a8 8 0 010 12" /></>,
+  'volume-off': <><path d="M11 5L6 9H3v6h3l5 4z" /><path d="M16 9l5 6M21 9l-5 6" /></>,
 };
 
 export default function Icon({ name, size = 24, strokeWidth = 2, className = '', style, title }) {

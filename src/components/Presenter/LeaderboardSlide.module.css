@@ -1,0 +1,88 @@
+.container {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(20px, 4vh, 48px);
+    box-sizing: border-box;
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    color: var(--presenterText, #fff);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+    margin: 0 0 clamp(18px, 3vh, 36px);
+}
+
+.rows {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.4vh, 16px);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.4vw, 18px);
+}
+
+.rank {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 2.4vw, 2.4rem);
+    color: var(--presenterText, #fff);
+    width: clamp(28px, 3vw, 48px);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.track {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    height: clamp(46px, 6vh, 66px);
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    background: var(--surface);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.2vw, 16px);
+    padding: 0 clamp(12px, 1.4vw, 20px);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.avatar { flex-shrink: 0; }
+
+.name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(1.1rem, 2vw, 1.9rem);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+
+.score {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: clamp(1.2rem, 2.2vw, 2.1rem);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.empty {
+    color: var(--presenterText, #fff);
+    opacity: 0.8;
+    font-size: 1.4em;
+}

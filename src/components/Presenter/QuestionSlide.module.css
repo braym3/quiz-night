@@ -387,3 +387,25 @@
     text-transform: uppercase;
     letter-spacing: 2px;
 }
+/* ---- Per-theme presenter option cards ---- */
+:global(body.theme-neon-nights) .optionCard,
+:global(body.theme-midnight-galaxy) .optionCard {
+    box-shadow: 0 0 18px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+:global(body.theme-neon-nights) .optionLetter,
+:global(body.theme-midnight-galaxy) .optionLetter {
+    box-shadow: 0 0 10px currentColor;
+}
+:global(body.theme-game-show) .optionCard {
+    box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+:global(body.theme-retro-arcade) .optionCard {
+    box-shadow: 6px 6px 0 0 var(--shadow);
+    border-radius: 4px;
+}
+:global(body.theme-retro-arcade) .optionLetter { border-radius: 4px; }
+
+/* Retro pixel font is very wide — keep presenter text inside the screen */
+:global(body.theme-retro-arcade) .optionValue { font-size: clamp(0.7rem, 1.3vw, 1.1rem); line-height: 1.6; }
+:global(body.theme-retro-arcade) .questionText { font-size: 1.4em; line-height: 1.6; }
+:global(body.theme-retro-arcade) .connectionsWord { font-size: 0.8em; }

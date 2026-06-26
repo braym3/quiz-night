@@ -971,3 +971,146 @@ body.quiz-builder-open {
   .qb-type-grid { grid-template-columns: repeat(4, 1fr); }
   .qb-type { font-size: 9.5px; }
 }
+
+/* =========================================================
+   Builder: reuse rounds, media library, smarter bank
+   ========================================================= */
+.rounds-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.rounds-actions .btn-secondary { display: inline-flex; align-items: center; gap: 6px; }
+
+.round-card-head { display: flex; align-items: center; gap: 8px; }
+.round-card-head input { flex: 1; }
+
+/* Question bank: search + multi-select */
+.bank-search {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border, #e4e2ef);
+  border-radius: var(--radius-md, 12px);
+  font-family: var(--font-body);
+  background: var(--color-surface-2, #f4f3fb);
+  color: var(--color-text, #2c2c54);
+}
+.bank-question-card { position: relative; }
+.bank-question-card.sel {
+  border-color: var(--color-primary, #9669ff);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+.bank-check {
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid var(--color-border, #ccc);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.bank-check.on { background: var(--color-primary, #9669ff); border-color: var(--color-primary, #9669ff); }
+.bank-add-selected {
+  position: sticky; bottom: 0;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin-top: 10px;
+}
+
+/* Media field (image/logo chooser) */
+.qb-media-field { display: flex; align-items: center; gap: 12px; }
+.qb-media-thumb {
+  width: 72px; height: 72px; flex-shrink: 0;
+  object-fit: contain; border-radius: var(--radius-md, 12px);
+  background: var(--color-surface-2, #f4f3fb); border: 1px solid var(--color-border, #e4e2ef);
+  padding: 4px;
+}
+.qb-media-thumb.sm { width: 48px; height: 48px; }
+.qb-media-thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--color-text-muted, #999); }
+.qb-media-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.qb-upload { cursor: pointer; }
+.logo-item { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.logo-item input { flex: 1; min-width: 120px; }
+
+/* Slide-up panels (round library, generator, media picker) */
+.qb-scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 10001; }
+.qb-panel {
+  position: fixed; left: 0; right: 0; margin: 0 auto; bottom: 0;
+  width: min(560px, 100vw); max-height: 70vh; overflow: hidden;
+  background: var(--color-surface, #fff); color: var(--color-text, #2c2c54);
+  border-radius: var(--radius-xl, 24px) var(--radius-xl, 24px) 0 0;
+  z-index: 10002; display: flex; flex-direction: column;
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.3);
+}
+.qb-panel-tall { max-height: 82vh; }
+.qb-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid var(--color-border, #eee);
+}
+.qb-panel-head h3 { margin: 0; font-family: var(--font-heading); }
+.qb-panel-body { padding: 16px 18px; overflow-y: auto; }
+
+.qb-round-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+  background: var(--color-surface-2, #f4f3fb); border: 1px solid var(--color-border, #e4e2ef);
+  border-radius: var(--radius-md, 12px);
+}
+.qb-round-card:hover { border-color: var(--color-primary, #9669ff); }
+.qb-round-info { flex: 1; }
+.qb-round-title { font-weight: 700; }
+.qb-round-meta { font-size: 0.8rem; color: var(--color-text-muted, #888); }
+
+/* Media picker grid */
+.qb-mp-tabs { display: flex; gap: 6px; padding: 12px 18px 0; flex-wrap: wrap; }
+.qb-mp-tab {
+  padding: 7px 14px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+  border: 1px solid var(--color-border, #e4e2ef); background: var(--color-surface-2, #f4f3fb);
+  color: var(--color-text-muted, #777); cursor: pointer;
+}
+.qb-mp-tab.active { background: var(--color-primary, #9669ff); color: var(--color-on-primary, #fff); border-color: var(--color-primary, #9669ff); }
+.qb-mp-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px; padding: 16px 18px; overflow-y: auto;
+}
+.qb-mp-thumb {
+  aspect-ratio: 1; padding: 6px; cursor: pointer;
+  background: var(--color-surface-2, #f4f3fb); border: 2px solid var(--color-border, #e4e2ef);
+  border-radius: var(--radius-md, 12px); display: flex; align-items: center; justify-content: center;
+}
+.qb-mp-thumb:hover { border-color: var(--color-primary, #9669ff); }
+.qb-mp-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* =========================================================
+   Mobile fit fixes (390-402px wide)
+   ========================================================= */
+.quiz-builder-modal, .modal-view, .modal-body { max-width: 100vw; }
+
+/* Round title now lives in a flex head with save/delete icons */
+.round-card-head { display: flex; align-items: center; gap: 8px; }
+.round-card-head input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding: 12px 14px;
+  border: 2px solid var(--color-border, #dcdde1);
+  border-radius: 10px;
+  font-size: clamp(1rem, 3.8vw, 1.1rem);
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #2c2c54);
+  box-sizing: border-box;
+  margin: 0;
+}
+.round-card-head .btn-icon { background: var(--color-surface-2, #eee); color: var(--color-text, #2c2c54); }
+.round-card-head .btn-icon:last-child { color: var(--color-danger, #ff4757); }
+
+/* Let the rounds header wrap its action buttons under the title on narrow screens */
+.section-header { flex-wrap: wrap; }
+.rounds-actions { flex-wrap: wrap; }
+.rounds-actions .btn-secondary { margin-top: 0; padding: 9px 12px; font-size: 0.85rem; }
+
+/* Header save is icon-only again */
+.btn-save { width: 38px; min-width: 38px; padding: 0; }
+
+/* Media field + logo rows wrap instead of overflowing */
+.qb-media-field { flex-wrap: wrap; }
+.qb-media-actions { flex: 1 1 auto; }
+.logo-item input { min-width: 90px; }
+
+/* Slide-up panels never wider than the screen */
+.qb-panel { width: min(560px, 100vw); }

@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Cloud Storage rules for the quiz assets bucket.
+// Public read (the game needs to fetch images/audio), but writes are limited
+// to the assets/ folders and capped to reasonable image/audio uploads.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /assets/{category}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024
+                   && (
+                        request.resource.contentType.matches('image/.*') ||
+                        request.resource.contentType.matches('audio/.*')
+                      );
+      allow delete: if true;
+    }
+
+    // Everything else: readable, but no writes.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

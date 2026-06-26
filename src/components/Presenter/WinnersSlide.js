@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Avatar from '../Avatar/Avatar';
+import Confetti from '../Confetti/Confetti';
 import styles from './WinnersSlide.module.css';
 
 export default function WinnersSlide({ players }) {
@@ -25,6 +26,7 @@ export default function WinnersSlide({ players }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
         >
+            <Confetti />
             <h1 className={styles.title}>Winners!</h1>
 
             <div className={styles.podiumContainer}>

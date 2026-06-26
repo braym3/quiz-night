@@ -21,9 +21,11 @@
   background: transparent;
 }
 
-/* If an image fails to load, show a neutral placeholder rather than a broken icon */
-.qn-avatar--broken img { display: none; }
-.qn-avatar--broken::after {
-  content: '🙂';
-  font-size: 0.62em;
+/* Neutral person fallback (missing / failed avatar) */
+.qn-avatar--fallback {
+  color: var(--color-text-muted, #7a7a99);
+}
+.qn-avatar__person {
+  width: 62%;
+  height: 62%;
 }

@@ -5,6 +5,8 @@ import { ref as storageRef, getDownloadURL } from 'firebase/storage';
 import './PlayerView.css';
 import { motion } from 'framer-motion';
 import Icon from '../Icon/Icon';
+import RoundLottie from '../RoundLottie/RoundLottie';
+import { playCorrect, playWrong, playLock, playTimesUp } from '../../utils/sounds';
 
 // Haptic feedback helper
 const vibrate = (pattern = 10) => {
@@ -101,6 +103,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
     // Auto-submit whatever they have
     vibrate([30, 50, 30]);
+    playTimesUp();
     const playerAnswerRef = ref(database, `liveGame/players/${playerName}/answer`);
 
     if (currentQuestion.type === 'logo_wall') {
@@ -135,8 +138,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
     if (!OBJECTIVE_TYPES.includes(currentQuestion.type)) { setVerdict(null); return; }
     if (!isAnswered(myAnswer)) { setVerdict('none'); setStreak(0); return; }
-    if (checkCorrect(currentQuestion, myAnswer)) { setVerdict('correct'); setStreak((s) => s + 1); }
-    else { setVerdict('wrong'); setStreak(0); }
+    if (checkCorrect(currentQuestion, myAnswer)) { setVerdict('correct'); setStreak((s) => s + 1); playCorrect(); }
+    else { setVerdict('wrong'); setStreak(0); playWrong(); }
   }, [gameState?.quizStatus, gameState?.currentQuestionId, currentQuestion, myAnswer]);
 
   useEffect(() => {
@@ -203,7 +206,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
 
   const handleTextAnswerSubmit = () => {
     if (answer.trim() !== '') {
-      vibrate(15);
+      vibrate(15); playLock();
       set(ref(database, `liveGame/players/${playerName}/answer`), answer);
       setMyAnswer(answer);
       setIsSubmitted(true);
@@ -211,14 +214,14 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   };
 
   const handleChoiceSubmit = (choice) => {
-    vibrate(15);
+    vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), choice);
     setMyAnswer(choice);
     setIsSubmitted(true);
   };
 
   const handleOrderingSubmit = () => {
-    vibrate(15);
+    vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), orderedAnswer);
     setMyAnswer(orderedAnswer);
     setIsSubmitted(true);
@@ -282,14 +285,14 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   };
 
   const handleLogoWallSubmit = () => {
-    vibrate(15);
+    vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), logoAnswers);
     setIsSubmitted(true);
   };
 
   // Music handlers
   const handleMusicSubmit = () => {
-    vibrate(15);
+    vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), musicAnswer);
     setIsSubmitted(true);
   };
@@ -521,6 +524,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
         >
+          <RoundLottie type={round?.type} size={130} />
           <h2>{round?.title || 'Next Round'}</h2>
           <p>Get ready!</p>
         </motion.div>

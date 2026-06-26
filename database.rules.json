@@ -1,0 +1,55 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "liveGame": {
+      ".read": true,
+
+      "activeQuizId": {
+        ".write": true,
+        ".validate": "newData.isString() && newData.val().length <= 200"
+      },
+
+      "gameState": {
+        ".write": true,
+        "quizStatus": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "currentRoundId": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "currentQuestionId": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "timerDeadline": { ".validate": "newData.isNumber()" },
+        "timerDuration": { ".validate": "newData.isNumber()" },
+        "showLeaderboard": { ".validate": "newData.isBoolean()" }
+      },
+
+      "players": {
+        "$name": {
+          ".write": true,
+          ".validate": "$name.length <= 40 && newData.hasChild('score')",
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000" },
+          "avatar": { ".validate": "newData.isString() && newData.val().length <= 200" },
+          "answer": { ".validate": "newData.isString() ? newData.val().length <= 1000 : true" }
+        }
+      }
+    },
+
+    "quizzes": {
+      ".read": true,
+      ".write": true,
+      "$quizId": {
+        ".validate": "newData.hasChild('title')",
+        "title": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "theme": { ".validate": "newData.isString() && newData.val().length <= 60" }
+      }
+    },
+
+    "questionBank": {
+      ".read": true,
+      ".write": true
+    },
+
+    "roundBank": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

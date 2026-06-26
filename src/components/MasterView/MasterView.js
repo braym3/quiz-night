@@ -5,6 +5,7 @@ import './MasterView.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../Avatar/Avatar';
 import Icon from '../Icon/Icon';
+import RoundLottie from '../RoundLottie/RoundLottie';
 
 export default function MasterView({ gameState, players }) {
     const [activeTab, setActiveTab] = useState('control'); // 'control' or 'players'
@@ -143,27 +144,72 @@ export default function MasterView({ gameState, players }) {
         });
     };
 
-    // Auto-score objective questions
+    // Toggle the live leaderboard on the presenter/TV
+    const toggleLeaderboard = () => {
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            showLeaderboard: !gameState?.showLeaderboard,
+        });
+    };
+
+    // Auto-score the current question. Handles partial credit for music,
+    // connections and logo wall as well as the simple objective types.
+    const norm = (s) => (typeof s === 'string' ? s : '').trim().toLowerCase();
+
+    const scoreForQuestion = (question, answer) => {
+        const flatPoints = typeof question.points === 'number' ? question.points : 10;
+        switch (question.type) {
+            case 'multiple_choice':
+            case 'true_false':
+                return answer === question.answer ? flatPoints : 0;
+            case 'text_input':
+            case 'image_input':
+                return norm(answer) === norm(question.answer) ? flatPoints : 0;
+            case 'ordering':
+                return (Array.isArray(answer) && Array.isArray(question.answer)
+                    && JSON.stringify(answer) === JSON.stringify(question.answer)) ? flatPoints : 0;
+            case 'music': {
+                const pa = (answer && typeof answer === 'object') ? answer : {};
+                const ca = question.answer || {};
+                const pts = (question.points && typeof question.points === 'object') ? question.points : { title: 5, artist: 5, decade: 5 };
+                let s = 0;
+                if (ca.title && norm(pa.title) === norm(ca.title)) s += (pts.title || 5);
+                if (ca.artist && norm(pa.artist) === norm(ca.artist)) s += (pts.artist || 5);
+                if (ca.decade && pa.decade === ca.decade) s += (pts.decade || 5);
+                return s;
+            }
+            case 'connections': {
+                if (!Array.isArray(answer) || !Array.isArray(question.connections)) return 0;
+                const correctSets = question.connections.map(g => (g.words || []).map(norm).sort().join('|'));
+                const perGroup = Math.round(flatPoints / (question.connections.length || 4));
+                let s = 0;
+                answer.forEach(group => {
+                    if (!Array.isArray(group)) return;
+                    if (correctSets.includes(group.map(norm).sort().join('|'))) s += perGroup;
+                });
+                return s;
+            }
+            case 'logo_wall': {
+                if (!answer || typeof answer !== 'object' || !Array.isArray(question.logos)) return 0;
+                const perLogo = typeof question.points === 'number' ? question.points : 5;
+                let s = 0;
+                question.logos.forEach((logo, i) => {
+                    if (logo.answer && answer[i] && norm(answer[i]) === norm(logo.answer)) s += perLogo;
+                });
+                return s;
+            }
+            default:
+                return 0;
+        }
+    };
+
     const autoScoreCurrentQuestion = () => {
         const question = getCurrentQuestion();
         if (!question) return;
-        const pointsPerCorrect = typeof question.points === 'number' ? question.points : 10;
-
         players.forEach(player => {
-            if (!player.answer || player.answer === '') return;
-            let correct = false;
-            if (question.type === 'multiple_choice' || question.type === 'true_false') {
-                correct = player.answer === question.answer;
-            } else if (question.type === 'text_input' || question.type === 'image_input') {
-                const playerAns = (typeof player.answer === 'string' ? player.answer : '').trim().toLowerCase();
-                const correctAns = (typeof question.answer === 'string' ? question.answer : '').trim().toLowerCase();
-                correct = playerAns === correctAns;
-            } else if (question.type === 'ordering' && Array.isArray(player.answer) && Array.isArray(question.answer)) {
-                correct = JSON.stringify(player.answer) === JSON.stringify(question.answer);
-            }
-            if (correct) {
-                updatePlayerScore(player.name, (player.score || 0) + pointsPerCorrect);
-            }
+            if (!hasAnswered(player)) return;
+            const gain = scoreForQuestion(question, player.answer);
+            if (gain > 0) updatePlayerScore(player.name, (player.score || 0) + gain);
         });
     };
 
@@ -323,7 +369,7 @@ export default function MasterView({ gameState, players }) {
     const currentQ = getCurrentQuestion();
     const inQuestion = status === 'active' || status === 'moderating';
     const answeredCount = players.filter(hasAnswered).length;
-    const isObjective = currentQ && ['multiple_choice', 'true_false', 'ordering', 'text_input', 'image_input'].includes(currentQ.type);
+    const isObjective = !!currentQ; // every question type is now auto-scorable
 
     const renderControl = () => (
         <div className="control-panel">
@@ -338,6 +384,7 @@ export default function MasterView({ gameState, players }) {
                     </span>
                 )}
                 {timerRunning && <span className="mc-timer-live"><Icon name="clock" size={13} /> timer</span>}
+                {gameState?.showLeaderboard && <span className="mc-lb-live"><Icon name="trophy" size={13} /> on TV</span>}
             </div>
 
             {inQuestion && currentQ && (
@@ -359,6 +406,14 @@ export default function MasterView({ gameState, players }) {
                             <span className="mc-now-answer-value">{correctAnswerText()}</span>
                         </div>
                     )}
+                </div>
+            )}
+
+            {status === 'round-interstitial' && pos && (
+                <div className="mc-round-card">
+                    <RoundLottie type={quizData?.rounds?.[gameState.currentRoundId]?.type} size={88} />
+                    <div className="mc-round-title">{pos.roundTitle}</div>
+                    <div className="mc-round-sub">Round {pos.roundNum} of {pos.roundTotal}</div>
                 </div>
             )}
 
@@ -449,6 +504,9 @@ export default function MasterView({ gameState, players }) {
                         </button>
                         <button className="mc-sheet-row" onClick={() => { resetAllScores(); setMoreOpen(false); }}>
                             <Icon name="numbers" size={18} /> Reset all scores
+                        </button>
+                        <button className="mc-sheet-row" onClick={() => { toggleLeaderboard(); setMoreOpen(false); }}>
+                            <Icon name="trophy" size={18} /> {gameState?.showLeaderboard ? 'Hide leaderboard from TV' : 'Show leaderboard on TV'}
                         </button>
                         {status && status !== 'ended' && (
                             <button className="mc-sheet-row mc-danger" onClick={() => { endQuiz(); setMoreOpen(false); }}>

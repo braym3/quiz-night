@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { database } from './index';
 import { ref, onValue, set, get } from 'firebase/database';
@@ -10,6 +10,7 @@ import { applyTheme, getTheme } from './utils/themes';
 import { loadAvatarManifest } from './utils/avatars';
 import Avatar from './components/Avatar/Avatar';
 import Icon from './components/Icon/Icon';
+import { isSoundOn, setSoundOn as persistSound } from './utils/sounds';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AVATAR_EMOJIS = ['😎', '🤓', '🦊', '🐱', '🦄', '🐸', '🦋', '🎸', '🌟', '🍕', '🎯', '🚀', '🌈', '🎨', '🎵', '🏆'];
@@ -17,7 +18,7 @@ const AVATAR_EMOJIS = ['😎', '🤓', '🦊', '🐱', '🦄', '🐸', '🦋', '
 export default function MainQuizApp() {
   const [isMaster, setIsMaster] = useState(false);
   const [playerName, setPlayerName] = useState('');
-  const [playerAvatar, setPlayerAvatar] = useState('😎');
+  const [playerAvatar, setPlayerAvatar] = useState('');
   const [avatars, setAvatars] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -28,6 +29,7 @@ export default function MainQuizApp() {
   const [activeQuizInfo, setActiveQuizInfo] = useState(null);
   const [joinError, setJoinError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
+  const [soundOn, setSoundOn] = useState(isSoundOn());
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -43,6 +45,29 @@ export default function MainQuizApp() {
       if (list.length > 0) setPlayerAvatar(list[0].file);
     });
   }, []);
+
+  // Pre-fill the name field from a previous session
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('qn_player') || 'null');
+      if (saved?.name) setPlayerName(saved.name);
+    } catch { /* ignore */ }
+  }, []);
+
+  // Auto-rejoin: if a saved player is still in the live game, restore their session
+  const rejoinedRef = useRef(false);
+  useEffect(() => {
+    if (isMaster || hasJoined || rejoinedRef.current) return;
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('qn_player') || 'null'); } catch { /* ignore */ }
+    if (!saved?.name) return;
+    if (players.some(p => p.name === saved.name)) {
+      rejoinedRef.current = true;
+      setPlayerName(saved.name);
+      if (saved.avatar) setPlayerAvatar(saved.avatar);
+      setHasJoined(true);
+    }
+  }, [players, isMaster, hasJoined]);
 
   // Firebase connection status
   useEffect(() => {
@@ -120,15 +145,24 @@ export default function MainQuizApp() {
       setJoinError('Name must be 20 characters or less');
       return;
     }
-    // Check for duplicate names
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('qn_player') || 'null'); } catch { /* ignore */ }
+    const isOwnName = saved?.name && saved.name.toLowerCase() === sanitizedName.toLowerCase();
     const existingPlayer = players.find(p => p.name.toLowerCase() === sanitizedName.toLowerCase());
-    if (existingPlayer) {
+    // Block taken names — unless it's the player's own previous session (rejoin)
+    if (existingPlayer && !isOwnName) {
       setJoinError('That name is already taken!');
       return;
     }
     setJoinError('');
     setPlayerName(sanitizedName);
-    set(ref(database, `liveGame/players/${sanitizedName}`), { score: 0, answer: '', avatar: playerAvatar });
+    if (existingPlayer && isOwnName) {
+      // Rejoin: keep their score/answer, just refresh the avatar
+      set(ref(database, `liveGame/players/${sanitizedName}/avatar`), playerAvatar);
+    } else {
+      set(ref(database, `liveGame/players/${sanitizedName}`), { score: 0, answer: '', avatar: playerAvatar });
+    }
+    try { localStorage.setItem('qn_player', JSON.stringify({ name: sanitizedName, avatar: playerAvatar })); } catch { /* ignore */ }
     setHasJoined(true);
   };
 
@@ -272,6 +306,14 @@ export default function MainQuizApp() {
           >
             Leaderboard
           </motion.button>
+          <button
+              className="sound-toggle"
+              onClick={() => { const next = !soundOn; setSoundOn(next); persistSound(next); }}
+              aria-label={soundOn ? 'Mute sounds' : 'Unmute sounds'}
+              title={soundOn ? 'Mute sounds' : 'Unmute sounds'}
+          >
+            <Icon name={soundOn ? 'volume' : 'volume-off'} size={20} />
+          </button>
         </div>
         <AnimatePresence mode="wait">
           <motion.div
