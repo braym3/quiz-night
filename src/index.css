@@ -1,40 +1,43 @@
-/* Define our new vibrant color palette and fonts */
-:root {
-  --primary-purple: #9669ff;
-  --accent-yellow: #feca57;
-  --text-purple: #2c2c54;
-  --background-off-white: #f1f2f6;
-  --surface-white: #ffffff;
-  --light-gray: #dcdde1;
-  --pastel-red-shadow: #AAE7FF;
+/* Base document styles. Design tokens live in styles/tokens.css and are
+   set at runtime by applyTheme(). */
 
-  --font-family-heading: 'Teachers', sans-serif;
-  --font-family-body: 'Poppins', sans-serif;
+* {
+  box-sizing: border-box;
 }
-
 
 body {
   margin: 0;
-  font-family: var(--font-family-body);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--text-purple);
-
-  background-image: url('./assets/images/quiz-background.png');
-  background-size: contain;
-  background-color: var(--background-off-white);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  background-attachment: fixed;
+  transition: background-color var(--dur-slow) var(--ease);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 #root {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
-  padding: 20px;
+  min-height: 100dvh;
+  padding: clamp(12px, 3vw, 28px);
   box-sizing: border-box;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

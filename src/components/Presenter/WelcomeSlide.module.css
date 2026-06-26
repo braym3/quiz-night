@@ -5,35 +5,116 @@
     align-items: center;
 }
 .subtitle {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3rem);
-    color: var(--text-purple);
+    color: var(--presenterText, var(--text));
     margin-bottom: 0;
 }
 
 .curvedTextContainer {
     width: 100%;
+    max-width: 90vw;
     overflow: visible;
 }
 
 .titleText {
-    font-family: var(--font-family-heading);
-    /* INCREASED font size for more impact */
-    font-size: 8.5rem;
+    font-family: var(--font-heading);
     font-weight: 900;
-    fill: var(--text-purple);
-    filter: drop-shadow(5px 5px 0 var(--pastel-red-shadow));
+    fill: var(--presenterText, var(--text));
+    filter: drop-shadow(5px 5px 0 var(--shadow));
 }
 
 .iconContainer {
     margin-top: 1rem;
 }
 
+.playerLobby {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
 
-@media (max-width: 768px) {
-    .titleText {
-        /* INCREASED mobile font size */
-        font-size: 6rem;
-    }
+.playerCount {
+    font-family: var(--font-body);
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: var(--presenterText, var(--text));
+    opacity: 0.8;
+    padding: 10px 30px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
+}
+
+.playerAvatarRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 80vw;
+}
+
+.playerChip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.chipAvatar {
+    font-size: 1.3em;
+}
+
+.chipName {
+    font-family: var(--font-body);
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-weight: 700;
+    color: var(--presenterText, var(--text));
+}
+
+
+/* Join prompt */
+.joinPrompt {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(14px, 1.6vw, 22px);
+    margin-top: clamp(14px, 2.5vh, 28px);
+    padding: clamp(12px, 1.4vh, 18px);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.25);
+}
+.qrBox {
+    background: #fff;
+    padding: 8px;
+    border-radius: 12px;
+    display: flex;
+    line-height: 0;
+}
+.joinTextCol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: clamp(8px, 1vw, 16px);
+    text-align: left;
+}
+.joinLabel {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(0.8rem, 1.2vw, 1.05rem);
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+.joinUrl {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(1.1rem, 1.8vw, 1.7rem);
+    color: var(--primary);
 }

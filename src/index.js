@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './styles/tokens.css';
 import './index.css';
+import './theme-styles.css'
 import App from './App';
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';

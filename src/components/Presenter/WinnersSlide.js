@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import Avatar from '../Avatar/Avatar';
+import Confetti from '../Confetti/Confetti';
 import styles from './WinnersSlide.module.css';
 
 export default function WinnersSlide({ players }) {
@@ -24,6 +26,7 @@ export default function WinnersSlide({ players }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
         >
+            <Confetti />
             <h1 className={styles.title}>Winners!</h1>
 
             <div className={styles.podiumContainer}>
@@ -36,6 +39,7 @@ export default function WinnersSlide({ players }) {
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ type: 'spring', stiffness: 50, delay: 0.5 + index * 0.2 }}
                         >
+                            <div className={styles.playerAvatar}><Avatar value={player.avatar} size={'clamp(2.5rem, 5vw, 4.5rem)'} alt={player.name} /></div>
                             <div className={styles.playerName}>{player.name}</div>
                             <div className={styles.playerScore}>{player.score} pts</div>
                         </motion.div>

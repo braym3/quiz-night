@@ -1,0 +1,25 @@
+.wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.piece {
+    position: absolute;
+    top: -24px;
+    opacity: 0.9;
+    animation-name: confettiFall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes confettiFall {
+    0% { transform: translateY(-24px) rotate(0deg); }
+    100% { transform: translateY(105vh) rotate(540deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wrap { display: none; }
+}

@@ -1,14 +1,166 @@
 .presenterContainer {
     width: 100vw;
     height: 100vh;
-    background-image: url(../../assets/images/presenter-background.png);
-    background-size: cover;
-    background-position: center;
     display: flex;
-    justify-content: center;
     align-items: center;
-    padding: 5vw;
-    box-sizing: border-box;
+    justify-content: center;
     overflow: hidden;
     position: relative;
+    /* Background is set dynamically by applyTheme() on body */
+}
+
+/* Slide Container */
+.slideContainer {
+    width: 90%;
+    max-width: 1400px;
+    height: 85%;
+    background: var(--surface, #ffffff);
+    border-radius: 30px;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
+}
+
+/* Title Styling */
+.title {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    text-align: center;
+    margin: 0;
+    color: var(--text, #2c2c54);
+    font-family: var(--font-heading, 'Teachers', sans-serif);
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 600;
+    text-align: center;
+    margin: 20px 0 0 0;
+    color: var(--text, #2c2c54);
+    opacity: 0.9;
+}
+
+/* Question Text */
+.questionText {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 700;
+    text-align: center;
+    margin: 40px 0;
+    color: var(--text, #2c2c54);
+    line-height: 1.3;
+}
+
+/* Answer Display */
+.answerDisplay {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    text-align: center;
+    margin: 40px 0;
+    color: var(--correct, #28a745);
+    padding: 30px 50px;
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 25px;
+    border: 4px solid var(--correct, #28a745);
+}
+
+/* Options Grid */
+.optionsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px 0;
+}
+
+.option {
+    padding: 40px;
+    background: var(--surface, #ffffff);
+    border: 4px solid var(--lightGray, #dcdde1);
+    border-radius: 20px;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 700;
+    text-align: center;
+    color: var(--text, #2c2c54);
+    transition: all 0.3s;
+}
+
+/* Image Display */
+.imageDisplay {
+    max-width: 80%;
+    max-height: 60vh;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    object-fit: contain;
+}
+
+/* Leaderboard in Presenter */
+.leaderboardList {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.leaderboardItem {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 30px;
+    background: var(--surface, #ffffff);
+    border: 4px solid var(--lightGray, #dcdde1);
+    border-radius: 20px;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .slideContainer {
+        padding: 40px;
+    }
+
+    .optionsGrid {
+        gap: 20px;
+    }
+
+    .option {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .slideContainer {
+        padding: 30px;
+    }
+
+    .optionsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+@media (prefers-contrast: high) {
+    .slideContainer {
+        border-width: 5px;
+    }
+
+    .option,
+    .answerDisplay {
+        border-width: 5px;
+    }
 }

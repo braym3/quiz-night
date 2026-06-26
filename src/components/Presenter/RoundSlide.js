@@ -1,26 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Lottie from 'lottie-react';
+import RoundLottie from '../RoundLottie/RoundLottie';
 import styles from './RoundSlide.module.css';
-
-import musicAnimation from '../../assets/lottie/music-animation.json';
-import knowledgeAnimation from '../../assets/lottie/knowledge-animation.json';
-import photoAnimation from '../../assets/lottie/photo-animation.json';
-import geographyAnimation from '../../assets/lottie/geography-animation.json';
-
-
-const lottieMap = {
-  "music": musicAnimation,
-  "knowledge": knowledgeAnimation,
-  "picture": photoAnimation, 
-  "geography": geographyAnimation,
-};
 
 export default function RoundSlide({ round, roundId }) {
     if (!round) return null;
 
     const roundNumber = roundId ? String(roundId).replace(/\D/g, '') : '';
-    const animationData = lottieMap[round.type];
 
     return (
         <motion.div
@@ -46,15 +32,13 @@ export default function RoundSlide({ round, roundId }) {
                 {round.title}
             </motion.h1>
 
-            {animationData && (
-                <motion.div
-                    className={styles.lottieContainer}
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1, transition: { delay: 0.6 } }}
-                >
-                    <Lottie animationData={animationData} loop={true} />
-                </motion.div>
-            )}
+            <motion.div
+                className={styles.lottieContainer}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, transition: { delay: 0.6 } }}
+            >
+                <RoundLottie type={round.type} size="100%" />
+            </motion.div>
         </motion.div>
     );
 }

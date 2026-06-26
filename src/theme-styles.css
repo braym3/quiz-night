@@ -1,0 +1,250 @@
+/* =========================================================
+   THEME PERSONALITY
+   Colours, radius, shadows and borders come from design tokens
+   (set by applyTheme). This file only adds the *character* that
+   tokens can't express: glows, scanlines, casing, weights.
+
+   NOTE: the Presenter slides use CSS Modules, so only the global
+   `.presenterContainer` background hooks below affect them. Deeper
+   presenter theming is handled in the Presenter component styles.
+   ========================================================= */
+
+/* Smooth theme switching (scoped — never use a universal * transition) */
+body,
+.App,
+.presenterContainer {
+  transition: background var(--dur-slow) var(--ease), border-color var(--dur-slow) var(--ease);
+}
+
+/* =================== RETRO ARCADE =================== */
+.theme-retro-arcade { font-size: 14px; }
+
+.theme-retro-arcade img { image-rendering: pixelated; }
+
+.theme-retro-arcade h1,
+.theme-retro-arcade h2,
+.theme-retro-arcade h3 {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 3px 3px 0 var(--shadow);
+}
+
+.theme-retro-arcade button {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Scanline overlay */
+.theme-retro-arcade::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* =================== NEON NIGHTS =================== */
+.theme-neon-nights h1,
+.theme-neon-nights h2,
+.theme-neon-nights h3,
+.theme-neon-nights .round-title {
+  color: var(--color-accent);
+  text-shadow: 0 0 10px var(--color-accent), 0 0 22px var(--color-accent);
+  letter-spacing: 2px;
+}
+
+.theme-neon-nights .question-text {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-primary) 60%, transparent);
+}
+
+.theme-neon-nights button {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 60%, transparent), var(--shadow-press);
+}
+
+/* =================== MINIMALIST =================== */
+.theme-minimalist h1,
+.theme-minimalist h2,
+.theme-minimalist h3 {
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.theme-minimalist button {
+  box-shadow: none;
+  border: 2px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.theme-minimalist button:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: none;
+}
+
+/* =================== PUB QUIZ CLASSIC =================== */
+.theme-pub-quiz-classic h1,
+.theme-pub-quiz-classic h2,
+.theme-pub-quiz-classic h3 {
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+/* =================== GAME SHOW =================== */
+.theme-game-show h1,
+.theme-game-show h2,
+.theme-game-show h3 {
+  color: var(--color-accent);
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--color-accent) 50%, transparent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.theme-game-show button {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* =================== TROPICAL PARTY =================== */
+.theme-tropical-party h1,
+.theme-tropical-party h2,
+.theme-tropical-party h3 {
+  color: var(--color-primary);
+  font-weight: 900;
+  text-shadow: 2px 2px 0 color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+/* =================== MIDNIGHT GALAXY =================== */
+.theme-midnight-galaxy h1,
+.theme-midnight-galaxy h2,
+.theme-midnight-galaxy h3 {
+  color: var(--color-accent);
+  text-shadow: 0 0 15px var(--color-accent), 0 0 30px var(--color-primary);
+  letter-spacing: 2px;
+}
+
+/* =========================================================
+   PRESENTER BACKGROUNDS (per theme — these DO apply, since
+   `presenterContainer` is a global class on the container)
+   ========================================================= */
+.theme-fun-and-sparkly .presenterContainer { background: linear-gradient(135deg, #9669ff 0%, #feca57 100%); }
+.theme-neon-nights .presenterContainer { background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0a 100%); }
+.theme-minimalist .presenterContainer { background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%); }
+.theme-retro-arcade .presenterContainer {
+  background: repeating-linear-gradient(0deg, #2d1b69 0px, #2d1b69 2px, #1a0f3d 2px, #1a0f3d 4px);
+}
+.theme-pub-quiz-classic .presenterContainer { background: linear-gradient(180deg, #3E2723 0%, #5D4037 50%, #4E342E 100%); }
+.theme-game-show .presenterContainer { background: radial-gradient(ellipse at center, #283593 0%, #0D1B2A 70%); }
+.theme-tropical-party .presenterContainer { background: linear-gradient(135deg, #00BFA5 0%, #E91E63 50%, #FF6F00 100%); }
+.theme-midnight-galaxy .presenterContainer { background: radial-gradient(ellipse at 30% 40%, #1A237E 0%, #0A0E27 60%, #000000 100%); }
+
+/* =========================================================
+   LEADERBOARD per-theme accents (global class — applies)
+   ========================================================= */
+.theme-neon-nights .leaderboard-item,
+.theme-midnight-galaxy .leaderboard-item {
+  box-shadow: 0 0 15px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 768px) {
+  .theme-retro-arcade { font-size: 12px; }
+  .theme-retro-arcade h1,
+  .theme-retro-arcade h2,
+  .theme-retro-arcade h3 { letter-spacing: 1px; }
+}
+
+/* =========================================================
+   PER-THEME PERSONALITY PASS
+   Deepens each theme across the global (non-module) surfaces.
+   Presenter slide modules are themed via :global() hooks in
+   their own .module.css files.
+   ========================================================= */
+
+/* --- Retro Arcade: chunky pixel shadows, crisp pixels --- */
+.theme-retro-arcade .App,
+.theme-retro-arcade .mc-now-card,
+.theme-retro-arcade .mc-round-card,
+.theme-retro-arcade .player-card,
+.theme-retro-arcade .leaderboard-item,
+.theme-retro-arcade .answer-reveal-container {
+  box-shadow: 6px 6px 0 0 var(--shadow);
+}
+.theme-retro-arcade .answer-options .option-btn,
+.theme-retro-arcade .answer-options button:not(.option-btn),
+.theme-retro-arcade .connections-word,
+.theme-retro-arcade .music-decade-btn {
+  box-shadow: 3px 3px 0 0 var(--shadow);
+}
+.theme-retro-arcade img { image-rendering: pixelated; }
+
+/* --- Neon Nights: electric glow on interactive surfaces --- */
+.theme-neon-nights .answer-options .option-btn,
+.theme-neon-nights .text-input-section input,
+.theme-neon-nights .music-input,
+.theme-neon-nights .logo-wall-input,
+.theme-neon-nights .connections-word {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+.theme-neon-nights .option-label { box-shadow: 0 0 10px currentColor; }
+.theme-neon-nights .mc-now-card,
+.theme-neon-nights .player-card,
+.theme-neon-nights .mc-round-card {
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+.theme-neon-nights .progress-bar-fill,
+.theme-neon-nights .mc-answered-fill { box-shadow: 0 0 10px var(--color-primary); }
+
+/* --- Midnight Galaxy: cosmic glow + starfield on the TV --- */
+.theme-midnight-galaxy .answer-options .option-btn,
+.theme-midnight-galaxy .text-input-section input,
+.theme-midnight-galaxy .music-input,
+.theme-midnight-galaxy .connections-word {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+.theme-midnight-galaxy .mc-now-card,
+.theme-midnight-galaxy .player-card,
+.theme-midnight-galaxy .mc-round-card {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+.theme-midnight-galaxy .presenterContainer {
+  background:
+    radial-gradient(2px 2px at 15% 20%, rgba(255,255,255,.7), transparent),
+    radial-gradient(2px 2px at 75% 30%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 45% 65%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 85% 78%, rgba(255,255,255,.5), transparent),
+    radial-gradient(2px 2px at 30% 85%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,.5), transparent),
+    radial-gradient(ellipse at 30% 40%, #1A237E 0%, #0A0E27 60%, #000000 100%);
+}
+
+/* --- Game Show: golden spotlight glow --- */
+.theme-game-show .mc-primary,
+.theme-game-show .answer-options .option-btn,
+.theme-game-show .leaderboard-item {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+/* --- Tropical Party: extra round & breezy --- */
+.theme-tropical-party .App,
+.theme-tropical-party .mc-now-card,
+.theme-tropical-party .player-card,
+.theme-tropical-party .answer-options .option-btn,
+.theme-tropical-party .answer-reveal-container { border-radius: 22px; }
+
+/* --- Pub Quiz Classic: framed like a chalkboard menu --- */
+.theme-pub-quiz-classic .mc-now-card,
+.theme-pub-quiz-classic .answer-reveal-container,
+.theme-pub-quiz-classic .player-card {
+  border: 2px solid color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+}

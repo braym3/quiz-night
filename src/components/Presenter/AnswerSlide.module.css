@@ -2,10 +2,10 @@
     width: 100%;
     max-width: 1000px;
     min-height: 50vh;
-    background-color: var(--surface-white);
-    border-radius: 24px;
-    border: 3px solid var(--text-purple);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    background-color: var(--surface);
+    border-radius: 28px;
+    border: 3px solid var(--lightGray);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
     padding: 30px 40px;
     box-sizing: border-box;
     text-align: center;
@@ -16,27 +16,30 @@
 }
 
 .title {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
-    font-size: 2em;
-    color: var(--text-purple);
-    opacity: 0.8;
+    font-size: 1.6em;
+    color: var(--text);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .correctAnswer {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: clamp(3rem, 8vw, 6rem);
-    color: #28a745;
+    color: var(--correct, #28a745);
     line-height: 1.2;
     margin: 10px 0 0 0;
 }
 
 /* Style for the fun fact paragraph */
 .funFact {
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-size: 1.2em;
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.65;
     margin-top: 20px;
     max-width: 80%;
     text-align: center;
@@ -47,7 +50,8 @@
 .itemDetail {
     font-size: 0.8em;
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.55;
     white-space: nowrap;
 }
 
@@ -66,15 +70,15 @@
 }
 
 .answerListItem {
-    background-color: #f8f9fa;
-    border: 2px solid var(--light-gray);
+    background-color: var(--surface);
+    border: 2px solid var(--lightGray);
     border-radius: 12px;
     padding: 15px 20px;
     margin-bottom: 15px;
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: 1.8em;
-    color: var(--text-purple);
+    color: var(--text);
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -87,13 +91,13 @@
 }
 
 .itemNumber {
-    font-family: var(--font-family-heading);
+    font-family: var(--font-heading);
     font-size: 1.5em;
-    color: var(--primary-purple);
+    color: var(--primary);
     margin-right: 20px;
 }
 
-/* NEW: Styles for the multiple-choice details list */
+/* Styles for the multiple-choice details list */
 .mcDetailsList {
     list-style: none;
     padding: 0;
@@ -120,8 +124,8 @@
     padding: 8px 12px;
     border-radius: 8px;
     font-weight: 700;
-    color: #28a745;
-    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--correct, #28a745);
+    background-color: var(--lightGray);
 }
 
 .mcItem span:first-child, .correctMcItem span:first-child {
@@ -130,5 +134,206 @@
 
 .mcItem span:last-child, .correctMcItem span:last-child {
     font-weight: 400;
-    color: #576574;
+    color: var(--text);
+    opacity: 0.55;
+}
+
+/* =================================== */
+/* Music Answer Reveal                 */
+/* =================================== */
+
+.musicReveal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 80%;
+    max-width: 700px;
+    margin-top: 20px;
+}
+
+.musicRevealRow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--lightGray);
+    padding: 18px 24px;
+    border-radius: 14px;
+    border: 2px solid var(--lightGray);
+}
+
+.musicRevealLabel {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.1em;
+    color: var(--text);
+    opacity: 0.6;
+    min-width: 80px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.musicRevealValue {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 2em;
+    color: var(--correct, #28a745);
+}
+
+/* =================================== */
+/* Connections Answer Reveal           */
+/* =================================== */
+
+.connectionsCard {
+    justify-content: flex-start;
+    padding-top: 40px;
+}
+
+.connectionsRevealGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 90%;
+    max-width: 800px;
+    margin-top: 20px;
+}
+
+.connectionsRevealGroup {
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+}
+
+.connectionsCategory {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.6em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.connectionsWords {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+/* =================================== */
+/* Logo Wall Answer Reveal             */
+/* =================================== */
+
+.logoWallCard {
+    justify-content: flex-start;
+    padding: 16px 16px;
+    max-width: 95vw;
+    min-height: auto;
+    height: 88vh;
+    max-height: 88vh;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+.titleCompact {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1.2em;
+    color: var(--text);
+    opacity: 0.5;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0 0 6px 0;
+    flex-shrink: 0;
+}
+
+.logoRevealGrid {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 6px;
+    flex: 1;
+    grid-auto-rows: 1fr;
+    min-height: 0;
+}
+
+.logoRevealItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 0;
+}
+
+.logoRevealImageContainer {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 2px solid var(--lightGray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoRevealImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.logoRevealPlaceholder {
+    font-size: 2em;
+    font-weight: 800;
+    color: var(--text);
+    opacity: 0.2;
+}
+
+.logoRevealName {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1em;
+    color: var(--correct, #28a745);
+    text-align: center;
+    padding: 2px 8px;
+    background: var(--lightGray);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+/* Answer distribution bars */
+.dist {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(14px, 2vw, 28px);
+    margin: clamp(20px, 3.5vh, 40px) 0 4px;
+}
+.distBar { display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end; }
+.distCount { font-family: var(--font-heading); font-weight: 800; font-size: clamp(1rem, 1.6vw, 1.5rem); color: var(--text); }
+.distCol { width: clamp(44px, 4.5vw, 72px); border-radius: 10px 10px 0 0; }
+.distKey {
+    width: clamp(34px, 3vw, 44px);
+    height: clamp(34px, 3vw, 44px);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+}
+/* True/false labels show the word, so let the chip grow to fit */
+.distKeyWide {
+    width: auto;
+    min-width: clamp(34px, 3vw, 44px);
+    padding: 0 clamp(12px, 1.4vw, 20px);
+    font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
