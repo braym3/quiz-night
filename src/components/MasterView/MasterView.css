@@ -1024,3 +1024,187 @@
   font-size: var(--fs-xs); font-weight: 800; color: var(--color-accent);
 }
 .mc-lb-live + .mc-timer-live, .mc-timer-live + .mc-lb-live { margin-left: var(--space-2); }
+
+/* Text-answer moderation */
+.mc-answer-ref {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-3);
+}
+.mc-answer-ref strong { color: var(--color-on-reveal, var(--color-success)); }
+
+.quick-score-btn.correct {
+  background: var(--color-success);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-answer.answer-correct {
+  border-left: 3px solid var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  padding-left: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+/* --- Host notes --- */
+.mc-host-notes {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in srgb, var(--color-warning, #f0a828) 14%, var(--color-surface, #fff));
+  border: 1px dashed color-mix(in srgb, var(--color-warning, #f0a828) 55%, transparent);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* --- On deck preview --- */
+.mc-ondeck {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface-2, #f4f4f4);
+  border: 1px solid var(--color-border, #e2e2e2);
+  text-align: left;
+}
+
+.mc-ondeck-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary, #9669ff);
+  white-space: nowrap;
+}
+
+.mc-ondeck-text {
+  flex: 1;
+  min-width: 60%;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.mc-ondeck-type {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  text-transform: capitalize;
+}
+
+/* --- Auto-score done state --- */
+.mc-autoscore-done {
+  opacity: 0.75;
+  cursor: default;
+  background: color-mix(in srgb, var(--color-success, #28a745) 18%, var(--color-surface, #fff)) !important;
+  color: var(--color-success, #28a745) !important;
+}
+
+/* --- Timer pause/resume --- */
+.mc-tpause {
+  border-color: var(--color-warning, #f0a828) !important;
+  color: var(--color-warning, #b07708) !important;
+}
+
+.mc-tresume {
+  border-color: var(--color-success, #28a745) !important;
+  color: var(--color-success, #1d7a33) !important;
+}
+
+/* --- Answer clusters --- */
+.mc-clusters {
+  margin: 0 0 12px;
+  padding: 12px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e2e2);
+}
+
+.mc-clusters-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.mc-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--color-border, #eee);
+}
+
+.mc-cluster:last-child {
+  border-bottom: none;
+}
+
+.mc-cluster-text {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-cluster-count {
+  font-weight: 800;
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.mc-cluster-accept {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-primary, #9669ff);
+  color: var(--color-on-primary, #fff);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-quality {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  white-space: nowrap;
+}
+
+.mc-quality.exact {
+  background: color-mix(in srgb, var(--color-success, #28a745) 18%, transparent);
+  color: var(--color-success, #1d7a33);
+}
+
+.mc-quality.close {
+  background: color-mix(in srgb, var(--color-warning, #f0a828) 22%, transparent);
+  color: var(--color-warning, #9c6a06);
+}
+
+.mc-quality.accepted {
+  background: color-mix(in srgb, var(--color-success, #28a745) 18%, transparent);
+  color: var(--color-success, #1d7a33);
+}
+
+.player-answer.answer-close {
+  outline: 2px dashed color-mix(in srgb, var(--color-warning, #f0a828) 55%, transparent);
+  outline-offset: -2px;
+}

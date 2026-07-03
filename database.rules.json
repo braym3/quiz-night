@@ -18,7 +18,10 @@
         "currentQuestionId": { ".validate": "newData.isString() && newData.val().length <= 200" },
         "timerDeadline": { ".validate": "newData.isNumber()" },
         "timerDuration": { ".validate": "newData.isNumber()" },
-        "showLeaderboard": { ".validate": "newData.isBoolean()" }
+        "timerPausedRemaining": { ".validate": "newData.isNumber()" },
+        "showLeaderboard": { ".validate": "newData.isBoolean()" },
+        "questionStartedAt": { ".validate": "newData.isNumber()" },
+        "scoredQuestionId": { ".validate": "newData.isString() && newData.val().length <= 200" }
       },
 
       "players": {
@@ -27,8 +30,38 @@
           ".validate": "$name.length <= 40 && newData.hasChild('score')",
           "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000" },
           "avatar": { ".validate": "newData.isString() && newData.val().length <= 200" },
-          "answer": { ".validate": "newData.isString() ? newData.val().length <= 1000 : true" }
+          "answer": { ".validate": "newData.isString() ? newData.val().length <= 1000 : true" },
+          "answeredAt": { ".validate": "newData.isNumber()" },
+          "streak": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
+          "bestStreak": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
+          "history": {
+            "$qid": {
+              "gain": { ".validate": "newData.isNumber()" },
+              "ok": { ".validate": "newData.isNumber()" },
+              "ms": { ".validate": "newData.isNumber()" }
+            }
+          }
         }
+      },
+
+      "reactions": {
+        ".write": true,
+        "$rid": {
+          ".validate": "newData.hasChildren(['emoji', 'name', 't'])",
+          "emoji": { ".validate": "newData.isString() && newData.val().length <= 8" },
+          "name": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "t": { ".validate": "newData.isNumber()" }
+        }
+      },
+
+      "poll": {
+        ".write": true,
+        "$name": { ".validate": "newData.isString() && newData.val().length <= 40" }
+      },
+
+      "lobbyAnswers": {
+        ".write": true,
+        "$name": { ".validate": "newData.isString() && newData.val().length <= 300" }
       }
     },
 

@@ -109,3 +109,84 @@
     0% { transform: translateY(0%); }
     100% { transform: translateY(-100%); }
 }
+/* --- Awards ceremony --- */
+.awardsHeading {
+  font-family: var(--font-heading, inherit);
+  font-size: clamp(1.6rem, 3.5vw, 3rem);
+  margin: 0 0 clamp(12px, 3vh, 30px);
+  color: var(--color-text, #fff);
+  opacity: 0.9;
+}
+
+.awardCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.5vh, 16px);
+  padding: clamp(24px, 4vh, 48px) clamp(30px, 5vw, 70px);
+  border-radius: 24px;
+  background: var(--color-surface, rgba(20, 20, 30, 0.85));
+  border: 2px solid var(--color-primary, #9669ff);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.awardEmoji {
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 1;
+}
+
+.awardTitle {
+  font-family: var(--font-heading, inherit);
+  font-size: clamp(1.6rem, 3.6vw, 3rem);
+  font-weight: 900;
+  margin: 0;
+  color: var(--color-accent, #ffd166);
+}
+
+.awardWinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.awardName {
+  font-size: clamp(1.3rem, 2.8vw, 2.2rem);
+  font-weight: 900;
+  color: var(--color-text, #fff);
+}
+
+.awardStat {
+  font-size: clamp(0.9rem, 1.6vw, 1.3rem);
+  opacity: 0.75;
+  color: var(--color-text, #fff);
+  font-style: italic;
+}
+
+.awardProgress {
+  display: flex;
+  gap: 8px;
+  margin-top: clamp(16px, 3vh, 30px);
+}
+
+.awardDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text, #fff) 25%, transparent);
+}
+
+.awardDotOn {
+  background: var(--color-primary, #9669ff);
+}
+
+/* --- TV fit --- */
+.container {
+  max-height: 100%;
+  overflow: hidden;
+  justify-content: center;
+}
+.title { font-size: clamp(2rem, min(10vw, 10vh), 6rem); margin-bottom: clamp(10px, 4vh, 44px); }
+.podiumContainer { height: min(35vh, 340px); }
+.otherPlayersContainer { margin-top: clamp(10px, 4vh, 44px); height: min(25vh, 240px); }
+.awardCard { max-width: min(88vw, 900px); }

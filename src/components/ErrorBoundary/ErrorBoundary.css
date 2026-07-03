@@ -1,0 +1,43 @@
+.qn-error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60vh;
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text, #333);
+}
+
+.qn-error-emoji {
+  font-size: 64px;
+  animation: qn-error-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes qn-error-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.qn-error-screen h2 {
+  font-family: var(--font-heading, inherit);
+  margin: 0;
+}
+
+.qn-error-screen p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.qn-error-screen button {
+  margin-top: 10px;
+  padding: 10px 26px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-primary, #9669ff);
+  color: var(--color-on-primary, #fff);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}

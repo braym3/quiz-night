@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Lottie from 'lottie-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
 import musicAnimation from '../../assets/lottie/music-animation.json';
 import Icon from '../Icon/Icon';
+import Avatar from '../Avatar/Avatar';
 import styles from './QuestionSlide.module.css';
+import { orderedKeys } from '../../utils/order';
+import { playTick } from '../../utils/sounds';
 
 const OPT_VARS = { a: 'var(--opt-a)', b: 'var(--opt-b)', c: 'var(--opt-c)', d: 'var(--opt-d)' };
 
@@ -17,7 +21,7 @@ const CONNECTION_COLORS = [
   { bg: '#ba81c5', text: '#000' },
 ];
 
-export default function QuestionSlide({ question, round, players = [], timerDeadline, timerDuration }) {
+export default function QuestionSlide({ question, round, players = [], timerDeadline, timerDuration, timerPaused = null, showJoinQr = false }) {
     const [imageUrl, setImageUrl] = useState(null);
     const [logoUrls, setLogoUrls] = useState({});
     const [audioUrl, setAudioUrl] = useState(null);
@@ -40,6 +44,15 @@ export default function QuestionSlide({ question, round, players = [], timerDead
         const interval = setInterval(tick, 200);
         return () => clearInterval(interval);
     }, [timerDeadline]);
+
+    // Tension tick from the TV speakers in the final five seconds
+    const lastTickRef = useRef(null);
+    useEffect(() => {
+        if (timeLeft === null || timeLeft > 5 || timeLeft <= 0) return;
+        if (lastTickRef.current === timeLeft) return;
+        lastTickRef.current = timeLeft;
+        playTick();
+    }, [timeLeft]);
 
     useEffect(() => {
         setImageUrl(null);
@@ -123,10 +136,11 @@ export default function QuestionSlide({ question, round, players = [], timerDead
         return [];
     }, [question]);
 
-    const questionIdsInRound = Object.keys(round.questions);
-    const questionId = questionIdsInRound.find(id => round.questions[id].text === question.text);
+    const questionIdsInRound = orderedKeys(round.questions);
+    const questionId = question.id || questionIdsInRound.find(id => round.questions[id].text === question.text);
     const questionNumber = questionIdsInRound.indexOf(questionId) + 1;
     const answeredCount = players.filter(p => p.answer && p.answer !== '').length;
+    const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
 
     // Determine if this is a logo wall question for special card styling
     const isLogoWall = question.type === 'logo_wall';
@@ -172,6 +186,17 @@ export default function QuestionSlide({ question, round, players = [], timerDead
                 >
                     Time's Up!
                 </motion.div>
+            )}
+            {timerPaused !== null && (
+                <div className={styles.timerPausedBadge}>
+                    <Icon name="pause" size={16} /> Paused — {Math.ceil(timerPaused / 1000)}s left
+                </div>
+            )}
+            {showJoinQr && (
+                <div className={styles.joinQrCorner}>
+                    <QRCodeSVG value={joinUrl} size={74} bgColor="#ffffff" fgColor="#16151c" level="M" />
+                    <span>Scan to join</span>
+                </div>
             )}
             <div className={styles.questionContent}>
 
@@ -251,6 +276,48 @@ export default function QuestionSlide({ question, round, players = [], timerDead
                             </motion.div>
                         ))}
                     </div>
+                )}
+
+                {/* Guess Who: big quote + the suspect gallery */}
+                {question.type === 'guess_who' && (
+                    <>
+                        {question.quote && (
+                            <motion.div
+                                className={styles.guessWhoQuote}
+                                initial={{ opacity: 0, scale: 0.92 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
+                            >
+                                “{question.quote}”
+                            </motion.div>
+                        )}
+                        <div className={styles.guessWhoGallery}>
+                            {players.map((p, i) => (
+                                <motion.div
+                                    key={p.name}
+                                    className={styles.guessWhoSuspect}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.35 + i * 0.06 }}
+                                >
+                                    <Avatar value={p.avatar} size={'clamp(34px, 4vw, 58px)'} alt={p.name} />
+                                    <span>{p.name}</span>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* Nearest number: closest-wins banner */}
+                {question.type === 'number' && (
+                    <motion.div
+                        className={styles.numberBanner}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                    >
+                        <Icon name="numbers" size={26} /> Closest guess wins the points!
+                    </motion.div>
                 )}
 
                 {question.type === 'ordering' && (

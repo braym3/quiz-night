@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
+import Avatar from '../Avatar/Avatar';
 import styles from './AnswerSlide.module.css';
+import { playReveal } from '../../utils/sounds';
+import { scoreForQuestion, scoreNumberQuestion, hasAnswered } from '../../utils/scoring';
 
 // NYT Connections group colors
 const CONNECTION_COLORS = [
@@ -56,6 +59,51 @@ const OPT_VARS = { a: 'var(--opt-a)', b: 'var(--opt-b)', c: 'var(--opt-c)', d: '
 
 export default function AnswerSlide({ question, players = [] }) {
     const [logoUrls, setLogoUrls] = useState({});
+
+    // Dramatic sting as the answer lands
+    useEffect(() => {
+        playReveal();
+    }, []);
+
+    // Who scored on this question (avatar pile under the answer)
+    const numberWinners = question?.type === 'number'
+        ? scoreNumberQuestion(question, players.filter(hasAnswered))
+        : null;
+    const scorers = players.filter(p => {
+        if (!hasAnswered(p)) return false;
+        if (numberWinners) return !!numberWinners[p.name];
+        return scoreForQuestion(question, p.answer) > 0;
+    });
+
+    const renderScorerPile = () => {
+        if (!players.length) return null;
+        return (
+            <motion.div
+                className={styles.scorerPile}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+            >
+                <span className={styles.scorerLabel}>
+                    {scorers.length === 0
+                        ? 'Nobody got it. Awkward.'
+                        : question?.type === 'number' ? 'Closest:' : 'Got it right:'}
+                </span>
+                {scorers.map((p, i) => (
+                    <motion.span
+                        key={p.name}
+                        className={styles.scorerAvatar}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 1 + i * 0.08, type: 'spring', stiffness: 260, damping: 16 }}
+                        title={p.name}
+                    >
+                        <Avatar value={p.avatar} size={'clamp(30px, 3vw, 46px)'} alt={p.name} />
+                    </motion.span>
+                ))}
+            </motion.div>
+        );
+    };
 
     // Answer distribution bars for multiple choice / true-false
     const renderDistribution = () => {
@@ -141,6 +189,7 @@ export default function AnswerSlide({ question, players = [] }) {
                 {question.answerDetails?.detail && (
                     <p className={styles.funFact}>{question.answerDetails.detail}</p>
                 )}
+                {renderScorerPile()}
             </motion.div>
         );
     }
@@ -177,6 +226,7 @@ export default function AnswerSlide({ question, players = [] }) {
                 {question.answerDetails?.detail && (
                     <p className={styles.funFact}>{question.answerDetails.detail}</p>
                 )}
+                {renderScorerPile()}
             </motion.div>
         );
     }
@@ -228,6 +278,7 @@ export default function AnswerSlide({ question, players = [] }) {
                 {question.answerDetails?.detail && (
                     <p className={styles.funFact}>{question.answerDetails.detail}</p>
                 )}
+                {renderScorerPile()}
             </motion.div>
         );
     }
@@ -264,6 +315,99 @@ export default function AnswerSlide({ question, players = [] }) {
                         );
                     })}
                 </motion.ol>
+                {renderScorerPile()}
+            </motion.div>
+        );
+    }
+
+    // Guess Who reveal — dramatic culprit unveiling
+    if (question && question.type === 'guess_who') {
+        const culprit = players.find(p => p.name === question.answer);
+        return (
+            <motion.div
+                className={styles.card}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5 }}
+            >
+                <h2 className={styles.title}>It Was...</h2>
+                {question.quote && <p className={styles.guessWhoRevealQuote}>“{question.quote}”</p>}
+                <motion.div
+                    className={styles.guessWhoCulprit}
+                    initial={{ scale: 0, rotate: -12 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.9, type: 'spring', stiffness: 180, damping: 14 }}
+                >
+                    <Avatar value={culprit?.avatar} size={'clamp(70px, 9vw, 130px)'} alt={question.answer} />
+                    <div className={styles.guessWhoCulpritName}>{question.answer}</div>
+                </motion.div>
+                {renderScorerPile()}
+            </motion.div>
+        );
+    }
+
+    // Nearest-number reveal — everyone's guesses on a number line
+    if (question && question.type === 'number') {
+        const target = parseFloat(question.answer);
+        const guesses = players
+            .map(p => ({ name: p.name, avatar: p.avatar, g: parseFloat(p.answer) }))
+            .filter(x => !isNaN(x.g));
+        const values = [...guesses.map(x => x.g), isNaN(target) ? 0 : target];
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const span = max - min || 1;
+        const pos = (v) => 4 + ((v - min) / span) * 92; // % along the line
+        return (
+            <motion.div
+                className={styles.card}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.5 }}
+            >
+                <h2 className={styles.title}>The Answer Is...</h2>
+                <motion.p
+                    className={styles.correctAnswer}
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.4, type: 'spring', stiffness: 160 }}
+                >
+                    {question.answer}
+                </motion.p>
+                {guesses.length > 0 && (
+                    <div className={styles.numberLine}>
+                        <div className={styles.numberTrack} />
+                        {!isNaN(target) && (
+                            <motion.div
+                                className={styles.numberTarget}
+                                style={{ left: `${pos(target)}%` }}
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.7 }}
+                            >
+                                <span className={styles.numberTargetFlag}>{question.answer}</span>
+                            </motion.div>
+                        )}
+                        {guesses.map((x, i) => (
+                            <motion.div
+                                key={x.name}
+                                className={`${styles.numberGuess} ${numberWinners?.[x.name] ? styles.numberGuessWinner : ''}`}
+                                style={{ left: `${pos(x.g)}%` }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.9 + i * 0.1 }}
+                            >
+                                <Avatar value={x.avatar} size={'clamp(26px, 3vw, 42px)'} alt={x.name} />
+                                <span className={styles.numberGuessValue}>{x.g}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+                {question.answerDetails?.detail && (
+                    <p className={styles.funFact}>{question.answerDetails.detail}</p>
+                )}
+                {renderScorerPile()}
             </motion.div>
         );
     }
@@ -290,6 +434,7 @@ export default function AnswerSlide({ question, players = [] }) {
                         </li>
                     ))}
                 </ul>
+                {renderScorerPile()}
             </motion.div>
         );
     }
@@ -320,6 +465,7 @@ export default function AnswerSlide({ question, players = [] }) {
                 <p className={styles.correctAnswer}>{correctAnswerText}</p>
                 {renderDistribution()}
                 {detailText && <p className={styles.funFact}>{detailText}</p>}
+                {renderScorerPile()}
             </div>
         </motion.div>
     );

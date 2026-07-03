@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './QuizBuilder.css';
 import { themes, applyTheme } from '../../utils/themes';
 import Icon from '../Icon/Icon';
+import { orderedEntries, orderedKeys } from '../../utils/order';
 
 const uid = () => `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
@@ -52,6 +53,15 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
     { id: 'music', name: 'Music Round', icon: 'music' },
     { id: 'connections', name: 'Connections', icon: 'link' },
     { id: 'logo_wall', name: 'Logo Wall', icon: 'grid' },
+    { id: 'number', name: 'Closest Wins', icon: 'numbers' },
+  ];
+
+  const roundTypes = [
+    { id: 'knowledge', name: 'Knowledge' },
+    { id: 'music', name: 'Music' },
+    { id: 'picture', name: 'Picture' },
+    { id: 'geography', name: 'Geography' },
+    { id: 'guess_who', name: 'Guess Who (from lobby answers)' },
   ];
   const typeIcon = (id) => questionTypes.find(t => t.id === id)?.icon || 'text';
   const prettyCategory = (c) => (c || '').replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
@@ -198,13 +208,42 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
     return null;
   };
 
+  // Downscale/recompress images before upload to keep storage light (PNG keeps alpha)
+  const compressImage = (file) => new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/') || file.type === 'image/gif') return resolve(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = 1280;
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const s = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * s);
+        height = Math.round(height * s);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      canvas.toBlob(
+        (blob) => resolve(blob && blob.size < file.size ? new File([blob], file.name, { type }) : file),
+        type, 0.82
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+
   const uploadFile = async (file, category) => {
     if (!file) return null;
     setUploadingFile(true);
     try {
+      const toUpload = await compressImage(file);
       const fileName = `${Date.now()}-${file.name}`;
       const fileRef = storageRef(storage, `assets/${category}/${fileName}`);
-      await uploadBytes(fileRef, file);
+      await uploadBytes(fileRef, toUpload);
       await loadMediaLibrary();
       setUploadingFile(false);
       return `assets/${category}/${fileName}`;
@@ -245,6 +284,11 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
       const quizId = currentQuiz.id || push(dbRef(database, 'quizzes')).key;
       const quizData = { ...currentQuiz };
       delete quizData.id;
+      // Keep the personality fields tidy
+      quizData.roasts = (quizData.roasts || []).map(s => s.trim()).filter(Boolean);
+      if (!quizData.roasts.length) delete quizData.roasts;
+      quizData.waitingMessages = (quizData.waitingMessages || []).map(s => s.trim()).filter(Boolean);
+      if (!quizData.waitingMessages.length) delete quizData.waitingMessages;
       await set(dbRef(database, `quizzes/${quizId}`), quizData);
       showToast('Quiz saved');
       loadQuizzes();
@@ -260,6 +304,55 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
     if (!window.confirm('Delete quiz?')) return;
     await remove(dbRef(database, `quizzes/${quizId}`));
     loadQuizzes();
+  };
+
+  const duplicateQuiz = async (quiz) => {
+    const data = { ...quiz };
+    delete data.id;
+    data.title = `${data.title || 'Quiz'} (copy)`;
+    const key = push(dbRef(database, 'quizzes')).key;
+    await set(dbRef(database, `quizzes/${key}`), data);
+    loadQuizzes();
+    showToast('Quiz duplicated');
+  };
+
+  const exportQuiz = (quiz) => {
+    const data = { ...quiz };
+    delete data.id;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(data.title || 'quiz').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importQuiz = async (file) => {
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || typeof data.title !== 'string') { showToast('Invalid quiz file'); return; }
+      const clean = { title: data.title, theme: data.theme || 'fun-and-sparkly', rounds: data.rounds || {} };
+      if (data.speedBonus) clean.speedBonus = true;
+      const key = push(dbRef(database, 'quizzes')).key;
+      await set(dbRef(database, `quizzes/${key}`), clean);
+      loadQuizzes();
+      showToast('Quiz imported');
+    } catch {
+      showToast('Could not read that file');
+    }
+  };
+
+  const duplicateRound = (roundId) => {
+    const round = currentQuiz.rounds[roundId];
+    if (!round) return;
+    const newId = uid();
+    setCurrentQuiz({
+      ...currentQuiz,
+      rounds: { ...currentQuiz.rounds, [newId]: { ...round, title: `${round.title || 'Round'} (copy)` } },
+    });
+    showToast('Round duplicated');
   };
 
   const addRound = () => {
@@ -279,7 +372,11 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
 
   const addQuestion = (roundId) => {
     const round = currentQuiz.rounds[roundId];
-    const questionId = `q${Object.keys(round.questions || {}).length + 1}`;
+    // Avoid id collisions when questions have been deleted/reordered
+    const existing = round.questions || {};
+    let n = Object.keys(existing).length + 1;
+    while (existing[`q${n}`]) n += 1;
+    const questionId = `q${n}`;
     setCurrentRound({ id: roundId, ...round });
     setCurrentQuestion({ id: questionId, type: 'text_input', text: '', answer: '', points: 10 });
     setShowQuestionBank(false);
@@ -305,6 +402,7 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
       delete data.id;
       delete data.createdAt;
       n += 1;
+      while (existing[`q${n}`]) n += 1;
       existing[`q${n}`] = data;
     });
     const updatedRound = { ...round, questions: existing };
@@ -341,6 +439,67 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
     setCurrentQuiz({
       ...currentQuiz,
       rounds: { ...currentQuiz.rounds, [roundId]: { ...currentQuiz.rounds[roundId], questions } },
+    });
+  };
+
+  // Returns a short warning string if a question looks incomplete, else null
+  const questionWarning = (q) => {
+    if (!q) return 'Empty question';
+    if (!q.text || !q.text.trim()) return 'No question text';
+    switch (q.type) {
+      case 'multiple_choice': {
+        const opts = q.options || {};
+        const filled = ['a', 'b', 'c', 'd'].filter(k => opts[k] && opts[k].trim());
+        if (filled.length < 2) return 'Needs at least 2 options';
+        if (!q.answer || !opts[q.answer] || !opts[q.answer].trim()) return 'No correct answer set';
+        return null;
+      }
+      case 'true_false':
+        return q.answer ? null : 'No correct answer set';
+      case 'text_input':
+      case 'image_input':
+        return (q.answer && String(q.answer).trim()) ? null : 'No answer set';
+      case 'ordering':
+        return ((q.options?.length || 0) >= 2 && (q.answer?.length || 0) === (q.options?.length || 0)) ? null : 'Order incomplete';
+      case 'music':
+        return (q.answer?.title || q.answer?.artist) ? null : 'No answer set';
+      case 'connections':
+        return (q.connections?.length === 4 && q.connections.every(g => g.category && (g.words?.filter(Boolean).length === 4))) ? null : 'Groups incomplete';
+      case 'logo_wall':
+        return (q.logos?.length && q.logos.every(l => l.answer && l.imageUrl)) ? null : 'Logos need image + name';
+      case 'number':
+        return (q.answer !== undefined && q.answer !== '' && !isNaN(parseFloat(q.answer))) ? null : 'No numeric answer set';
+      case 'guess_who':
+        return null; // generated from lobby answers
+      default:
+        return null;
+    }
+  };
+
+  // --- Reordering (writes an `order` field; every view sorts by it) ---
+  const moveRound = (roundId, dir) => {
+    const ids = orderedKeys(currentQuiz.rounds);
+    const idx = ids.indexOf(roundId);
+    const swap = idx + dir;
+    if (swap < 0 || swap >= ids.length) return;
+    [ids[idx], ids[swap]] = [ids[swap], ids[idx]];
+    const rounds = { ...currentQuiz.rounds };
+    ids.forEach((id, i) => { rounds[id] = { ...rounds[id], order: i + 1 }; });
+    setCurrentQuiz({ ...currentQuiz, rounds });
+  };
+
+  const moveQuestion = (roundId, qId, dir) => {
+    const round = currentQuiz.rounds[roundId];
+    const ids = orderedKeys(round.questions);
+    const idx = ids.indexOf(qId);
+    const swap = idx + dir;
+    if (swap < 0 || swap >= ids.length) return;
+    [ids[idx], ids[swap]] = [ids[swap], ids[idx]];
+    const questions = { ...round.questions };
+    ids.forEach((id, i) => { questions[id] = { ...questions[id], order: i + 1 }; });
+    setCurrentQuiz({
+      ...currentQuiz,
+      rounds: { ...currentQuiz.rounds, [roundId]: { ...round, questions } },
     });
   };
 
@@ -470,6 +629,13 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
           <div className="input-group">
             <label>Answer</label>
             <input type="text" value={q.answer || ''} onChange={(e) => setCurrentQuestion({ ...q, answer: e.target.value })} />
+          </div>
+        )}
+
+        {q.type === 'number' && (
+          <div className="input-group">
+            <label>Correct Number (closest guess wins the points)</label>
+            <input type="number" value={q.answer ?? ''} onChange={(e) => setCurrentQuestion({ ...q, answer: e.target.value })} placeholder="e.g. 1969" />
           </div>
         )}
 
@@ -658,6 +824,12 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
         </div>
 
         <div className="input-group">
+          <label>Host Notes (only you see these during the quiz)</label>
+          <textarea value={q.hostNotes || ''} rows={2} placeholder="Banter prompts, context, who to wind up..."
+            onChange={(e) => setCurrentQuestion({ ...q, hostNotes: e.target.value })} />
+        </div>
+
+        <div className="input-group">
           <label className="checkbox-label">
             <input type="checkbox" checked={addToBank} onChange={(e) => setAddToBank(e.target.checked)} />
             Add to Question Bank
@@ -692,13 +864,21 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                 <button className="btn-close" onClick={handleClose} aria-label="Close"><Icon name="x" size={18} /></button>
               </div>
               <div className="modal-body">
-                <button className="btn-primary" onClick={createNewQuiz}><Icon name="plus" size={18} /> Create Quiz</button>
+                <div className="list-actions">
+                  <button className="btn-primary" onClick={createNewQuiz}><Icon name="plus" size={18} /> Create Quiz</button>
+                  <label className="btn-secondary qb-upload" style={{ marginTop: 0 }}>
+                    <Icon name="download" size={16} /> Import
+                    <input type="file" accept="application/json,.json" hidden onChange={(e) => importQuiz(e.target.files[0])} />
+                  </label>
+                </div>
                 {quizzes.map(quiz => (
                   <div key={quiz.id} className="quiz-card">
                     <h3>{quiz.title}</h3>
                     <p>{Object.keys(quiz.rounds || {}).length} rounds</p>
                     <div className="card-actions">
                       <button className="btn-sm" onClick={() => { setCurrentQuiz({ id: quiz.id, ...quiz }); setCurrentView('edit'); }}>Edit</button>
+                      <button className="btn-sm" aria-label="Duplicate" title="Duplicate" onClick={() => duplicateQuiz(quiz)}><Icon name="copy" size={15} /></button>
+                      <button className="btn-sm" aria-label="Export JSON" title="Export JSON" onClick={() => exportQuiz(quiz)}><Icon name="download" size={15} /></button>
                       <button className="btn-sm btn-danger" onClick={() => deleteQuiz(quiz.id)}>Delete</button>
                       <button className="btn-sm btn-success" onClick={() => { set(dbRef(database, 'liveGame/activeQuizId'), quiz.id); showToast(`"${quiz.title}" is now live`); }}>Activate</button>
                     </div>
@@ -750,6 +930,34 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                     )}
                   </AnimatePresence>
                 </div>
+                <div className="input-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!currentQuiz.speedBonus}
+                      onChange={(e) => setCurrentQuiz({ ...currentQuiz, speedBonus: e.target.checked })}
+                    />
+                    Speed bonus scoring (faster correct answers score more)
+                  </label>
+                </div>
+                <div className="input-group">
+                  <label>Roast lines (optional, one per line — shown on wrong answers)</label>
+                  <textarea
+                    rows={3}
+                    placeholder={"Classic Dave.\nEven the dog knew that one.\nBold strategy."}
+                    value={(currentQuiz.roasts || []).join('\n')}
+                    onChange={(e) => setCurrentQuiz({ ...currentQuiz, roasts: e.target.value.split('\n') })}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Custom waiting messages (optional, one per line — shown after players answer)</label>
+                  <textarea
+                    rows={3}
+                    placeholder={"No pressure...\nHannah definitely got this wrong.\nThe tension is unbearable."}
+                    value={(currentQuiz.waitingMessages || []).join('\n')}
+                    onChange={(e) => setCurrentQuiz({ ...currentQuiz, waitingMessages: e.target.value.split('\n') })}
+                  />
+                </div>
                 <div className="rounds-section">
                   <div className="section-header">
                     <h3>Rounds</h3>
@@ -759,22 +967,66 @@ const QuizBuilder = ({ onClose, activeTheme }) => {
                       <button className="btn-secondary" onClick={() => setGenerator({ category: Object.keys(questionBank)[0] || 'all', count: 5 })}><Icon name="sparkles" size={14} /> Generate</button>
                     </div>
                   </div>
-                  {Object.entries(currentQuiz.rounds || {}).map(([rid, round]) => (
+                  {orderedEntries(currentQuiz.rounds || {}).map(([rid, round], rIdx, allRounds) => (
                     <div key={rid} className="round-card">
                       <div className="round-card-head">
+                        <div className="round-move">
+                          <button className="btn-icon" disabled={rIdx === 0} aria-label="Move round up" onClick={() => moveRound(rid, -1)}>&#9650;</button>
+                          <button className="btn-icon" disabled={rIdx === allRounds.length - 1} aria-label="Move round down" onClick={() => moveRound(rid, 1)}>&#9660;</button>
+                        </div>
                         <input value={round.title} onChange={(e) => setCurrentQuiz({ ...currentQuiz, rounds: { ...currentQuiz.rounds, [rid]: { ...round, title: e.target.value } } })} placeholder="Round title" />
                         <button className="btn-icon" title="Save round to library" aria-label="Save round to library" onClick={() => saveRoundToBank(rid)}><Icon name="save" size={16} /></button>
+                        <button className="btn-icon" title="Duplicate round" aria-label="Duplicate round" onClick={() => duplicateRound(rid)}><Icon name="copy" size={16} /></button>
                         <button className="btn-icon" title="Delete round" aria-label="Delete round" onClick={() => deleteRound(rid)}><Icon name="trash" size={16} /></button>
                       </div>
+                      <div className="round-card-settings">
+                        <label className="round-setting">
+                          <span>Type</span>
+                          <select value={round.type || 'knowledge'} onChange={(e) => setCurrentQuiz({ ...currentQuiz, rounds: { ...currentQuiz.rounds, [rid]: { ...round, type: e.target.value } } })}>
+                            {roundTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                          </select>
+                        </label>
+                        <label className="round-setting">
+                          <span>Auto timer</span>
+                          <select
+                            value={round.defaultTimer || 0}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value) || 0;
+                              const r = { ...round };
+                              if (v > 0) r.defaultTimer = v; else delete r.defaultTimer;
+                              setCurrentQuiz({ ...currentQuiz, rounds: { ...currentQuiz.rounds, [rid]: r } });
+                            }}
+                          >
+                            <option value={0}>Off</option>
+                            {[15, 30, 45, 60].map(s => <option key={s} value={s}>{s}s</option>)}
+                          </select>
+                        </label>
+                      </div>
+                      {round.type === 'guess_who' && (
+                        <div className="input-group guesswho-config">
+                          <label>Lobby prompt (players answer this secretly before the quiz)</label>
+                          <input
+                            value={round.prompt || ''}
+                            placeholder="e.g. What's the worst film you secretly love?"
+                            onChange={(e) => setCurrentQuiz({ ...currentQuiz, rounds: { ...currentQuiz.rounds, [rid]: { ...round, prompt: e.target.value } } })}
+                          />
+                          <p className="hint">Questions are generated automatically from lobby answers when you start this round — no need to add any here.</p>
+                        </div>
+                      )}
                       <div className="questions-mini">
-                        {Object.entries(round.questions || {}).map(([qid, q]) => (
+                        {orderedEntries(round.questions || {}).map(([qid, q], qIdx, allQs) => (
                           <div key={qid} className="question-mini" onClick={() => editQuestion(rid, qid)}>
+                            <div className="q-move" onClick={(e) => e.stopPropagation()}>
+                              <button disabled={qIdx === 0} aria-label="Move question up" onClick={() => moveQuestion(rid, qid, -1)}>&#9650;</button>
+                              <button disabled={qIdx === allQs.length - 1} aria-label="Move question down" onClick={() => moveQuestion(rid, qid, 1)}>&#9660;</button>
+                            </div>
                             <Icon name={typeIcon(q.type)} size={18} />
                             <span>{getQuestionPreview(q)}</span>
+                            {questionWarning(q) && <span className="q-warn" title={questionWarning(q)}><Icon name="warn" size={14} /></span>}
                             <button onClick={(e) => { e.stopPropagation(); deleteQuestion(rid, qid); }} aria-label="Delete question"><Icon name="trash" size={15} /></button>
                           </div>
                         ))}
-                        <button className="btn-add-q" onClick={() => addQuestion(rid)}>+ Question</button>
+                        {round.type !== 'guess_who' && <button className="btn-add-q" onClick={() => addQuestion(rid)}>+ Question</button>}
                       </div>
                     </div>
                   ))}

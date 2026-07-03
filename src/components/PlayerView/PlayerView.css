@@ -135,6 +135,26 @@
   border-color: var(--color-primary);
 }
 
+.answer-options .option-btn.selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.option-check {
+  margin-left: auto;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+}
+
+.answer-hint {
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+}
+
 .option-label {
   display: flex;
   align-items: center;
@@ -968,4 +988,349 @@
   font-weight: 800;
   font-size: var(--fs-lg);
   color: var(--color-on-reveal);
+}
+
+/* --- End-of-game personal summary --- */
+.pv-summary { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+.pv-summary-avatar { margin-bottom: var(--space-1); }
+.pv-summary h2 { margin: 0; }
+.pv-summary-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--fs-2xl);
+  font-weight: 900;
+  color: var(--color-primary);
+}
+.pv-summary-score {
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--color-text);
+}
+.pv-summary-stats {
+  display: flex;
+  gap: var(--space-5);
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.pv-summary-stats strong { color: var(--color-text); font-size: var(--fs-md); }
+
+/* --- Lobby cards (poll + guess-who prompt) --- */
+.pv-lobby {
+  width: 100%;
+  max-width: 420px;
+}
+
+.pv-lobby-card {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--color-surface, #fff);
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: var(--radius-lg, 16px);
+  text-align: left;
+}
+
+.pv-lobby-card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  color: var(--color-primary, #9669ff);
+}
+
+.pv-lobby-prompt {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.pv-lobby-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: var(--radius-md, 10px);
+  font-size: 1rem;
+  background: var(--color-surface-2, #f6f6f6);
+  color: var(--color-text, #222);
+}
+
+.pv-lobby-submit {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-primary, #9669ff);
+  color: var(--color-on-primary, #fff);
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pv-lobby-submit:disabled {
+  opacity: 0.5;
+}
+
+.pv-lobby-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.pv-lobby-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--color-success, #28a745);
+}
+
+.pv-poll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.pv-poll-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface-2, #f6f6f6);
+  color: var(--color-text, #222);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.pv-poll-option.selected {
+  border-color: var(--color-primary, #9669ff);
+  background: color-mix(in srgb, var(--color-primary, #9669ff) 12%, var(--color-surface, #fff));
+  transform: scale(1.03);
+}
+
+/* --- Verdict extras --- */
+.pv-points-note {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.pv-result-icon.part {
+  color: var(--color-warning, #f0a828);
+}
+
+.pv-breakdown {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pv-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface-2, #f4f4f4);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pv-breakdown-row.ok {
+  color: var(--color-success, #28a745);
+}
+
+.pv-breakdown-row.no {
+  color: var(--color-text-muted, #888);
+}
+
+.pv-breakdown-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pv-breakdown-pts {
+  font-weight: 800;
+}
+
+/* --- Waiting-for-friends avatar pile --- */
+.pv-answer-pile {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.pv-pile-label {
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin: 0 0 8px;
+}
+
+.pv-pile-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pv-pile-avatar {
+  position: relative;
+  border-radius: 50%;
+}
+
+.pv-pile-avatar.pending {
+  filter: grayscale(1);
+}
+
+.pv-pile-tick {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-success, #28a745);
+  color: #fff;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface, #fff);
+}
+
+/* --- Ordering drag --- */
+.ordering-hint {
+  margin-bottom: 6px;
+}
+
+.ordering-item {
+  touch-action: none;
+  cursor: grab;
+}
+
+.ordering-item:active {
+  cursor: grabbing;
+}
+
+.ordering-grip {
+  opacity: 0.4;
+  margin-right: 8px;
+  font-size: 1rem;
+  letter-spacing: -2px;
+}
+
+.ordering-text {
+  flex: 1;
+}
+
+/* --- Nearest number --- */
+.number-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.number-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #222);
+}
+
+/* --- Guess who --- */
+.guesswho-section {
+  width: 100%;
+}
+
+.guesswho-quote {
+  font-size: 1.15rem;
+  font-style: italic;
+  font-weight: 600;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--color-surface, #fff);
+  border-left: 4px solid var(--color-primary, #9669ff);
+  border-radius: var(--radius-md, 10px);
+  text-align: left;
+}
+
+.guesswho-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.guesswho-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 2px solid var(--color-border, #e2e2e2);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #222);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.guesswho-option.selected {
+  border-color: var(--color-primary, #9669ff);
+  background: color-mix(in srgb, var(--color-primary, #9669ff) 12%, var(--color-surface, #fff));
+}
+
+.guesswho-name {
+  font-size: 0.88rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guesswho-option .option-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--color-primary, #9669ff);
+}
+
+.pv-guesswho-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.pv-guesswho-quote {
+  font-style: italic;
+  opacity: 0.8;
+  margin-top: 8px;
 }

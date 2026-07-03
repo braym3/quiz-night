@@ -63,3 +63,42 @@ export const playTimesUp = () => play([
   { f: 440, t: 0, d: 0.12, type: 'sine', g: 0.14 },
   { f: 330, t: 0.13, d: 0.2, type: 'sine', g: 0.14 },
 ]);
+
+// --- Presenter (TV) cues ---
+
+// Urgent countdown tick
+export const playTick = () => play([
+  { f: 1050, t: 0, d: 0.05, type: 'square', g: 0.05 },
+]);
+
+// Dramatic reveal sting
+export const playReveal = () => play([
+  { f: 392, t: 0, d: 0.14, type: 'triangle', g: 0.15 },
+  { f: 523.25, t: 0.12, d: 0.14, type: 'triangle', g: 0.15 },
+  { f: 659.25, t: 0.24, d: 0.34, type: 'triangle', g: 0.18 },
+]);
+
+// Rising arpeggio for the leaderboard
+export const playRiser = () => play([
+  { f: 261.63, t: 0, d: 0.1, type: 'triangle', g: 0.1 },
+  { f: 329.63, t: 0.08, d: 0.1, type: 'triangle', g: 0.11 },
+  { f: 392, t: 0.16, d: 0.1, type: 'triangle', g: 0.12 },
+  { f: 523.25, t: 0.24, d: 0.1, type: 'triangle', g: 0.13 },
+  { f: 659.25, t: 0.32, d: 0.24, type: 'triangle', g: 0.14 },
+]);
+
+// Podium fanfare
+export const playFanfare = () => play([
+  { f: 392, t: 0, d: 0.16, type: 'triangle', g: 0.16 },
+  { f: 392, t: 0.18, d: 0.1, type: 'triangle', g: 0.14 },
+  { f: 392, t: 0.3, d: 0.1, type: 'triangle', g: 0.14 },
+  { f: 523.25, t: 0.42, d: 0.5, type: 'triangle', g: 0.18 },
+  { f: 659.25, t: 0.42, d: 0.5, type: 'triangle', g: 0.12 },
+  { f: 783.99, t: 0.95, d: 0.6, type: 'triangle', g: 0.16 },
+]);
+
+// Small pop for awards / toasts
+export const playPop = () => play([
+  { f: 740, t: 0, d: 0.06, type: 'square', g: 0.06 },
+  { f: 988, t: 0.05, d: 0.09, type: 'square', g: 0.06 },
+]);

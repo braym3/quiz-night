@@ -5,7 +5,19 @@ import Avatar from '../Avatar/Avatar';
 import { QRCodeSVG } from 'qrcode.react';
 import styles from './WelcomeSlide.module.css';
 
-export default function WelcomeSlide({ title, subtitle, playerCount = 0, players = [] }) {
+export default function WelcomeSlide({ title, subtitle, playerCount = 0, players = [], poll = {} }) {
+    // Tally the "who's winning tonight?" lobby poll
+    const pollTally = useMemo(() => {
+        const counts = {};
+        Object.values(poll || {}).forEach((votedFor) => {
+            counts[votedFor] = (counts[votedFor] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .map(([name, votes]) => ({ name, votes, avatar: players.find(p => p.name === name)?.avatar }))
+            .sort((a, b) => b.votes - a.votes)
+            .slice(0, 5);
+    }, [poll, players]);
+
     // Calculate font size based on title length so it never clips
     const titleFontSize = useMemo(() => {
         const len = (title || '').length;
@@ -109,6 +121,33 @@ export default function WelcomeSlide({ title, subtitle, playerCount = 0, players
                     animate={{ opacity: 1, transition: { delay: 0.9 } }}
                 >
                     Waiting for players...
+                </motion.div>
+            )}
+
+            {pollTally.length > 0 && (
+                <motion.div
+                    className={styles.pollPanel}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 1.2 } }}
+                >
+                    <div className={styles.pollTitle}>The room predicts tonight's winner...</div>
+                    <div className={styles.pollRows}>
+                        {pollTally.map((entry, i) => (
+                            <motion.div
+                                key={entry.name}
+                                className={styles.pollRow}
+                                initial={{ opacity: 0, x: -18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.3 + i * 0.12 }}
+                            >
+                                <Avatar value={entry.avatar} size={26} alt={entry.name} />
+                                <span className={styles.pollName}>{entry.name}</span>
+                                <span className={styles.pollVotes}>
+                                    {'●'.repeat(Math.min(entry.votes, 10))} {entry.votes}
+                                </span>
+                            </motion.div>
+                        ))}
+                    </div>
                 </motion.div>
             )}
         </motion.div>

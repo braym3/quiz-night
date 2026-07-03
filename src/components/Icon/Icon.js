@@ -44,6 +44,9 @@ const STROKE = {
   grid: <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>,
   volume: <><path d="M11 5L6 9H3v6h3l5 4z" /><path d="M15.5 8.5a4 4 0 010 7M18 6a8 8 0 010 12" /></>,
   'volume-off': <><path d="M11 5L6 9H3v6h3l5 4z" /><path d="M16 9l5 6M21 9l-5 6" /></>,
+  copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></>,
+  download: <path d="M12 3v12M8 11l4 4 4-4M5 21h14" />,
+  warn: <><path d="M12 4l9 16H3z" /><path d="M12 10v4M12 17h.01" /></>,
 };
 
 export default function Icon({ name, size = 24, strokeWidth = 2, className = '', style, title }) {
