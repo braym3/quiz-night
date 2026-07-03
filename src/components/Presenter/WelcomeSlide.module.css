@@ -118,3 +118,77 @@
     font-size: clamp(1.1rem, 1.8vw, 1.7rem);
     color: var(--primary);
 }
+
+/* --- Lobby winner poll --- */
+.pollPanel {
+  margin-top: clamp(10px, 2vh, 22px);
+  padding: 12px 22px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-surface, #1a1a2e) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text, #fff) 15%, transparent);
+}
+
+.pollTitle {
+  font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+  font-weight: 800;
+  opacity: 0.85;
+  margin-bottom: 8px;
+  color: var(--color-text, #fff);
+}
+
+.pollRows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pollRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text, #fff);
+}
+
+.pollName {
+  font-weight: 700;
+  font-size: clamp(0.8rem, 1.3vw, 1rem);
+  min-width: 90px;
+  text-align: left;
+}
+
+.pollVotes {
+  font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+  color: var(--color-accent, #ffd166);
+  letter-spacing: 2px;
+}
+
+/* --- TV fit --- */
+.welcomeContainer {
+  width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  justify-content: center;
+}
+.subtitle { font-size: clamp(1.3rem, 4.5vh, 2.6rem); margin: 0; }
+.curvedTextContainer { max-height: 24vh; }
+.playerLobby { margin-top: clamp(8px, 1.8vh, 20px); gap: clamp(8px, 1.4vh, 16px); }
+.playerCount {
+  font-size: clamp(0.95rem, 2.4vh, 1.6rem);
+  padding: clamp(6px, 1.2vh, 10px) clamp(18px, 2.4vw, 30px);
+}
+.playerAvatarRow { max-height: 17vh; overflow: hidden; }
+.playerChip { padding: clamp(4px, 1vh, 8px) clamp(10px, 1.4vw, 16px); }
+.chipName { font-size: clamp(0.8rem, 1.9vh, 1.2rem); }
+.joinPrompt { margin-top: clamp(8px, 1.8vh, 24px); padding: clamp(8px, 1.4vh, 18px); }
+.pollPanel { max-height: 22vh; overflow: hidden; }
+
+/* Tight screens: prefer clipping the bottom of optional panels over
+   pushing the title off the top */
+.welcomeContainer { justify-content: safe center; }
+.curvedTextContainer { max-height: 20vh; }
+.qrBox svg {
+  width: clamp(70px, 15vh, 120px);
+  height: clamp(70px, 15vh, 120px);
+}
+.playerAvatarRow { max-height: 13vh; }
+.pollPanel { max-height: 18vh; }

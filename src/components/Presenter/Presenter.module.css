@@ -164,3 +164,129 @@
         border-width: 5px;
     }
 }
+/* --- Emoji reaction floaters --- */
+.reactionLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.reactionFloat {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.reactionEmoji {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+}
+
+.reactionName {
+  font-size: clamp(0.7rem, 1vw, 0.95rem);
+  font-weight: 700;
+  color: var(--color-text, #fff);
+  opacity: 0.75;
+  background: color-mix(in srgb, var(--color-bg, #000) 55%, transparent);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+/* --- Join intro title-card --- */
+.introCard {
+  position: absolute;
+  bottom: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 22px;
+  border-radius: 18px;
+  background: var(--color-surface, rgba(20, 20, 30, 0.92));
+  border: 2px solid var(--color-primary, #9669ff);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+}
+
+.introText {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.introName {
+  font-family: var(--font-heading, inherit);
+  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
+  font-weight: 900;
+  color: var(--color-text, #fff);
+  line-height: 1.1;
+}
+
+.introTagline {
+  font-size: clamp(0.8rem, 1.3vw, 1rem);
+  color: var(--color-text-muted, #aaa);
+  font-style: italic;
+}
+
+/* --- Streak toast --- */
+.streakToast {
+  position: absolute;
+  top: 3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--color-surface, rgba(20, 20, 30, 0.92));
+  border: 2px solid #ff7a45;
+  color: var(--color-text, #fff);
+  font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  white-space: nowrap;
+}
+
+/* --- TV sound toggle --- */
+.soundToggle {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-text, #fff) 25%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #000) 55%, transparent);
+  color: var(--color-text, #fff);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.soundToggle:hover {
+  opacity: 1;
+}
+
+/* ============================================= */
+/* TV fit: safe area + hard viewport bounds      */
+/* TVs overscan edges and come in many sizes, so */
+/* everything scales with vh/vmin and is clipped */
+/* to the safe area rather than spilling off.    */
+/* ============================================= */
+.presenterContainer {
+  height: 100vh;
+  height: 100dvh;
+  padding: clamp(12px, 2.5vmin, 36px);
+  box-sizing: border-box;
+}

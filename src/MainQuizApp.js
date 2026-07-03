@@ -1,19 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { database } from './index';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, onValue, set, get, push } from 'firebase/database';
 import Leaderboard from './components/Leaderboard/Leaderboard';
 import PlayerView from './components/PlayerView/PlayerView';
 import MasterView from './components/MasterView/MasterView';
 import QuizBuilder from './components/QuizBuilder/QuizBuilder';
 import { applyTheme, getTheme } from './utils/themes';
 import { loadAvatarManifest } from './utils/avatars';
+import useWakeLock from './utils/useWakeLock';
 import Avatar from './components/Avatar/Avatar';
 import Icon from './components/Icon/Icon';
 import { isSoundOn, setSoundOn as persistSound } from './utils/sounds';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AVATAR_EMOJIS = ['😎', '🤓', '🦊', '🐱', '🦄', '🐸', '🦋', '🎸', '🌟', '🍕', '🎯', '🚀', '🌈', '🎨', '🎵', '🏆'];
+
+// Reactions players can fling at the TV
+const REACTION_EMOJIS = ['😂', '🔥', '😱', '👏', '💀'];
 
 export default function MainQuizApp() {
   const [isMaster, setIsMaster] = useState(false);
@@ -30,6 +34,9 @@ export default function MainQuizApp() {
   const [joinError, setJoinError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [soundOn, setSoundOn] = useState(isSoundOn());
+
+  // Keep phones awake once a player has joined the game
+  useWakeLock(hasJoined && !isMaster);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -110,15 +117,13 @@ export default function MainQuizApp() {
     });
 
     const gameStateRef = ref(database, 'liveGame/gameState');
-    onValue(gameStateRef, (snapshot) => {
-      const state = snapshot.val();
-      if (state) {
-        setGameState(state);
-      }
+    const unsubGameState = onValue(gameStateRef, (snapshot) => {
+      // Falsy snapshot means the game was cleared — reflect that, don't go stale
+      setGameState(snapshot.val() || null);
     });
 
     const playersRef = ref(database, 'liveGame/players');
-    onValue(playersRef, (snapshot) => {
+    const unsubPlayers = onValue(playersRef, (snapshot) => {
       if (snapshot.exists()) {
         const playersData = snapshot.val();
         const playersArray = Object.entries(playersData).map(([name, data]) => ({
@@ -132,7 +137,11 @@ export default function MainQuizApp() {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      unsubGameState();
+      unsubPlayers();
+    };
   }, [isMaster]);
 
   const handleJoinQuiz = (name) => {
@@ -164,6 +173,17 @@ export default function MainQuizApp() {
     }
     try { localStorage.setItem('qn_player', JSON.stringify({ name: sanitizedName, avatar: playerAvatar })); } catch { /* ignore */ }
     setHasJoined(true);
+  };
+
+  // Throttled emoji reactions that float across the presenter screen
+  const lastReactionRef = useRef(0);
+  const [reactionBurst, setReactionBurst] = useState(null);
+  const sendReaction = (emoji) => {
+    const now = Date.now();
+    if (now - lastReactionRef.current < 1000) return;
+    lastReactionRef.current = now;
+    setReactionBurst({ emoji, key: now });
+    push(ref(database, 'liveGame/reactions'), { emoji, name: playerName, t: now });
   };
 
   const renderMasterView = () => (
@@ -325,12 +345,39 @@ export default function MainQuizApp() {
               transition={{ duration: 0.3 }}
           >
             {playerTab === 'quiz' ? (
-                <PlayerView playerName={playerName} gameState={gameState} onShowLeaderboard={() => setPlayerTab('leaderboard')} />
+                <PlayerView playerName={playerName} gameState={gameState} players={players} onShowLeaderboard={() => setPlayerTab('leaderboard')} />
             ) : (
                 <Leaderboard players={players} currentPlayer={playerName} />
             )}
           </motion.div>
         </AnimatePresence>
+        <div className="reaction-bar">
+          {REACTION_EMOJIS.map((emoji) => (
+            <motion.button
+                key={emoji}
+                className="reaction-btn"
+                onClick={() => sendReaction(emoji)}
+                whileTap={{ scale: 1.3, rotate: -8 }}
+                aria-label={`React with ${emoji}`}
+            >
+              {emoji}
+              <AnimatePresence>
+                {reactionBurst?.emoji === emoji && (
+                  <motion.span
+                      key={reactionBurst.key}
+                      className="reaction-fly"
+                      initial={{ opacity: 1, y: 0, scale: 1 }}
+                      animate={{ opacity: 0, y: -70, scale: 1.6 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                  >
+                    {emoji}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          ))}
+        </div>
       </div>
   );
 

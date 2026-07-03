@@ -25,3 +25,63 @@
     max-width: 250px;
     margin-top: 20px;
 }
+/* Between-rounds standings */
+.standings {
+    width: min(560px, 84vw);
+    margin-top: clamp(14px, 3vh, 30px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.standingsTitle {
+    font-family: var(--font-heading);
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    text-align: center;
+    margin-bottom: 4px;
+    color: var(--presenterText, #fff);
+}
+.standingRow {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 14px);
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: clamp(5px, 0.8vh, 9px) clamp(12px, 1.4vw, 18px);
+}
+.standingRank {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    width: 1.6em;
+    text-align: center;
+    color: var(--presenterText, #fff);
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+}
+.standingName {
+    flex: 1;
+    font-weight: 700;
+    color: var(--presenterText, #fff);
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.standingScore {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    color: var(--presenterText, #fff);
+    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+}
+
+/* --- TV fit --- */
+.roundContainer {
+  width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+.roundNumber { font-size: clamp(1.3rem, 4.5vh, 2.6rem); margin: 0; }
+.roundTitle { font-size: clamp(2rem, min(10vw, 12vh), 6rem); }
+.lottieContainer { max-width: clamp(110px, 24vh, 250px); margin-top: clamp(6px, 1.4vh, 20px); }
+.standings { max-height: 32vh; overflow: hidden; }

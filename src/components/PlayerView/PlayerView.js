@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { database, storage } from '../../index';
-import { ref, get, set } from 'firebase/database';
+import { ref, set, onValue } from 'firebase/database';
 import { ref as storageRef, getDownloadURL } from 'firebase/storage';
 import './PlayerView.css';
-import { motion } from 'framer-motion';
+import { motion, Reorder } from 'framer-motion';
 import Icon from '../Icon/Icon';
+import Avatar from '../Avatar/Avatar';
 import RoundLottie from '../RoundLottie/RoundLottie';
 import { playCorrect, playWrong, playLock, playTimesUp } from '../../utils/sounds';
+import {
+  OBJECTIVE_TYPES, PARTIAL_TYPES, checkCorrect, scoreBreakdown,
+  hasAnswered as hasAnsweredShared,
+} from '../../utils/scoring';
+import { orderedEntries, orderedKeys } from '../../utils/order';
 
 // Haptic feedback helper
 const vibrate = (pattern = 10) => {
@@ -46,7 +52,7 @@ const itemVariants = {
 };
 
 
-const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
+const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) => {
   const [quizContent, setQuizContent] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
@@ -63,24 +69,31 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   const [expandedLogo, setExpandedLogo] = useState(null);
   // Music state
   const [musicAnswer, setMusicAnswer] = useState({ title: '', artist: '', decade: '' });
+  // Nearest-number state
+  const [numberAnswer, setNumberAnswer] = useState('');
   // Timer state
   const [timeLeft, setTimeLeft] = useState(null);
   // Per-player result feedback
   const [myAnswer, setMyAnswer] = useState(null);
-  const [verdict, setVerdict] = useState(null); // 'correct' | 'wrong' | 'none'
+  const [verdict, setVerdict] = useState(null); // 'correct' | 'wrong' | 'partial' | 'number' | 'none'
+  const [myBreakdown, setMyBreakdown] = useState(null); // partial-credit detail
   const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [selectedChoice, setSelectedChoice] = useState(null); // MC/TF/guess-who live selection
+  // Lobby extras
+  const [pollVote, setPollVote] = useState(null);
+  const [lobbyAnswer, setLobbyAnswer] = useState('');
+  const [lobbyAnswerSent, setLobbyAnswerSent] = useState(false);
+  const [roast, setRoast] = useState(null);
   const scoredRef = useRef(null);
 
-  const OBJECTIVE_TYPES = ['multiple_choice', 'true_false', 'text_input', 'image_input', 'ordering'];
-  const normalize = (s) => (typeof s === 'string' ? s : '').trim().toLowerCase();
   const isAnswered = (a) => a != null && (Array.isArray(a) ? a.length > 0 : (typeof a === 'string' ? a.trim() !== '' : true));
-  const checkCorrect = (q, a) => {
-    if (!q) return false;
-    if (q.type === 'multiple_choice' || q.type === 'true_false') return a === q.answer;
-    if (q.type === 'text_input' || q.type === 'image_input') return normalize(a) === normalize(q.answer);
-    if (q.type === 'ordering') return Array.isArray(a) && Array.isArray(q.answer) && JSON.stringify(a) === JSON.stringify(q.answer);
-    return false;
-  };
+
+  // My live record (score/history) as the master updates it
+  const me = players.find(p => p.name === playerName);
+  const currentQid = gameState?.currentQuestionId;
+  const myHistory = me?.history?.[currentQid];
 
   // Timer countdown + auto-submit when time expires
   useEffect(() => {
@@ -119,14 +132,35 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
       }
     } else if (currentQuestion.type === 'ordering') {
       set(playerAnswerRef, orderedAnswer);
+      set(ref(database, `liveGame/players/${playerName}/answeredAt`), Date.now());
       setMyAnswer(orderedAnswer);
+    } else if (currentQuestion.type === 'number') {
+      if (numberAnswer.trim() !== '' && !isNaN(parseFloat(numberAnswer))) {
+        set(playerAnswerRef, numberAnswer.trim());
+        set(ref(database, `liveGame/players/${playerName}/answeredAt`), Date.now());
+        setMyAnswer(numberAnswer.trim());
+      }
     } else if (currentQuestion.type === 'text_input' || currentQuestion.type === 'image_input') {
-      if (answer.trim()) { set(playerAnswerRef, answer); setMyAnswer(answer); }
+      if (answer.trim()) {
+        set(playerAnswerRef, answer);
+        set(ref(database, `liveGame/players/${playerName}/answeredAt`), Date.now());
+        setMyAnswer(answer);
+      }
     }
-    // MC / true_false: if they haven't clicked, nothing to submit
+    // MC / true_false / guess_who: if they haven't tapped, nothing to submit
 
     setIsSubmitted(true);
-  }, [timeLeft]);
+  }, [timeLeft, isSubmitted, gameState?.currentQuestionId]);
+
+  // Persist streaks so the presenter can celebrate hot runs
+  const persistStreak = (nextStreak) => {
+    set(ref(database, `liveGame/players/${playerName}/streak`), nextStreak);
+    setBestStreak((b) => {
+      const nb = Math.max(b, nextStreak);
+      if (nb !== b) set(ref(database, `liveGame/players/${playerName}/bestStreak`), nb);
+      return nb;
+    });
+  };
 
   // Work out this player's result once per question when the answer is revealed
   useEffect(() => {
@@ -136,25 +170,62 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     if (scoredRef.current === qid) return;
     scoredRef.current = qid;
 
+    // Pick a roast for this reveal (used if the answer was wrong)
+    const roasts = Array.isArray(quizContent?.roasts) ? quizContent.roasts.filter(Boolean) : [];
+    setRoast(roasts.length ? roasts[Math.floor(Math.random() * roasts.length)] : null);
+
+    // Partial-credit types get a per-part breakdown instead of a binary verdict
+    if (PARTIAL_TYPES.includes(currentQuestion.type)) {
+      if (!isAnswered(myAnswer)) { setVerdict('none'); setStreak(0); persistStreak(0); return; }
+      const bd = scoreBreakdown(currentQuestion, myAnswer);
+      setMyBreakdown(bd);
+      if (bd && bd.gain > 0) {
+        setVerdict('partial');
+        setCorrectCount((c) => c + 1);
+        playCorrect();
+      } else {
+        setVerdict('wrong'); setStreak(0); persistStreak(0); playWrong();
+      }
+      return;
+    }
+
+    // Nearest-number is scored against the whole field by the master
+    if (currentQuestion.type === 'number') {
+      setVerdict(isAnswered(myAnswer) ? 'number' : 'none');
+      return;
+    }
+
     if (!OBJECTIVE_TYPES.includes(currentQuestion.type)) { setVerdict(null); return; }
-    if (!isAnswered(myAnswer)) { setVerdict('none'); setStreak(0); return; }
-    if (checkCorrect(currentQuestion, myAnswer)) { setVerdict('correct'); setStreak((s) => s + 1); playCorrect(); }
-    else { setVerdict('wrong'); setStreak(0); playWrong(); }
+    if (!isAnswered(myAnswer)) { setVerdict('none'); setStreak(0); persistStreak(0); return; }
+    if (checkCorrect(currentQuestion, myAnswer)) {
+      setVerdict('correct');
+      setStreak((prev) => { const ns = prev + 1; persistStreak(ns); return ns; });
+      setCorrectCount((c) => c + 1);
+      playCorrect();
+    } else {
+      setVerdict('wrong'); setStreak(0); persistStreak(0); playWrong();
+    }
   }, [gameState?.quizStatus, gameState?.currentQuestionId, currentQuestion, myAnswer]);
 
+  // Live-follow the active quiz so switching quizzes (or generated rounds,
+  // like Guess Who) reaches players immediately
   useEffect(() => {
-      const activeQuizRef = ref(database, 'liveGame/activeQuizId');
-      get(activeQuizRef).then((activeQuizSnapshot) => {
+      let unsubQuiz = null;
+      const unsubActive = onValue(ref(database, 'liveGame/activeQuizId'), (activeQuizSnapshot) => {
+          if (unsubQuiz) { unsubQuiz(); unsubQuiz = null; }
           if (activeQuizSnapshot.exists()) {
               const quizId = activeQuizSnapshot.val();
-              const quizContentRef = ref(database, `quizzes/${quizId}`);
-              get(quizContentRef).then((snapshot) => {
-                  if (snapshot.exists()) {
-                      setQuizContent(snapshot.val());
-                  }
+              unsubQuiz = onValue(ref(database, `quizzes/${quizId}`), (snapshot) => {
+                  setQuizContent(snapshot.exists() ? snapshot.val() : null);
               });
+          } else {
+              setQuizContent(null);
           }
       });
+      return () => {
+          unsubActive();
+          if (unsubQuiz) unsubQuiz();
+      };
   }, []);
 
   useEffect(() => {
@@ -166,10 +237,14 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         setAnswer('');
         setMyAnswer(null);
         setVerdict(null);
+        setMyBreakdown(null);
+        setRoast(null);
+        setSelectedChoice(null);
 
         // Always reset all question-type state to prevent bleed-through
         setOrderedAnswer([]);
         setMusicAnswer({ title: '', artist: '', decade: '' });
+        setNumberAnswer('');
         setSelectedWords([]);
         setSolvedGroups([]);
         setRemainingWords([]);
@@ -204,25 +279,34 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     }
   }, [gameState, quizContent]);
 
+  // Record when the player locked their answer in (for speed-based scoring)
+  const markAnswered = () => set(ref(database, `liveGame/players/${playerName}/answeredAt`), Date.now());
+
   const handleTextAnswerSubmit = () => {
     if (answer.trim() !== '') {
       vibrate(15); playLock();
       set(ref(database, `liveGame/players/${playerName}/answer`), answer);
+      markAnswered();
       setMyAnswer(answer);
       setIsSubmitted(true);
     }
   };
 
+  // Multiple choice / true-false: tap to select, tap again to change until reveal/timeout
   const handleChoiceSubmit = (choice) => {
+    if (isSubmitted) return;
     vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), choice);
+    markAnswered();
+    setSelectedChoice(choice);
     setMyAnswer(choice);
-    setIsSubmitted(true);
+    // note: not locked — players can change their pick until the host reveals
   };
 
   const handleOrderingSubmit = () => {
     vibrate(15); playLock();
     set(ref(database, `liveGame/players/${playerName}/answer`), orderedAnswer);
+    markAnswered();
     setMyAnswer(orderedAnswer);
     setIsSubmitted(true);
   };
@@ -297,6 +381,32 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     setIsSubmitted(true);
   };
 
+  // Nearest-number handler
+  const handleNumberSubmit = () => {
+    const v = numberAnswer.trim();
+    if (v === '' || isNaN(parseFloat(v))) return;
+    vibrate(15); playLock();
+    set(ref(database, `liveGame/players/${playerName}/answer`), v);
+    markAnswered();
+    setMyAnswer(v);
+    setIsSubmitted(true);
+  };
+
+  // Lobby: vote for tonight's winner
+  const handlePollVote = (name) => {
+    vibrate(10);
+    setPollVote(name);
+    set(ref(database, `liveGame/poll/${playerName}`), name);
+  };
+
+  // Lobby: secret answer that becomes the Guess Who round
+  const handleLobbyAnswerSubmit = () => {
+    if (!lobbyAnswer.trim()) return;
+    vibrate(15); playLock();
+    set(ref(database, `liveGame/lobbyAnswers/${playerName}`), lobbyAnswer.trim());
+    setLobbyAnswerSent(true);
+  };
+
   const moveOption = (index, direction) => {
     const newOrder = [...orderedAnswer];
     const newIndex = index + direction;
@@ -310,20 +420,68 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     const q = currentQuestion;
     if (!q) return '';
     if (q.type === 'multiple_choice' || q.type === 'true_false') return `${String(myAnswer).toUpperCase()}) ${q.options?.[myAnswer] || ''}`;
-    if (q.type === 'text_input' || q.type === 'image_input') return myAnswer;
+    if (q.type === 'text_input' || q.type === 'image_input' || q.type === 'guess_who' || q.type === 'number') return myAnswer;
     return '';
   };
 
   const renderVerdict = () => {
     if (!verdict) return null;
-    const pts = typeof currentQuestion?.points === 'number' ? currentQuestion.points : 10;
+    const flatPts = typeof currentQuestion?.points === 'number' ? currentQuestion.points : 10;
+    // Once the master has scored, show the points actually awarded
+    // (speed bonus means the real gain can differ from the flat value)
+    const awarded = typeof myHistory?.gain === 'number' ? myHistory.gain : null;
+
     if (verdict === 'correct') {
       return (
         <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
           <div className="pv-result-icon ok"><Icon name="check" size={42} strokeWidth={2.6} /></div>
           <h2 className="pv-result-title pv-ok">Correct!</h2>
-          <div className="pv-points">+{pts}</div>
+          <div className="pv-points">{awarded !== null ? `+${awarded}` : `+${flatPts}`}</div>
+          {awarded !== null && awarded < flatPts && awarded > 0 && (
+            <div className="pv-points-note">speed bonus applied</div>
+          )}
           {streak >= 2 && <div className="pv-streak"><Icon name="flame" size={15} /> {streak} in a row!</div>}
+        </motion.div>
+      );
+    }
+    if (verdict === 'partial' && myBreakdown) {
+      return (
+        <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+          <div className={`pv-result-icon ${myBreakdown.gain === myBreakdown.max ? 'ok' : 'part'}`}>
+            <Icon name={myBreakdown.gain === myBreakdown.max ? 'check' : 'star'} size={40} strokeWidth={2.6} />
+          </div>
+          <h2 className="pv-result-title pv-ok">
+            {myBreakdown.gain === myBreakdown.max ? 'Full marks!' : 'Nice — partial credit!'}
+          </h2>
+          <div className="pv-points">+{awarded !== null ? awarded : myBreakdown.gain}</div>
+          <div className="pv-breakdown">
+            {myBreakdown.parts?.map((p, i) => (
+              <div key={i} className={`pv-breakdown-row ${p.ok ? 'ok' : 'no'}`}>
+                <Icon name={p.ok ? 'check' : 'x'} size={14} strokeWidth={2.6} />
+                <span className="pv-breakdown-label">{p.label}</span>
+                <span className="pv-breakdown-pts">{p.ok ? `+${p.pts}` : '0'}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      );
+    }
+    if (verdict === 'number') {
+      const target = parseFloat(currentQuestion?.answer);
+      const mine = parseFloat(myAnswer);
+      const off = (!isNaN(target) && !isNaN(mine)) ? Math.abs(target - mine) : null;
+      const won = awarded !== null && awarded > 0;
+      return (
+        <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+          <div className={`pv-result-icon ${won ? 'ok' : 'part'}`}>
+            <Icon name={won ? 'trophy' : 'numbers'} size={40} strokeWidth={2.4} />
+          </div>
+          <h2 className={`pv-result-title ${won ? 'pv-ok' : ''}`}>
+            {won ? 'Closest guess!' : 'Guess locked'}
+          </h2>
+          {off !== null && <div className="pv-your-wrong">You guessed {mine} — off by {off % 1 === 0 ? off : off.toFixed(2)}</div>}
+          {won && <div className="pv-points">+{awarded}</div>}
+          {awarded === null && <div className="pv-points-note">waiting for scores...</div>}
         </motion.div>
       );
     }
@@ -331,8 +489,19 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
       return (
         <motion.div className="pv-verdict" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
           <div className="pv-result-icon no"><Icon name="x" size={40} strokeWidth={2.6} /></div>
-          <h2 className="pv-result-title pv-no">Not this time</h2>
+          <h2 className="pv-result-title pv-no">{roast || 'Not this time'}</h2>
           {formatMyAnswer() && <div className="pv-your-wrong">You said: {formatMyAnswer()}</div>}
+          {myBreakdown?.parts && (
+            <div className="pv-breakdown">
+              {myBreakdown.parts.map((p, i) => (
+                <div key={i} className={`pv-breakdown-row ${p.ok ? 'ok' : 'no'}`}>
+                  <Icon name={p.ok ? 'check' : 'x'} size={14} strokeWidth={2.6} />
+                  <span className="pv-breakdown-label">{p.label}</span>
+                  <span className="pv-breakdown-pts">{p.ok ? `+${p.pts}` : '0'}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
       );
     }
@@ -352,7 +521,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     const round = quizContent.rounds[gameState.currentRoundId];
     if (!round) return null;
 
-    const questionsInRound = Object.keys(round.questions);
+    const questionsInRound = orderedKeys(round.questions);
     const totalQuestions = questionsInRound.length;
     const currentQuestionIndex = questionsInRound.indexOf(gameState.currentQuestionId);
 
@@ -372,21 +541,95 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
   };
 
   if (!gameState || gameState.quizStatus === 'waiting') {
+    // Does this quiz have a Guess Who round that needs a secret answer?
+    const guessWhoRound = quizContent
+      ? orderedEntries(quizContent.rounds).map(([, r]) => r).find(r => r.type === 'guess_who' && r.prompt)
+      : null;
+    const others = players.filter(p => p.name !== playerName);
+
     return <div className="player-view-container centered-view">
-        <div className="player-message">
+        <div className="player-message pv-lobby">
             <h2>Get Ready!</h2>
             <p>The quiz is about to start...</p>
+
+            {guessWhoRound && !lobbyAnswerSent && (
+              <motion.div className="pv-lobby-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="pv-lobby-card-title"><Icon name="eye" size={16} /> Psst — secret question</div>
+                <p className="pv-lobby-prompt">{guessWhoRound.prompt}</p>
+                <input
+                  type="text"
+                  value={lobbyAnswer}
+                  maxLength={120}
+                  placeholder="Answer honestly..."
+                  onChange={(e) => setLobbyAnswer(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLobbyAnswerSubmit()}
+                />
+                <button className="pv-lobby-submit" onClick={handleLobbyAnswerSubmit} disabled={!lobbyAnswer.trim()}>
+                  Lock it in
+                </button>
+                <p className="pv-lobby-hint">Your answer becomes a round — everyone guesses who said what!</p>
+              </motion.div>
+            )}
+            {guessWhoRound && lobbyAnswerSent && (
+              <motion.div className="pv-lobby-card pv-lobby-done" initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
+                <Icon name="check" size={18} /> Secret answer locked in
+              </motion.div>
+            )}
+
+            {others.length > 0 && (
+              <motion.div className="pv-lobby-card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+                <div className="pv-lobby-card-title"><Icon name="trophy" size={16} /> Who's winning tonight?</div>
+                <div className="pv-poll-grid">
+                  {players.map((p) => (
+                    <button
+                      key={p.name}
+                      className={`pv-poll-option ${pollVote === p.name ? 'selected' : ''}`}
+                      onClick={() => handlePollVote(p.name)}
+                    >
+                      <Avatar value={p.avatar} size={34} alt={p.name} />
+                      <span>{p.name === playerName ? 'Me, obviously' : p.name}</span>
+                    </button>
+                  ))}
+                </div>
+                {pollVote && <p className="pv-lobby-hint">Vote cast — results on the big screen!</p>}
+              </motion.div>
+            )}
         </div>
     </div>;
   }
 
   if (gameState.quizStatus === 'ended') {
-    return <div className="player-view-container centered-view">
-        <div className="player-message">
-            <h2>Quiz Over!</h2>
-            <p>Check the leaderboard for the final results.</p>
-        </div>
-    </div>;
+    const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const rank = sorted.findIndex(p => p.name === playerName) + 1;
+    const me = sorted.find(p => p.name === playerName);
+    const total = sorted.length;
+    const medalColor = { 1: '#f6c945', 2: '#c4ccd6', 3: '#cd8c52' };
+    const rankLabel = rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`;
+    return (
+      <div className="player-view-container centered-view">
+        <motion.div
+          className="player-message pv-summary"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+        >
+          <div className="pv-summary-avatar"><Avatar value={me?.avatar} size={84} alt={playerName} /></div>
+          <h2>Quiz over!</h2>
+          {rank > 0 && (
+            <div className="pv-summary-rank">
+              {rank <= 3 && <Icon name={rank === 1 ? 'crown' : 'medal'} size={22} style={{ color: medalColor[rank] }} />}
+              <span>{rankLabel}{total ? ` of ${total}` : ''}</span>
+            </div>
+          )}
+          <div className="pv-summary-score">{me?.score || 0} pts</div>
+          <div className="pv-summary-stats">
+            <span><strong>{correctCount}</strong> correct</span>
+            <span><strong>{bestStreak}</strong> best streak</span>
+          </div>
+          <button className="leaderboard-button" onClick={onShowLeaderboard}>Full leaderboard</button>
+        </motion.div>
+      </div>
+    );
   }
 
   if (gameState.quizStatus === 'reveal' || gameState.quizStatus === 'moderating') {
@@ -482,6 +725,44 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         );
     }
 
+    // Guess Who reveal — show whose secret it was
+    if (currentQuestion?.type === 'guess_who') {
+        const culprit = players.find(p => p.name === currentQuestion.answer);
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container">
+                    {renderVerdict()}
+                    <p>It was...</p>
+                    <motion.div className="pv-guesswho-reveal" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, delay: 0.3 }}>
+                        <Avatar value={culprit?.avatar} size={72} alt={currentQuestion.answer} />
+                        <h2 className="correct-answer-text">{currentQuestion.answer}</h2>
+                    </motion.div>
+                    {currentQuestion.quote && <p className="pv-guesswho-quote">"{currentQuestion.quote}"</p>}
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Nearest-number reveal
+    if (currentQuestion?.type === 'number') {
+        return (
+            <div className="player-view-container centered-view">
+                <div className="answer-reveal-container">
+                    {renderVerdict()}
+                    <p>The answer was:</p>
+                    <h2 className="correct-answer-text">{currentQuestion.answer}</h2>
+                    {currentQuestion?.answerDetails?.detail && (
+                        <motion.p className="fun-fact-text" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                            {currentQuestion.answerDetails.detail}
+                        </motion.p>
+                    )}
+                    <button className="leaderboard-button" onClick={onShowLeaderboard}>Show Leaderboard</button>
+                </div>
+            </div>
+        );
+    }
+
     // Fallback for all other question types
     let correctAnswerText = '';
     if (currentQuestion) {
@@ -538,7 +819,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     </div>;
   }
 
-  const waitingMessages = [
+  const defaultWaitingMessages = [
     "Fingers crossed...",
     "Waiting for the reveal...",
     "Did you nail it?",
@@ -548,10 +829,15 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
     "No going back now!",
     "Good luck!",
   ];
+  const waitingMessages = (Array.isArray(quizContent?.waitingMessages) && quizContent.waitingMessages.filter(Boolean).length > 0)
+    ? quizContent.waitingMessages.filter(Boolean)
+    : defaultWaitingMessages;
 
   const renderInteraction = () => {
     if (isSubmitted) {
-        const waitMsg = waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
+        // Stable message per question (not re-rolled every render)
+        const seed = (currentQid || '').split('').reduce((s, ch) => s + ch.charCodeAt(0), 0);
+        const waitMsg = waitingMessages[seed % waitingMessages.length];
         return (
           <motion.div
             className="player-message submitted-message"
@@ -592,6 +878,33 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
             >
               {waitMsg}
             </motion.p>
+            {players.length > 1 && (
+              <motion.div
+                className="pv-answer-pile"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.55 }}
+              >
+                <p className="pv-pile-label">Waiting for...</p>
+                <div className="pv-pile-row">
+                  {players.map((p) => {
+                    const done = p.name === playerName || hasAnsweredShared(p);
+                    return (
+                      <motion.div
+                        key={p.name}
+                        className={`pv-pile-avatar ${done ? 'done' : 'pending'}`}
+                        animate={done ? { scale: 1, opacity: 1 } : { scale: 0.9, opacity: 0.45 }}
+                        transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                        title={p.name}
+                      >
+                        <Avatar value={p.avatar} size={38} alt={p.name} />
+                        {done && <span className="pv-pile-tick"><Icon name="check" size={11} strokeWidth={3} /></span>}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         );
     }
@@ -602,29 +915,81 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard }) => {
         return (
           <div className="answer-options">
             {Object.entries(currentQuestion.options).map(([key, value]) => (
-              <button key={key} className={`option-btn option-${key}`} onClick={() => handleChoiceSubmit(key)}>
+              <button
+                key={key}
+                className={`option-btn option-${key} ${selectedChoice === key ? 'selected' : ''}`}
+                onClick={() => handleChoiceSubmit(key)}
+              >
                 <span className="option-label">{key.toUpperCase()}</span>
                 <span className="option-text">{value}</span>
+                {selectedChoice === key && <span className="option-check"><Icon name="check" size={18} /></span>}
               </button>
             ))}
+            <p className="answer-hint">
+              {selectedChoice ? 'Locked in — tap another to change' : 'Tap your answer'}
+            </p>
           </div>
         );
 
       case 'ordering':
         return (
           <div className="ordering-section">
-            <ul className="ordering-list">
+            <p className="answer-hint ordering-hint">Drag to reorder (or use the arrows)</p>
+            <Reorder.Group axis="y" values={orderedAnswer} onReorder={setOrderedAnswer} className="ordering-list" as="ul">
               {orderedAnswer.map((item, index) => (
-                <li key={index} className="ordering-item">
-                  <span>{item}</span>
+                <Reorder.Item key={item} value={item} className="ordering-item" as="li" whileDrag={{ scale: 1.03, boxShadow: '0 8px 22px rgba(0,0,0,0.25)' }}>
+                  <span className="ordering-grip">⠿</span>
+                  <span className="ordering-text">{item}</span>
                   <div className="ordering-controls">
-                    <button onClick={() => moveOption(index, -1)} disabled={index === 0}>&#9650;</button>
-                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1}>&#9660;</button>
+                    <button onClick={() => moveOption(index, -1)} disabled={index === 0} aria-label="Move up">&#9650;</button>
+                    <button onClick={() => moveOption(index, 1)} disabled={index === orderedAnswer.length - 1} aria-label="Move down">&#9660;</button>
                   </div>
-                </li>
+                </Reorder.Item>
               ))}
-            </ul>
+            </Reorder.Group>
             <button onClick={handleOrderingSubmit}>Submit Order</button>
+          </div>
+        );
+
+      case 'number':
+        return (
+          <div className="number-section">
+            <p className="answer-hint">Closest guess wins the points!</p>
+            <input
+              type="number"
+              inputMode="decimal"
+              className="number-input"
+              placeholder="Your best guess..."
+              value={numberAnswer}
+              onChange={(e) => setNumberAnswer(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleNumberSubmit()}
+            />
+            <button onClick={handleNumberSubmit} disabled={numberAnswer.trim() === '' || isNaN(parseFloat(numberAnswer))}>
+              Lock In Guess
+            </button>
+          </div>
+        );
+
+      case 'guess_who':
+        return (
+          <div className="guesswho-section">
+            {currentQuestion.quote && <div className="guesswho-quote">"{currentQuestion.quote}"</div>}
+            <div className="guesswho-grid">
+              {players.map((p) => (
+                <button
+                  key={p.name}
+                  className={`guesswho-option ${selectedChoice === p.name ? 'selected' : ''}`}
+                  onClick={() => handleChoiceSubmit(p.name)}
+                >
+                  <Avatar value={p.avatar} size={40} alt={p.name} />
+                  <span className="guesswho-name">{p.name}</span>
+                  {selectedChoice === p.name && <span className="option-check"><Icon name="check" size={16} /></span>}
+                </button>
+              ))}
+            </div>
+            <p className="answer-hint">
+              {selectedChoice ? 'Locked in — tap another to change' : 'Who said it?'}
+            </p>
           </div>
         );
 

@@ -1,34 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { database } from '../../index';
-import { ref, set, get, remove } from 'firebase/database';
+import { ref, set, get, remove, update, onValue } from 'firebase/database';
 import './MasterView.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../Avatar/Avatar';
 import Icon from '../Icon/Icon';
 import RoundLottie from '../RoundLottie/RoundLottie';
+import {
+    scoreForQuestion, scoreNumberQuestion, matchQuality, normalize,
+    hasAnswered as hasAnsweredShared,
+} from '../../utils/scoring';
+import { orderedKeys, orderedEntries } from '../../utils/order';
 
 export default function MasterView({ gameState, players }) {
     const [activeTab, setActiveTab] = useState('control'); // 'control' or 'players'
     const [editingScores, setEditingScores] = useState({});
     const [quizData, setQuizData] = useState(null);
+    const [activeQuizId, setActiveQuizId] = useState(null);
     const [timerSeconds, setTimerSeconds] = useState(30);
     const [moreOpen, setMoreOpen] = useState(false);
+    const [autoReveal, setAutoReveal] = useState(false);
+    const [acceptedClusters, setAcceptedClusters] = useState({}); // per-question accepted answer clusters
+    const autoRevealedRef = useRef(null);
     const timerRunning = !!gameState?.timerDeadline;
+    const timerPaused = !timerRunning && typeof gameState?.timerPausedRemaining === 'number';
 
-    // Load quiz data when component mounts or activeQuizId changes
-    React.useEffect(() => {
-        const loadQuizData = async () => {
-            const activeQuizIdSnapshot = await get(ref(database, 'liveGame/activeQuizId'));
-            if (activeQuizIdSnapshot.exists()) {
-                const quizId = activeQuizIdSnapshot.val();
-                const quizSnapshot = await get(ref(database, `quizzes/${quizId}`));
-                if (quizSnapshot.exists()) {
-                    setQuizData(quizSnapshot.val());
-                }
+    // Follow the active quiz live (one listener, not a refetch per state change)
+    useEffect(() => {
+        let unsubQuiz = null;
+        const unsubActive = onValue(ref(database, 'liveGame/activeQuizId'), (snap) => {
+            if (unsubQuiz) { unsubQuiz(); unsubQuiz = null; }
+            if (snap.exists()) {
+                const quizId = snap.val();
+                setActiveQuizId(quizId);
+                unsubQuiz = onValue(ref(database, `quizzes/${quizId}`), (qsnap) => {
+                    setQuizData(qsnap.exists() ? qsnap.val() : null);
+                });
+            } else {
+                setActiveQuizId(null);
+                setQuizData(null);
             }
+        });
+        return () => {
+            unsubActive();
+            if (unsubQuiz) unsubQuiz();
         };
-        loadQuizData();
-    }, [gameState]);
+    }, []);
 
     const startQuiz = () => {
         set(ref(database, 'liveGame/gameState'), {
@@ -38,7 +55,36 @@ export default function MasterView({ gameState, players }) {
         });
     };
 
-    const startRound = (roundId) => {
+    // Starting a Guess Who round builds its questions from the lobby answers
+    const startRound = async (roundId) => {
+        const round = quizData?.rounds?.[roundId];
+        if (round?.type === 'guess_who' && activeQuizId) {
+            const hasQuestions = Object.keys(round.questions || {}).length > 0;
+            if (!hasQuestions) {
+                const snap = await get(ref(database, 'liveGame/lobbyAnswers'));
+                const lobbyAnswers = snap.exists() ? snap.val() : {};
+                const entries = Object.entries(lobbyAnswers);
+                if (entries.length === 0) {
+                    window.alert('No lobby answers yet — players submit them on the join screen before the quiz starts.');
+                    return;
+                }
+                const questions = {};
+                // Shuffle so reveal order isn't join order
+                entries.sort(() => Math.random() - 0.5).forEach(([name, text], i) => {
+                    questions[`gw${i + 1}`] = {
+                        type: 'guess_who',
+                        text: round.prompt || 'Who said it?',
+                        quote: text,
+                        answer: name,
+                        points: typeof round.points === 'number' ? round.points : 10,
+                        order: i + 1,
+                    };
+                });
+                await update(ref(database), {
+                    [`quizzes/${activeQuizId}/rounds/${roundId}/questions`]: questions,
+                });
+            }
+        }
         set(ref(database, 'liveGame/gameState'), {
             quizStatus: 'round-interstitial',
             currentRoundId: roundId,
@@ -47,11 +93,27 @@ export default function MasterView({ gameState, players }) {
     };
 
     const showQuestion = (questionId) => {
-        set(ref(database, 'liveGame/gameState'), {
-            ...gameState,
-            quizStatus: 'active',
-            currentQuestionId: questionId
+        // One atomic write: fresh slate for every player + the new game state
+        const round = quizData?.rounds?.[gameState?.currentRoundId];
+        const autoTimer = typeof round?.defaultTimer === 'number' && round.defaultTimer > 0 ? round.defaultTimer : null;
+        const updates = {
+            'liveGame/reactions': null,
+            'liveGame/gameState': {
+                ...gameState,
+                quizStatus: 'active',
+                currentQuestionId: questionId,
+                questionStartedAt: Date.now(),
+                timerDeadline: autoTimer ? Date.now() + autoTimer * 1000 : null,
+                timerDuration: autoTimer || null,
+                timerPausedRemaining: null,
+            },
+        };
+        players.forEach(player => {
+            updates[`liveGame/players/${player.name}/answer`] = '';
+            updates[`liveGame/players/${player.name}/answeredAt`] = null;
         });
+        if (autoTimer) setTimerSeconds(autoTimer);
+        update(ref(database), updates);
     };
 
     const showAnswer = () => {
@@ -65,13 +127,13 @@ export default function MasterView({ gameState, players }) {
         if (!quizData || !gameState?.currentRoundId) return;
 
         const currentRound = quizData.rounds[gameState.currentRoundId];
-        const questionIds = Object.keys(currentRound.questions);
+        const questionIds = orderedKeys(currentRound.questions);
         const currentIndex = questionIds.indexOf(gameState.currentQuestionId);
 
         if (currentIndex < questionIds.length - 1) {
             showQuestion(questionIds[currentIndex + 1]);
         } else {
-            const roundIds = Object.keys(quizData.rounds);
+            const roundIds = orderedKeys(quizData.rounds);
             const roundIndex = roundIds.indexOf(gameState.currentRoundId);
             if (roundIndex < roundIds.length - 1) {
                 startRound(roundIds[roundIndex + 1]);
@@ -84,9 +146,11 @@ export default function MasterView({ gameState, players }) {
     const previousQuestion = () => {
         if (!quizData || !gameState?.currentRoundId) return;
         const currentRound = quizData.rounds[gameState.currentRoundId];
-        const questionIds = Object.keys(currentRound.questions);
+        const questionIds = orderedKeys(currentRound.questions);
         const currentIndex = questionIds.indexOf(gameState.currentQuestionId);
         if (currentIndex > 0) {
+            // Re-showing a question wipes submitted answers — make that a choice
+            if (!window.confirm('Going back re-opens that question and clears everyone\'s submitted answers. Continue?')) return;
             showQuestion(questionIds[currentIndex - 1]);
         }
     };
@@ -99,14 +163,24 @@ export default function MasterView({ gameState, players }) {
     };
 
     const restartQuiz = () => {
-        set(ref(database, 'liveGame/gameState'), {
-            quizStatus: 'waiting',
-            currentRoundId: null,
-            currentQuestionId: null
-        });
+        // Atomic reset: fresh game state + per-question data cleared
+        const updates = {
+            'liveGame/gameState': {
+                quizStatus: 'waiting',
+                currentRoundId: null,
+                currentQuestionId: null,
+            },
+            'liveGame/reactions': null,
+        };
         players.forEach(player => {
-            set(ref(database, `liveGame/players/${player.name}/answer`), '');
+            updates[`liveGame/players/${player.name}/answer`] = '';
+            updates[`liveGame/players/${player.name}/answeredAt`] = null;
+            updates[`liveGame/players/${player.name}/history`] = null;
+            updates[`liveGame/players/${player.name}/streak`] = null;
+            updates[`liveGame/players/${player.name}/bestStreak`] = null;
         });
+        setAcceptedClusters({});
+        update(ref(database), updates);
     };
 
     const updatePlayerScore = (playerName, newScore) => {
@@ -121,9 +195,11 @@ export default function MasterView({ gameState, players }) {
     };
 
     const clearAllAnswers = () => {
+        const updates = {};
         players.forEach(player => {
-            set(ref(database, `liveGame/players/${player.name}/answer`), '');
+            updates[`liveGame/players/${player.name}/answer`] = '';
         });
+        update(ref(database), updates);
     };
 
     // Timer controls
@@ -133,6 +209,7 @@ export default function MasterView({ gameState, players }) {
             ...gameState,
             timerDeadline: deadline,
             timerDuration: seconds,
+            timerPausedRemaining: null,
         });
     };
 
@@ -141,6 +218,26 @@ export default function MasterView({ gameState, players }) {
             ...gameState,
             timerDeadline: null,
             timerDuration: null,
+            timerPausedRemaining: null,
+        });
+    };
+
+    const pauseTimer = () => {
+        if (!gameState?.timerDeadline) return;
+        const remaining = Math.max(0, gameState.timerDeadline - Date.now());
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            timerDeadline: null,
+            timerPausedRemaining: remaining,
+        });
+    };
+
+    const resumeTimer = () => {
+        if (typeof gameState?.timerPausedRemaining !== 'number') return;
+        set(ref(database, 'liveGame/gameState'), {
+            ...gameState,
+            timerDeadline: Date.now() + gameState.timerPausedRemaining,
+            timerPausedRemaining: null,
         });
     };
 
@@ -152,75 +249,52 @@ export default function MasterView({ gameState, players }) {
         });
     };
 
-    // Auto-score the current question. Handles partial credit for music,
-    // connections and logo wall as well as the simple objective types.
-    const norm = (s) => (typeof s === 'string' ? s : '').trim().toLowerCase();
+    const SPEED_FLOOR = 0.5;
+    const SPEED_TYPES = ['multiple_choice', 'true_false', 'text_input', 'image_input', 'ordering', 'guess_who'];
 
-    const scoreForQuestion = (question, answer) => {
-        const flatPoints = typeof question.points === 'number' ? question.points : 10;
-        switch (question.type) {
-            case 'multiple_choice':
-            case 'true_false':
-                return answer === question.answer ? flatPoints : 0;
-            case 'text_input':
-            case 'image_input':
-                return norm(answer) === norm(question.answer) ? flatPoints : 0;
-            case 'ordering':
-                return (Array.isArray(answer) && Array.isArray(question.answer)
-                    && JSON.stringify(answer) === JSON.stringify(question.answer)) ? flatPoints : 0;
-            case 'music': {
-                const pa = (answer && typeof answer === 'object') ? answer : {};
-                const ca = question.answer || {};
-                const pts = (question.points && typeof question.points === 'object') ? question.points : { title: 5, artist: 5, decade: 5 };
-                let s = 0;
-                if (ca.title && norm(pa.title) === norm(ca.title)) s += (pts.title || 5);
-                if (ca.artist && norm(pa.artist) === norm(ca.artist)) s += (pts.artist || 5);
-                if (ca.decade && pa.decade === ca.decade) s += (pts.decade || 5);
-                return s;
-            }
-            case 'connections': {
-                if (!Array.isArray(answer) || !Array.isArray(question.connections)) return 0;
-                const correctSets = question.connections.map(g => (g.words || []).map(norm).sort().join('|'));
-                const perGroup = Math.round(flatPoints / (question.connections.length || 4));
-                let s = 0;
-                answer.forEach(group => {
-                    if (!Array.isArray(group)) return;
-                    if (correctSets.includes(group.map(norm).sort().join('|'))) s += perGroup;
-                });
-                return s;
-            }
-            case 'logo_wall': {
-                if (!answer || typeof answer !== 'object' || !Array.isArray(question.logos)) return 0;
-                const perLogo = typeof question.points === 'number' ? question.points : 5;
-                let s = 0;
-                question.logos.forEach((logo, i) => {
-                    if (logo.answer && answer[i] && norm(answer[i]) === norm(logo.answer)) s += perLogo;
-                });
-                return s;
-            }
-            default:
-                return 0;
-        }
-    };
+    const hasAnswered = hasAnsweredShared;
+    const currentQid = gameState?.currentQuestionId;
+    const alreadyScored = !!currentQid && gameState?.scoredQuestionId === currentQid;
 
+    // Auto-score the current question once. Uses the shared (fuzzy) scoring,
+    // writes per-player history for the phones/awards, and guards against
+    // double-tapping the button.
     const autoScoreCurrentQuestion = () => {
         const question = getCurrentQuestion();
-        if (!question) return;
+        if (!question || !currentQid || alreadyScored) return;
+
+        const useSpeed = quizData?.speedBonus && gameState?.questionStartedAt && SPEED_TYPES.includes(question.type);
+        const windowMs = (gameState?.timerDuration || 30) * 1000;
+        const updates = { 'liveGame/gameState/scoredQuestionId': currentQid };
+
+        // Nearest-number: scored against the whole field
+        const numberWinners = question.type === 'number'
+            ? scoreNumberQuestion(question, players.filter(hasAnswered))
+            : null;
+
         players.forEach(player => {
             if (!hasAnswered(player)) return;
-            const gain = scoreForQuestion(question, player.answer);
-            if (gain > 0) updatePlayerScore(player.name, (player.score || 0) + gain);
+            let gain = numberWinners
+                ? (numberWinners[player.name] || 0)
+                : scoreForQuestion(question, player.answer);
+            if (gain > 0 && useSpeed) {
+                const at = player.answeredAt || gameState.questionStartedAt;
+                const frac = Math.min(1, Math.max(0, (at - gameState.questionStartedAt) / windowMs));
+                gain = Math.round(gain * (1 - (1 - SPEED_FLOOR) * frac));
+            }
+            const ms = (player.answeredAt && gameState?.questionStartedAt)
+                ? Math.max(0, player.answeredAt - gameState.questionStartedAt)
+                : null;
+            updates[`liveGame/players/${player.name}/history/${currentQid}`] = {
+                gain,
+                ok: gain > 0 ? 1 : 0,
+                ...(ms !== null ? { ms } : {}),
+            };
+            if (gain > 0) {
+                updates[`liveGame/players/${player.name}/score`] = (player.score || 0) + gain;
+            }
         });
-    };
-
-    // Check if player has submitted an actual answer (handles strings, arrays, objects)
-    const hasAnswered = (player) => {
-        const a = player.answer;
-        if (a == null) return false;
-        if (typeof a === 'string') return a !== '';
-        if (Array.isArray(a)) return a.length > 0;
-        if (typeof a === 'object') return Object.keys(a).length > 0;
-        return !!a;
+        update(ref(database), updates);
     };
 
     const getCurrentQuestion = useCallback(() => {
@@ -264,11 +338,25 @@ export default function MasterView({ gameState, players }) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     });
 
+    // Auto-reveal once every player has answered (opt-in)
+    useEffect(() => {
+        if (!autoReveal || gameState?.quizStatus !== 'active' || players.length === 0) return;
+        if (players.filter(hasAnswered).length < players.length) return;
+        const qid = gameState.currentQuestionId;
+        if (autoRevealedRef.current === qid) return;
+        autoRevealedRef.current = qid;
+        const t = setTimeout(() => showAnswer(), 800);
+        return () => clearTimeout(t);
+    }, [autoReveal, gameState?.quizStatus, gameState?.currentQuestionId, players]);
+
     const getPlayerAnswer = (player) => {
         if (!player.answer) return <span className="no-answer">No answer yet</span>;
         const question = getCurrentQuestion();
         if (!question) return <span className="answer-text">{JSON.stringify(player.answer)}</span>;
 
+        if (question.type === 'number' || question.type === 'guess_who') {
+            return <span className="answer-text">{typeof player.answer === 'string' ? player.answer : JSON.stringify(player.answer)}</span>;
+        }
         if (question.type === 'text_input' || question.type === 'image_input') {
             return <span className="answer-text">{typeof player.answer === 'string' ? player.answer : JSON.stringify(player.answer)}</span>;
         } else if (question.type === 'multiple_choice' || question.type === 'true_false') {
@@ -321,15 +409,34 @@ export default function MasterView({ gameState, players }) {
 
     const getPosition = () => {
         if (!gameState?.currentRoundId || !quizData) return null;
-        const roundIds = Object.keys(quizData.rounds);
+        const roundIds = orderedKeys(quizData.rounds);
         const rIdx = roundIds.indexOf(gameState.currentRoundId);
         const round = quizData.rounds[gameState.currentRoundId];
-        const qIds = round ? Object.keys(round.questions) : [];
+        const qIds = round ? orderedKeys(round.questions) : [];
         const qIdx = qIds.indexOf(gameState.currentQuestionId);
         return {
             roundNum: rIdx + 1, roundTotal: roundIds.length, roundTitle: round?.title,
             qNum: qIdx + 1, qTotal: qIds.length, hasQuestion: qIdx >= 0,
         };
+    };
+
+    // What's coming next — so the host can tee it up before revealing
+    const getOnDeck = () => {
+        if (!quizData || !gameState?.currentRoundId) return null;
+        const round = quizData.rounds[gameState.currentRoundId];
+        const qIds = round ? orderedKeys(round.questions) : [];
+        const qIdx = qIds.indexOf(gameState.currentQuestionId);
+        if (qIdx >= 0 && qIdx < qIds.length - 1) {
+            const nq = round.questions[qIds[qIdx + 1]];
+            return { kind: 'question', label: `Q${qIdx + 2}`, text: nq.text, type: nq.type };
+        }
+        const roundIds = orderedKeys(quizData.rounds);
+        const rIdx = roundIds.indexOf(gameState.currentRoundId);
+        if (rIdx >= 0 && rIdx < roundIds.length - 1) {
+            const nr = quizData.rounds[roundIds[rIdx + 1]];
+            return { kind: 'round', label: 'Next round', text: nr.title, type: nr.type };
+        }
+        return { kind: 'end', label: 'After this', text: 'Final scores & podium', type: null };
     };
 
     const statusMeta = () => {
@@ -349,14 +456,15 @@ export default function MasterView({ gameState, players }) {
         if (q.type === 'multiple_choice' || q.type === 'true_false') return `${String(q.answer).toUpperCase()}) ${q.options?.[q.answer] || ''}`;
         if (q.type === 'ordering' && Array.isArray(q.answer)) return q.answer.join('  →  ');
         if (q.type === 'music' && q.answer) return [q.answer.title, q.answer.artist, q.answer.decade].filter(Boolean).join(' · ');
+        if (q.type === 'guess_who') return `${q.answer} said it`;
         if (typeof q.answer === 'string') return q.answer;
         return '';
     };
 
     const primaryAction = () => {
         if (!status) return { label: 'Start quiz', icon: 'play', onClick: startQuiz };
-        if (status === 'waiting' && quizData) return { label: 'Start first round', icon: 'play', onClick: () => startRound(Object.keys(quizData.rounds)[0]) };
-        if (status === 'round-interstitial' && quizData) return { label: 'Show first question', icon: 'play', onClick: () => showQuestion(Object.keys(quizData.rounds[gameState.currentRoundId].questions)[0]) };
+        if (status === 'waiting' && quizData) return { label: 'Start first round', icon: 'play', onClick: () => startRound(orderedKeys(quizData.rounds)[0]) };
+        if (status === 'round-interstitial' && quizData) return { label: 'Show first question', icon: 'play', onClick: () => showQuestion(orderedKeys(quizData.rounds[gameState.currentRoundId].questions)[0]) };
         if (status === 'active') return { label: 'Reveal answer', icon: 'check', onClick: showAnswer, variant: 'success' };
         if (status === 'moderating') return { label: 'Next question', icon: 'skip-forward', onClick: nextQuestion };
         if (status === 'ended' && quizData) return { label: 'Restart quiz', icon: 'refresh', onClick: restartQuiz };
@@ -367,9 +475,50 @@ export default function MasterView({ gameState, players }) {
     const sm = statusMeta();
     const primary = primaryAction();
     const currentQ = getCurrentQuestion();
+    const onDeck = (status === 'moderating' || status === 'active') ? getOnDeck() : null;
+    const isTextQ = currentQ && (currentQ.type === 'text_input' || currentQ.type === 'image_input');
+    const moderatingText = status === 'moderating' && isTextQ;
     const inQuestion = status === 'active' || status === 'moderating';
     const answeredCount = players.filter(hasAnswered).length;
     const isObjective = !!currentQ; // every question type is now auto-scorable
+
+    // Mark one player's text answer correct by hand (writes history so their
+    // phone shows the real points)
+    const markCorrect = (player) => {
+        if (!currentQ || !currentQid) return;
+        const pts = typeof currentQ.points === 'number' ? currentQ.points : 10;
+        update(ref(database), {
+            [`liveGame/players/${player.name}/score`]: (player.score || 0) + pts,
+            [`liveGame/players/${player.name}/history/${currentQid}`]: { gain: pts, ok: 1 },
+        });
+    };
+
+    // Group identical/similar text answers so the host can accept a whole
+    // cluster in one tap instead of scanning the list
+    const answerClusters = () => {
+        if (!moderatingText) return [];
+        const map = new Map();
+        players.forEach(p => {
+            if (typeof p.answer !== 'string' || p.answer.trim() === '') return;
+            const key = normalize(p.answer);
+            if (!map.has(key)) map.set(key, { key, display: p.answer.trim(), players: [] });
+            map.get(key).players.push(p);
+        });
+        return [...map.values()]
+            .map(c => ({ ...c, quality: matchQuality(c.display, currentQ.answer) }))
+            .sort((a, b) => b.players.length - a.players.length);
+    };
+
+    const acceptCluster = (cluster) => {
+        const pts = typeof currentQ?.points === 'number' ? currentQ.points : 10;
+        const updates = {};
+        cluster.players.forEach(p => {
+            updates[`liveGame/players/${p.name}/score`] = (p.score || 0) + pts;
+            updates[`liveGame/players/${p.name}/history/${currentQid}`] = { gain: pts, ok: 1 };
+        });
+        update(ref(database), updates);
+        setAcceptedClusters(prev => ({ ...prev, [`${currentQid}|${cluster.key}`]: true }));
+    };
 
     const renderControl = () => (
         <div className="control-panel">
@@ -391,6 +540,11 @@ export default function MasterView({ gameState, players }) {
                 <div className="mc-now-card">
                     <div className="mc-now-tag">{status === 'moderating' ? 'Answer revealed' : 'On screen now'}</div>
                     <div className="mc-now-question">{currentQ.text}</div>
+                    {currentQ.hostNotes && (
+                        <div className="mc-host-notes">
+                            <Icon name="bulb" size={14} /> {currentQ.hostNotes}
+                        </div>
+                    )}
                     {status === 'active' && (
                         <div className="mc-answered">
                             <div className="mc-answered-count">{answeredCount} / {players.length}</div>
@@ -435,9 +589,22 @@ export default function MasterView({ gameState, players }) {
             )}
 
             {status === 'moderating' && isObjective && (
-                <button className="mc-autoscore" onClick={autoScoreCurrentQuestion}>
-                    <Icon name="bolt" size={17} /> Auto-score this question
+                <button
+                    className={`mc-autoscore ${alreadyScored ? 'mc-autoscore-done' : ''}`}
+                    onClick={autoScoreCurrentQuestion}
+                    disabled={alreadyScored}
+                >
+                    <Icon name={alreadyScored ? 'check' : 'bolt'} size={17} />
+                    {alreadyScored ? ' Scored — points awarded' : ' Auto-score this question'}
                 </button>
+            )}
+
+            {status === 'moderating' && onDeck && (
+                <div className="mc-ondeck">
+                    <span className="mc-ondeck-tag">{onDeck.label} up next</span>
+                    <span className="mc-ondeck-text">{onDeck.text}</span>
+                    {onDeck.type && <span className="mc-ondeck-type">{String(onDeck.type).replace('_', ' ')}</span>}
+                </div>
             )}
 
             {inQuestion && (
@@ -461,7 +628,13 @@ export default function MasterView({ gameState, players }) {
                             onClick={() => { setTimerSeconds(s); startTimer(s); }}
                         >{s}s</button>
                     ))}
-                    {timerRunning && <button className="mc-tchip mc-tstop" onClick={stopTimer}>Stop</button>}
+                    {timerRunning && <button className="mc-tchip mc-tpause" onClick={pauseTimer}>Pause</button>}
+                    {timerPaused && (
+                        <button className="mc-tchip mc-tresume" onClick={resumeTimer}>
+                            Resume ({Math.ceil(gameState.timerPausedRemaining / 1000)}s)
+                        </button>
+                    )}
+                    {(timerRunning || timerPaused) && <button className="mc-tchip mc-tstop" onClick={stopTimer}>Stop</button>}
                 </div>
             )}
 
@@ -489,7 +662,7 @@ export default function MasterView({ gameState, players }) {
                             <div className="mc-sheet-rounds">
                                 <span className="mc-sheet-sub">Jump to round</span>
                                 <div className="mc-rounds-grid">
-                                    {Object.entries(quizData.rounds).map(([roundId, round]) => (
+                                    {orderedEntries(quizData.rounds).map(([roundId, round]) => (
                                         <button
                                             key={roundId}
                                             className={`mc-round-btn ${gameState?.currentRoundId === roundId ? 'active' : ''}`}
@@ -507,6 +680,9 @@ export default function MasterView({ gameState, players }) {
                         </button>
                         <button className="mc-sheet-row" onClick={() => { toggleLeaderboard(); setMoreOpen(false); }}>
                             <Icon name="trophy" size={18} /> {gameState?.showLeaderboard ? 'Hide leaderboard from TV' : 'Show leaderboard on TV'}
+                        </button>
+                        <button className="mc-sheet-row" onClick={() => { setAutoReveal(v => !v); setMoreOpen(false); }}>
+                            <Icon name="eye" size={18} /> Auto-reveal when all answered: {autoReveal ? 'On' : 'Off'}
                         </button>
                         {status && status !== 'ended' && (
                             <button className="mc-sheet-row mc-danger" onClick={() => { endQuiz(); setMoreOpen(false); }}>
@@ -528,6 +704,33 @@ export default function MasterView({ gameState, players }) {
                 )}
             </div>
 
+            {moderatingText && (
+                <div className="mc-answer-ref">Correct answer: <strong>{correctAnswerText()}</strong></div>
+            )}
+
+            {moderatingText && answerClusters().length > 0 && (
+                <div className="mc-clusters">
+                    <div className="mc-clusters-title">Answers, grouped</div>
+                    {answerClusters().map(cluster => {
+                        const accepted = acceptedClusters[`${currentQid}|${cluster.key}`];
+                        return (
+                            <div key={cluster.key} className={`mc-cluster ${cluster.quality !== 'wrong' ? 'mc-cluster-match' : ''}`}>
+                                <span className="mc-cluster-text">"{cluster.display}"</span>
+                                <span className="mc-cluster-count">×{cluster.players.length}</span>
+                                {cluster.quality === 'exact' && <span className="mc-quality exact">match</span>}
+                                {cluster.quality === 'close' && <span className="mc-quality close">close</span>}
+                                {cluster.quality === 'wrong' && !accepted && !alreadyScored && (
+                                    <button className="mc-cluster-accept" onClick={() => acceptCluster(cluster)}>
+                                        <Icon name="check" size={13} /> Accept all
+                                    </button>
+                                )}
+                                {accepted && <span className="mc-quality accepted">accepted</span>}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
             {players.length === 0 ? (
                 <div className="no-players">
                     <p>No players yet</p>
@@ -535,7 +738,12 @@ export default function MasterView({ gameState, players }) {
                 </div>
             ) : (
                 <div className="players-list">
-                    {players.map((player, index) => (
+                    {players.map((player, index) => {
+                        const quality = (moderatingText && typeof player.answer === 'string' && player.answer !== '')
+                            ? matchQuality(player.answer, currentQ.answer)
+                            : null;
+                        const exactMatch = quality === 'exact';
+                        return (
                         <motion.div
                             key={player.name}
                             className={`player-card ${
@@ -576,6 +784,11 @@ export default function MasterView({ gameState, players }) {
                                             <div className="player-score">{player.score || 0} pts</div>
                                             {status === 'moderating' ? (
                                                 <div className="quick-score-buttons">
+                                                    {isTextQ && (
+                                                        <button className="quick-score-btn correct" title="Mark correct" onClick={() => markCorrect(player)}>
+                                                            <Icon name="check" size={14} />
+                                                        </button>
+                                                    )}
                                                     <button className="quick-score-btn positive" onClick={() => updatePlayerScore(player.name, (player.score || 0) + 5)}>+5</button>
                                                     <button className="quick-score-btn positive" onClick={() => updatePlayerScore(player.name, (player.score || 0) + 10)}>+10</button>
                                                     <button className="quick-score-btn negative" onClick={() => updatePlayerScore(player.name, Math.max(0, (player.score || 0) - 5))}>&minus;5</button>
@@ -591,7 +804,10 @@ export default function MasterView({ gameState, players }) {
                             </div>
 
                             {inQuestion ? (
-                                <div className="player-answer">{getPlayerAnswer(player)}</div>
+                                <div className={`player-answer ${exactMatch ? 'answer-correct' : ''} ${quality === 'close' ? 'answer-close' : ''}`}>
+                                    {getPlayerAnswer(player)}
+                                    {quality === 'close' && <span className="mc-quality close">close — counts</span>}
+                                </div>
                             ) : null}
 
                             {(status === 'waiting' || !status) && (
@@ -600,7 +816,8 @@ export default function MasterView({ gameState, players }) {
                                 </button>
                             )}
                         </motion.div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

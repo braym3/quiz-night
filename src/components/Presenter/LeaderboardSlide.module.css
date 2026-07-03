@@ -86,3 +86,40 @@
     opacity: 0.8;
     font-size: 1.4em;
 }
+
+/* --- Rank movement --- */
+.deltaSlot {
+  width: clamp(34px, 4vw, 56px);
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: clamp(0.75rem, 1.2vw, 1rem);
+  font-weight: 800;
+}
+
+.deltaUp {
+  color: var(--color-success, #35d073);
+}
+
+.deltaDown {
+  color: var(--color-danger, #ff5a5a);
+}
+
+.deltaSame {
+  opacity: 0.35;
+}
+
+/* --- TV fit --- */
+.container {
+  max-height: 100%;
+  overflow: hidden;
+}
+.track { height: clamp(32px, 6.2vh, 66px); }
+.title { margin-top: 0; }
+.rows { gap: clamp(5px, 1.2vh, 16px); }
