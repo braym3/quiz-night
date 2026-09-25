@@ -63,6 +63,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
   const [solvedGroups, setSolvedGroups] = useState([]);
   const [remainingWords, setRemainingWords] = useState([]);
   const [connectionMistakes, setConnectionMistakes] = useState(0);
+  const [wrongGuesses, setWrongGuesses] = useState([]);
+  const [connectionFeedback, setConnectionFeedback] = useState(null); // { text, key }
   // Logo wall state
   const [logoAnswers, setLogoAnswers] = useState({});
   const [logoUrls, setLogoUrls] = useState({});
@@ -249,6 +251,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
         setSolvedGroups([]);
         setRemainingWords([]);
         setConnectionMistakes(0);
+        setWrongGuesses([]);
+        setConnectionFeedback(null);
         setLogoAnswers({});
         setExpandedLogo(null);
 
@@ -321,8 +325,24 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
     }
   };
 
+  const showConnectionFeedback = (text) => setConnectionFeedback({ text, key: Date.now() });
+
+  // Clear the "One away…" style toast after a moment
+  useEffect(() => {
+    if (!connectionFeedback) return;
+    const t = setTimeout(() => setConnectionFeedback(null), 1800);
+    return () => clearTimeout(t);
+  }, [connectionFeedback]);
+
   const handleConnectionSubmit = () => {
     if (selectedWords.length !== 4 || !currentQuestion?.connections) return;
+
+    // Repeating a wrong guess doesn't cost a life
+    const guessKey = selectedWords.map(w => w.toUpperCase()).sort().join('|');
+    if (wrongGuesses.includes(guessKey)) {
+      showConnectionFeedback('Already guessed!');
+      return;
+    }
 
     // Check if the selected words match any group
     const matchedGroup = currentQuestion.connections.find(group => {
@@ -347,7 +367,13 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
     } else {
       vibrate([30, 30, 30]);
       setConnectionMistakes(prev => prev + 1);
-      setSelectedWords([]);
+      setWrongGuesses(prev => [...prev, guessKey]);
+      // Like NYT: say "One away…" when 3 of the 4 belong together, and keep
+      // the selection so they can swap a word
+      const selected = selectedWords.map(w => w.toUpperCase());
+      const bestOverlap = Math.max(...currentQuestion.connections.map(group =>
+        group.words.filter(w => selected.includes(w.toUpperCase())).length));
+      showConnectionFeedback(bestOverlap === 3 ? 'One away…' : 'Not quite!');
       // Max 4 mistakes = game over, submit what they have
       if (connectionMistakes + 1 >= 4) {
         const groupedAnswer = solvedGroups.map(g => g.words);
@@ -807,7 +833,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
         >
-          <RoundLottie type={round?.type} size={130} />
+          <RoundLottie type={round?.type} animation={round?.animation} size={130} />
           <h2>{round?.title || 'Next Round'}</h2>
           <p>Get ready!</p>
         </motion.div>
@@ -1031,6 +1057,18 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
                 </motion.button>
               ))}
             </div>
+
+            {connectionFeedback && (
+              <motion.div
+                key={connectionFeedback.key}
+                className="connections-feedback"
+                initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1, x: [0, -8, 8, -5, 5, 0] }}
+                transition={{ duration: 0.4 }}
+              >
+                {connectionFeedback.text}
+              </motion.div>
+            )}
 
             {/* Mistakes indicator */}
             <div className="connections-mistakes">

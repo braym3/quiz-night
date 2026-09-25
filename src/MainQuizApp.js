@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const AVATAR_EMOJIS = ['😎', '🤓', '🦊', '🐱', '🦄', '🐸', '🦋', '🎸', '🌟', '🍕', '🎯', '🚀', '🌈', '🎨', '🎵', '🏆'];
 
 // Reactions players can fling at the TV
-const REACTION_EMOJIS = ['😂', '🔥', '😱', '👏', '💀'];
+const REACTION_EMOJIS = ['🥲', '👀', '😮‍💨', '💀', '🫨'];
 
 export default function MainQuizApp() {
   const [isMaster, setIsMaster] = useState(false);

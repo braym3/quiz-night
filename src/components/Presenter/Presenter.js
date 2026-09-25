@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { database } from '../../index';
 import { ref, onValue, get } from 'firebase/database';
 import { AnimatePresence, motion } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import WelcomeSlide from './WelcomeSlide';
 import RoundSlide from './RoundSlide';
 import QuestionSlide from './QuestionSlide';
@@ -256,12 +257,9 @@ export default function Presenter() {
             return <RoundSlide key={currentRoundId} round={round} roundId={currentRoundId} players={players} />;
         }
 
-        // Show the join QR in the corner throughout round 1 for late arrivals
-        const isFirstRound = orderedKeys(quizContent.rounds)[0] === currentRoundId;
-
         if (quizStatus === 'active' && question) {
             const questionWithId = { ...question, id: currentQuestionId };
-            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} players={players} timerDeadline={gameState.timerDeadline} timerDuration={gameState.timerDuration} timerPaused={typeof gameState.timerPausedRemaining === 'number' ? gameState.timerPausedRemaining : null} showJoinQr={isFirstRound} soundOn={soundOn} />;
+            return <QuestionSlide key={currentQuestionId} question={questionWithId} round={round} players={players} timerDeadline={gameState.timerDeadline} timerDuration={gameState.timerDuration} timerPaused={typeof gameState.timerPausedRemaining === 'number' ? gameState.timerPausedRemaining : null} soundOn={soundOn} />;
         }
 
         if (quizStatus === 'moderating' && question) {
@@ -275,6 +273,13 @@ export default function Presenter() {
     const theme = getTheme(currentTheme);
     const showSparkles = theme.effects?.sparkles === true;
 
+    // Join QR sits in the screen corner throughout round 1 for late arrivals.
+    // Rendered outside the animated slides so it doesn't jump between questions.
+    const showJoinQr = !!(gameState && quizContent && !gameState.showLeaderboard
+        && ['active', 'moderating'].includes(gameState.quizStatus)
+        && orderedKeys(quizContent.rounds)[0] === gameState.currentRoundId);
+    const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
+
     return (
         <div className={`${styles.presenterContainer} presenterContainer`}>
             {showSparkles && <Sparkles />}
@@ -283,6 +288,21 @@ export default function Presenter() {
                     {renderSlide()}
                 </AnimatePresence>
             </ErrorBoundary>
+
+            <AnimatePresence>
+                {showJoinQr && (
+                    <motion.div
+                        key="join-qr"
+                        className={styles.joinQrCorner}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <QRCodeSVG value={joinUrl} size={74} bgColor="#ffffff" fgColor="#16151c" level="M" />
+                        <span>Scan to join</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Emoji reactions floating up */}
             <div className={styles.reactionLayer} aria-hidden="true">

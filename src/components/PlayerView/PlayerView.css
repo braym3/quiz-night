@@ -564,6 +564,17 @@
   color: var(--color-text-muted);
 }
 
+.connections-feedback {
+  width: fit-content;
+  margin: var(--space-2) auto 0;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+}
+
 .mistake-dot { margin-left: 4px; font-size: 0.8em; }
 .mistake-dot.active { color: var(--color-text); }
 .mistake-dot.used { opacity: 0.25; }

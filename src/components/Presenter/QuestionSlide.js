@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Lottie from 'lottie-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { storage } from '../../index';
 import { ref, getDownloadURL } from 'firebase/storage';
 import musicAnimation from '../../assets/lottie/music-animation.json';
@@ -21,7 +20,7 @@ const CONNECTION_COLORS = [
   { bg: '#ba81c5', text: '#000' },
 ];
 
-export default function QuestionSlide({ question, round, players = [], timerDeadline, timerDuration, timerPaused = null, showJoinQr = false }) {
+export default function QuestionSlide({ question, round, players = [], timerDeadline, timerDuration, timerPaused = null }) {
     const [imageUrl, setImageUrl] = useState(null);
     const [logoUrls, setLogoUrls] = useState({});
     const [audioUrl, setAudioUrl] = useState(null);
@@ -140,7 +139,6 @@ export default function QuestionSlide({ question, round, players = [], timerDead
     const questionId = question.id || questionIdsInRound.find(id => round.questions[id].text === question.text);
     const questionNumber = questionIdsInRound.indexOf(questionId) + 1;
     const answeredCount = players.filter(p => p.answer && p.answer !== '').length;
-    const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '';
 
     // Determine if this is a logo wall question for special card styling
     const isLogoWall = question.type === 'logo_wall';
@@ -190,12 +188,6 @@ export default function QuestionSlide({ question, round, players = [], timerDead
             {timerPaused !== null && (
                 <div className={styles.timerPausedBadge}>
                     <Icon name="pause" size={16} /> Paused — {Math.ceil(timerPaused / 1000)}s left
-                </div>
-            )}
-            {showJoinQr && (
-                <div className={styles.joinQrCorner}>
-                    <QRCodeSVG value={joinUrl} size={74} bgColor="#ffffff" fgColor="#16151c" level="M" />
-                    <span>Scan to join</span>
                 </div>
             )}
             <div className={styles.questionContent}>
