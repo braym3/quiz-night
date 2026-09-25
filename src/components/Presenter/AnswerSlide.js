@@ -175,10 +175,12 @@ export default function AnswerSlide({ question, players = [] }) {
                         <span className={styles.musicRevealLabel}>Song</span>
                         <span className={styles.musicRevealValue}>{question.answer.title}</span>
                     </motion.div>
-                    <motion.div className={styles.musicRevealRow} variants={itemVariants}>
-                        <span className={styles.musicRevealLabel}>Artist</span>
-                        <span className={styles.musicRevealValue}>{question.answer.artist}</span>
-                    </motion.div>
+                    {question.answer.artist && (
+                        <motion.div className={styles.musicRevealRow} variants={itemVariants}>
+                            <span className={styles.musicRevealLabel}>Artist</span>
+                            <span className={styles.musicRevealValue}>{question.answer.artist}</span>
+                        </motion.div>
+                    )}
                     {question.answer.decade && (
                         <motion.div className={styles.musicRevealRow} variants={itemVariants}>
                             <span className={styles.musicRevealLabel}>Decade</span>
