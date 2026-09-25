@@ -427,30 +427,6 @@
   z-index: 5;
 }
 
-/* --- Join QR corner --- */
-.joinQrCorner {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  z-index: 5;
-}
-
-.joinQrCorner span {
-  font-size: 0.62rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #16151c;
-}
-
 /* --- Guess who --- */
 .guessWhoQuote {
   font-family: var(--font-heading, inherit);
@@ -505,12 +481,22 @@
   max-height: 100%;
   min-height: min(50vh, 100%);
   overflow: hidden;
-  justify-content: center;
-  justify-content: safe center;
+  /* Banner stays at the top; .questionContent centres itself below it */
+  justify-content: flex-start;
+  position: relative;
   padding: clamp(14px, 2.4vh, 30px) clamp(18px, 3vw, 40px);
 }
-.questionContent { width: 100%; min-height: 0; }
+.questionContent {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-content: safe center;
+}
 .questionNumberBanner {
+  flex-shrink: 0;
   font-size: clamp(0.95rem, 2.2vh, 1.5rem);
   padding: clamp(6px, 1.2vh, 10px) clamp(16px, 2vw, 30px);
   margin-bottom: clamp(8px, 1.8vh, 20px);

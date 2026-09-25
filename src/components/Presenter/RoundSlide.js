@@ -42,7 +42,7 @@ export default function RoundSlide({ round, roundId, players = [] }) {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1, transition: { delay: 0.6 } }}
             >
-                <RoundLottie type={round.type} size="100%" />
+                <RoundLottie type={round.type} animation={round.animation} size="100%" />
             </motion.div>
 
             {showStandings && (

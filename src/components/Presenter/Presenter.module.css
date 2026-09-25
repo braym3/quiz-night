@@ -290,3 +290,28 @@
   padding: clamp(12px, 2.5vmin, 36px);
   box-sizing: border-box;
 }
+
+/* --- Join QR corner --- */
+.joinQrCorner {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  z-index: 55;
+}
+
+.joinQrCorner span {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #16151c;
+}
+

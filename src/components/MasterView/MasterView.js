@@ -565,7 +565,7 @@ export default function MasterView({ gameState, players }) {
 
             {status === 'round-interstitial' && pos && (
                 <div className="mc-round-card">
-                    <RoundLottie type={quizData?.rounds?.[gameState.currentRoundId]?.type} size={88} />
+                    <RoundLottie type={quizData?.rounds?.[gameState.currentRoundId]?.type} animation={quizData?.rounds?.[gameState.currentRoundId]?.animation} size={88} />
                     <div className="mc-round-title">{pos.roundTitle}</div>
                     <div className="mc-round-sub">Round {pos.roundNum} of {pos.roundTotal}</div>
                 </div>
