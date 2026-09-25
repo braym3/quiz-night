@@ -689,10 +689,12 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
                             <span className="music-reveal-label">Song</span>
                             <span className="music-reveal-value">{currentQuestion.answer.title}</span>
                         </motion.div>
-                        <motion.div className="music-reveal-row" variants={itemVariants}>
-                            <span className="music-reveal-label">Artist</span>
-                            <span className="music-reveal-value">{currentQuestion.answer.artist}</span>
-                        </motion.div>
+                        {currentQuestion.answer.artist && (
+                            <motion.div className="music-reveal-row" variants={itemVariants}>
+                                <span className="music-reveal-label">Artist</span>
+                                <span className="music-reveal-value">{currentQuestion.answer.artist}</span>
+                            </motion.div>
+                        )}
                         {currentQuestion.answer.decade && (
                             <motion.div className="music-reveal-row" variants={itemVariants}>
                                 <span className="music-reveal-label">Decade</span>
@@ -1080,6 +1082,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
                 className="music-input"
               />
             </div>
+            {currentQuestion.answer?.artist && (
             <div className="music-field">
               <label className="music-field-label">Artist</label>
               <input
@@ -1090,6 +1093,8 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
                 className="music-input"
               />
             </div>
+            )}
+            {currentQuestion.answer?.decade && (
             <div className="music-field">
               <label className="music-field-label">Decade</label>
               <div className="music-decades">
@@ -1104,6 +1109,7 @@ const PlayerView = ({ playerName, gameState, onShowLeaderboard, players = [] }) 
                 ))}
               </div>
             </div>
+            )}
             <button onClick={handleMusicSubmit} className="music-submit-btn">
               Submit Answer
             </button>
